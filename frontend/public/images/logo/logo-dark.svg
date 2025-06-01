@@ -1,0 +1,24 @@
+<svg width="200" height="50" viewBox="0 0 200 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Тело бобра -->
+    <ellipse cx="40" cy="25" rx="25" ry="20" fill="#3A2F2F" /> <!-- темнее, серо-коричневый -->
+
+    <!-- Уши -->
+    <circle cx="25" cy="10" r="7" fill="#2A2222" /> <!-- тёмный шоколад -->
+
+    <circle cx="55" cy="10" r="7" fill="#2A2222" />
+
+    <!-- Глаза -->
+    <circle cx="30" cy="25" r="5" fill="#CCCCCC" /> <!-- светло-серый глаза -->
+    <circle cx="50" cy="25" r="5" fill="#CCCCCC" />
+    <circle cx="30" cy="25" r="2" fill="#222222" /> <!-- почти чёрные зрачки -->
+    <circle cx="50" cy="25" r="2" fill="#222222" />
+
+    <!-- Зубы -->
+    <rect x="35" y="38" width="10" height="6" rx="2" ry="2" fill="#BBBBBB" /> <!-- светло-серый зубы -->
+    <line x1="40" y1="38" x2="40" y2="44" stroke="#555555" stroke-width="1" /> <!-- тёмно-серый штрих -->
+
+    <!-- Надпись Amazon, смещена влево -->
+    <text x="75" y="35" font-family="Arial, sans-serif" font-weight="700" font-size="28" fill="#FFAA33" letter-spacing="2">
+        Amazon
+    </text>
+</svg>
