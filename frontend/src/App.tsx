@@ -26,11 +26,13 @@ export default function App() {
         <Router>
           <ScrollToTop />
           <Routes>
-
+            {/* Головна сторінка Home*/}
             <Route path="/" element={<Home />} />
 
+            {/* Адмін панель*/}
             <Route path="/admin" element={<AppLayout />}>
               <Route index element={<Admin />} />
+
 
               <Route path="profile" element={<UserProfiles />} />
               <Route path="calendar" element={<Calendar />} />
