@@ -26,14 +26,12 @@ export default function App() {
         <Router>
           <ScrollToTop />
           <Routes>
-            {/* Главная страница без админского лейаута */}
+
             <Route path="/" element={<Home />} />
 
-            {/* Админские роуты под /admin */}
             <Route path="/admin" element={<AppLayout />}>
               <Route index element={<Admin />} />
 
-              {/* Админские страницы */}
               <Route path="profile" element={<UserProfiles />} />
               <Route path="calendar" element={<Calendar />} />
               <Route path="blank" element={<Blank />} />
