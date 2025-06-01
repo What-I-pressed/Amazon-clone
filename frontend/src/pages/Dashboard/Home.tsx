@@ -6,7 +6,7 @@ import RecentOrders from "../../components/ecommerce/RecentOrders";
 import DemographicCard from "../../components/ecommerce/DemographicCard";
 import PageMeta from "../../components/common/PageMeta";
 
-export default function Home() {
+export default function Admin() {
   return (
     <>
       <PageMeta
