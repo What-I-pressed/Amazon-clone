@@ -1,11 +1,6 @@
 package com.finale.amazon.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,14 +9,18 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Picture {
+public class ProductVariation {             //shloud be a lot of logic with this
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    
-    @Lob
-    private byte[] data;
 
     @ManyToOne
+    @JoinColumn(name = "product_id")
     private Product product;
+
+    private long quantityInStock;
+
+    @ManyToOne
+    @JoinColumn(name = "characteristic_value_id")
+    private CharacteristicValue characteristic;
 }

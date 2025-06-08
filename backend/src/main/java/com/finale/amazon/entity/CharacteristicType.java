@@ -1,11 +1,12 @@
 package com.finale.amazon.entity;
 
+import java.util.List;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,14 +15,13 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Picture {
+public class CharacteristicType {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    
-    @Lob
-    private byte[] data;
 
-    @ManyToOne
-    private Product product;
+    private String name;
+
+    @OneToMany(mappedBy = "characteristic", cascade = jakarta.persistence.CascadeType.ALL)
+    private List<CharacteristicValue> values;
 }

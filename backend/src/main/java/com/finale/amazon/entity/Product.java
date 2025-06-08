@@ -10,6 +10,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Temporal;
@@ -33,17 +35,19 @@ public class Product {
     @Column(length = 8192)
     private String description;
 
-    private double price;
+    private double price;           //default currency in $, in perspective implement currency converter
 
     private double priceWithoutDiscount;
-
-    
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date discountLaunchDate;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date discountExpirationDate;
+
+    private long quantityInStock;
+
+    private long quantitySold;
 
     @ManyToOne
     @JoinColumn(name = "category_id")
@@ -52,6 +56,11 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "subcategory_id")
     private Subcategory subcategory;
+
+
+    @ManyToOne
+    @JoinColumn(name = "characteristic_type_id")
+    private CharacteristicType characteristic;
 
     @ManyToOne
     @JoinColumn(name = "vendor_id")
@@ -65,4 +74,10 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade =  CascadeType.ALL)
     private List<Order> orders;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<CharacteristicValue> characteristics_value;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<ProductVariation> variations;
 }
