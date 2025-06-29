@@ -22,6 +22,6 @@ public class CharacteristicType {
 
     private String name;
 
-    @OneToMany(mappedBy = "characteristic", cascade = jakarta.persistence.CascadeType.ALL)
+    @OneToMany(mappedBy = "characteristicType", cascade = jakarta.persistence.CascadeType.ALL)
     private List<CharacteristicValue> values;
 }

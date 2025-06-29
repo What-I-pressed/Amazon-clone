@@ -1,5 +1,6 @@
 package com.finale.amazon.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,6 +20,7 @@ public class CharacteristicValue {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     
+    @Column(name = "characteristic_value")
     private String value;
 
     @ManyToOne

@@ -24,4 +24,7 @@ public class Picture {
 
     @ManyToOne
     private Product product;
+
+    @ManyToOne
+    private Review review;
 }

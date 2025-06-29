@@ -1,5 +1,6 @@
 package com.finale.amazon.entity;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.hibernate.annotations.ManyToAny;
@@ -29,17 +30,19 @@ public class Review {
     @Column(length = 8192)
     private String description;
 
+    private LocalDateTime date;
+
     @ManyToOne
     private Product product;
 
-    @ManyToAny
-    @JoinColumn(name = "parent_id")
+    @ManyToOne
+    @JoinColumn(name = "parent_id") 
     private Review parent;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
-    
+
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     private List<Review> reviews;
 
