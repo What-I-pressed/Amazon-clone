@@ -19,6 +19,7 @@ import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Home";
 import Admin from "./pages/Dashboard/Home";
+import SellerProfile from "./pages/Seller/Profile";
 
 export default function App() {
   return (
@@ -58,6 +59,9 @@ export default function App() {
 
             {/* Fallback Route */}
             <Route path="*" element={<NotFound />} />
+
+            {/*Seller*/}
+            <Route path="/seller/:id" element={<SellerProfile />} />
           </Routes>
         </Router>
       </>
