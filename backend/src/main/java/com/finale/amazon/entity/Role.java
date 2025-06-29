@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,6 +25,6 @@ public class Role {
      @Column(length = 256, nullable = false, unique = true)
     private String name;
 
-    @ManyToMany(mappedBy = "roles", fetch = jakarta.persistence.FetchType.LAZY)
+    @OneToMany(mappedBy = "role", fetch = jakarta.persistence.FetchType.LAZY)
     private List<User> users;
 }
