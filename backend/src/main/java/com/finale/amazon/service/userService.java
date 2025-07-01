@@ -2,7 +2,7 @@ package com.finale.amazon.service;
 
 import com.finale.amazon.entity.User;
 import com.finale.amazon.entity.Role;
-import com.finale.amazon.repository.userRepository;
+import com.finale.amazon.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +17,7 @@ import java.util.Optional;
 public class userService {
 
     @Autowired
-    private userRepository userRepository;
+    private UserRepository userRepository;
 
     
     private String hashPassword(String password) {

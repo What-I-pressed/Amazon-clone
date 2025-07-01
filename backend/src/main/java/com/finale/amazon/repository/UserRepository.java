@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import com.finale.amazon.entity.User;
 
 @Repository
-public interface userRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, Long> {
     @Query("Select u from User u where u.role.name = :role and u.email = :gmail and u.password = :password")
     List<User> findUser(@Param("role") String role, @Param("gmail") String gmail,
                         @Param("password") String password);
