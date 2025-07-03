@@ -20,7 +20,7 @@ public class ProductController {
     private ProductService productService;
 
     @GetMapping("page/{page}")
-    public ResponseEntity<Page<ProductDto>> getProductsPage(@PathVariable int page, @RequestParam(defaultValue = "24") int size) {
+    public ResponseEntity<Page<ProductDto>> getProductsPage(@PathVariable int page, @RequestParam(defaultValue = "24") int size) {              //сторінки нумеруються з 0!!!
         return ResponseEntity.ok(productService.getProductsPage(PageRequest.of(page, size)).map(ProductDto::new));
     }
 
@@ -29,4 +29,10 @@ public class ProductController {
         Product product = productService.createProduct(productCreationDto);
         return ResponseEntity.ok(new ProductDto(product));
     }
+
+    // @GetMapping("{id}")
+    // public ResponseEntity<ProductDto>> getProduct(@PathVariable long id){
+    //     return
+    // }
+
 } 

@@ -13,7 +13,7 @@ import com.finale.amazon.entity.User;
 @NoArgsConstructor
 public class UserDto {
     private Long id;
-    private String name;
+    private String username;
     private String description;
     private String email;
     private String roleName;
@@ -21,7 +21,7 @@ public class UserDto {
 
     public UserDto(User user){
         this.id = user.getId();
-        this.name = user.getName();
+        this.username = user.getUsername();
         this.description = user.getDescription();
         this.email = user.getEmail();
         this.roleName = user.getRole() != null ? user.getRole().getName() : null;

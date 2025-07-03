@@ -1,7 +1,9 @@
 package com.finale.amazon.service;
 
 import com.finale.amazon.entity.User;
+import com.finale.amazon.dto.UserRequestDto;
 import com.finale.amazon.entity.Role;
+import com.finale.amazon.repository.RoleRepository;
 import com.finale.amazon.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,10 +16,13 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class userService {
+public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
 
     
     private String hashPassword(String password) {
@@ -59,14 +64,30 @@ public class userService {
     }
 
     
-    public User createUser(User user) {
-        user.setCreatedAt(LocalDateTime.now());
-        
-        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-            user.setPassword(hashPassword(user.getPassword()));
+    public User createUser(UserRequestDto userRequestDto) {
+        try{
+
+            User user = new User();
+            user.setUsername(userRequestDto.getUsername());
+            user.setEmail(userRequestDto.getEmail());
+            user.setPassword(userRequestDto.getPassword());
+            user.setDescription(userRequestDto.getDescription());
+    
+            Role role = roleRepository.findByName(userRequestDto.getRoleName()).orElseThrow(() -> new RuntimeException("Role not found"));
+            user.setRole(role);
+            user.setCreatedAt(LocalDateTime.now());
+            
+            if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+                user.setPassword(hashPassword(user.getPassword()));
+            }
+            else throw new RuntimeException("Password is required");
+            
+            
+            return userRepository.save(user);
         }
-        
-        return userRepository.save(user);
+        catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     
@@ -75,8 +96,8 @@ public class userService {
         
         if (optionalUser.isPresent()) {
             User existingUser = optionalUser.get();
-            if (userDetails.getName() != null) {
-                existingUser.setName(userDetails.getName());
+            if (userDetails.getUsername() != null) {
+                existingUser.setUsername(userDetails.getUsername());
             }
             if (userDetails.getDescription() != null) {
                 existingUser.setDescription(userDetails.getDescription());
@@ -158,13 +179,12 @@ public class userService {
             User user = optionalUser.get();
             
             if (name != null) {
-                user.setName(name);
+                user.setUsername(name);
             }
             if (description != null) {
                 user.setDescription(description);
             }
             if (email != null && !email.equals(user.getEmail())) {
-                // Check if new email is already taken
                 if (userExistsByEmail(email)) {
                     throw new RuntimeException("Email already exists: " + email);
                 }

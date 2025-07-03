@@ -71,7 +71,7 @@ public class ProductDto {
         }
         
         if (product.getVendor() != null) {
-            this.vendorName = product.getVendor().getName();
+            this.vendorName = product.getVendor().getUsername();
             this.vendorId = product.getVendor().getId();
         }
         

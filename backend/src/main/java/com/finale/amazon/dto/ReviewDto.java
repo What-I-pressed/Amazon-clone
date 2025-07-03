@@ -13,7 +13,7 @@ public class ReviewDto {
     private Long id;
     private String description;
     private LocalDateTime date;
-    private String userName;
+    private String username;
     private Long userId;
     
     public ReviewDto(com.finale.amazon.entity.Review review) {
@@ -22,7 +22,7 @@ public class ReviewDto {
         this.date = review.getDate();
         
         if (review.getUser() != null) {
-            this.userName = review.getUser().getName();
+            this.username = review.getUser().getUsername();
             this.userId = review.getUser().getId();
         }
     }

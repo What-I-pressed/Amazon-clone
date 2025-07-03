@@ -26,7 +26,7 @@ public class User {
     private long id;
 
     @Column(length = 256)
-    private String name;
+    private String username;
 
     @Column(length = 8192)
     private String description;
