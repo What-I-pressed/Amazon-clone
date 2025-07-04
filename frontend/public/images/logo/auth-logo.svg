@@ -1,0 +1,40 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Коробка (Amazon style) -->
+    <rect x="20" y="65" width="80" height="40" rx="10" fill="#FF9900" stroke="#CC7A00" stroke-width="3"/>
+    <path d="M20 65L60 95L100 65" stroke="#995C00" stroke-width="4" stroke-linejoin="round"/>
+
+    <!-- Голова бобра (милейшая) -->
+    <circle cx="60" cy="40" r="30" fill="#A97C50" stroke="#6B4C32" stroke-width="3"/>
+
+    <!-- Щёчки -->
+    <circle cx="45" cy="50" r="8" fill="#D6A870" opacity="0.7" />
+    <circle cx="75" cy="50" r="8" fill="#D6A870" opacity="0.7" />
+
+
+
+    <!-- Маленький нос -->
+    <ellipse cx="60" cy="48" rx="6" ry="4" fill="#5A3E1B" />
+
+    <!-- Улыбка -->
+    <path d="M50 58 Q60 68 70 58" stroke="#6B4C32" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+    <!-- Зубы (меньше и аккуратнее) -->
+    <rect x="56" y="58" width="8" height="12" fill="white" stroke="#6B4C32" stroke-width="2" rx="3"/>
+    <line x1="60" y1="58" x2="60" y2="70" stroke="#6B4C32" stroke-width="2" />
+
+    <!-- Уши округлые и мягкие -->
+    <ellipse cx="35" cy="20" rx="12" ry="18" fill="#A97C50" stroke="#6B4C32" stroke-width="2" />
+    <ellipse cx="85" cy="20" rx="12" ry="18" fill="#A97C50" stroke="#6B4C32" stroke-width="2" />
+
+    <!-- Глаза большие и блестящие -->
+    <circle cx="45" cy="35" r="8" fill="white" />
+    <circle cx="75" cy="35" r="8" fill="white" />
+    <circle cx="45" cy="35" r="4" fill="#3C2E1A" />
+    <circle cx="75" cy="35" r="4" fill="#3C2E1A" />
+    <circle cx="43" cy="33" r="2.5" fill="white" />
+    <circle cx="73" cy="33" r="2.5" fill="white" />
+    <!-- Внутренности ушей светлее -->
+    <ellipse cx="35" cy="20" rx="7" ry="13" fill="#D6A870" />
+    <ellipse cx="85" cy="20" rx="7" ry="13" fill="#D6A870" />
+
+</svg>
