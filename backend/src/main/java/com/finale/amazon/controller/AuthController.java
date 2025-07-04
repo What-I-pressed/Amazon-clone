@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.finale.amazon.dto.UserLoginRequestDto;
 import com.finale.amazon.dto.UserRequestDto;
@@ -35,10 +36,25 @@ public class AuthController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody UserLoginRequestDto user) {
+    public ResponseEntity<String> login(@RequestBody UserLoginRequestDto user, 
+                                       @RequestParam(defaultValue = "normal") String tokenType) {
         try{
-            User u = userService.authenticateUser(user.getEmail(), user.getPassword()).orElseThrow(() -> new RuntimeException("User not found"));
-            String token = jwtUtil.generateToken(u);
+            User u = userService.authenticateUser(user.getEmail(), user.getPassword())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            String token;
+            switch (tokenType.toLowerCase()) {
+                case "short":
+                    token = jwtUtil.generateShortToken(u);
+                    break;
+                case "long":
+                    token = jwtUtil.generateLongToken(u);
+                    break;
+                default:
+                    token = jwtUtil.generateToken(u);
+                    break;
+            }
+            
             return ResponseEntity.ok(token);
         }
         catch (Exception e) {
@@ -64,7 +80,6 @@ public class AuthController {
         @Parameter(description = "JWT Bearer token", in = ParameterIn.HEADER, name = "Authorization", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
         @RequestHeader(value = "Authorization", required = false) String authHeader, 
         HttpServletRequest request) {
-        // Debug logging
         System.out.println("=== DEBUG INFO ===");
         System.out.println("Authorization header: " + authHeader);
         System.out.println("All headers:");
@@ -106,8 +121,6 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/test")
-    public ResponseEntity<String> test() {
-        return ResponseEntity.ok("Auth controller is working!");
-    }
+    
+    
 }
