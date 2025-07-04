@@ -21,6 +21,10 @@ public class Picture {
     
     @Lob
     private byte[] data;
+    
+    private String fileName;    
+    private String mimeType;    
+    private long fileSize;      
 
     @ManyToOne
     private Product product;
