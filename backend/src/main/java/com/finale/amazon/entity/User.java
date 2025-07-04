@@ -53,8 +53,9 @@ public class User {
     private List<Review> reviews;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Product> favourites;
+    private List<CartItem> cartItems;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Product> cart;
+    private List<Favourite> favourites;
+
 }
