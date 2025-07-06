@@ -26,6 +26,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
@@ -79,7 +81,7 @@ public class AuthController {
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<UserDto> getCurrentUser(
         @Parameter(description = "JWT Bearer token", in = ParameterIn.HEADER, name = "Authorization", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
-        @RequestHeader(value = "Authorization", required = false) String authHeader, 
+        @RequestHeader(value = "Authorization", required = true) String authHeader, 
         HttpServletRequest request) {
         System.out.println("=== DEBUG INFO ===");
         System.out.println("Authorization header: " + authHeader);
@@ -111,9 +113,12 @@ public class AuthController {
             
             String email = jwtUtil.extractSubject(token);
             
-            User user = userService.getUserByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            Optional<User> userOptional = userService.getUserByEmail(email);
+            if (userOptional.isEmpty()) {
+                return ResponseEntity.status(401).body(null);
+            }
             
+            User user = userOptional.get();
             return ResponseEntity.ok(new UserDto(user));
         } catch (Exception e) {
             System.out.println("Error in /me endpoint: " + e.getMessage());

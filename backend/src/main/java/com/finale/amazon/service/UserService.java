@@ -58,9 +58,15 @@ public class UserService {
 
     
     public Optional<User> getUserByEmail(String email) {
-        return userRepository.findAll().stream()
-                .filter(user -> user.getEmail().equals(email))
-                .findFirst();
+        try {
+            User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+            if (user.isBlocked()) {
+                throw new RuntimeException("User is blocked");
+            }
+            return Optional.of(user);
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     
@@ -72,7 +78,7 @@ public class UserService {
             user.setEmail(userRequestDto.getEmail());
             user.setPassword(userRequestDto.getPassword());
             user.setDescription(userRequestDto.getDescription());
-            user.setBlocked(userRequestDto.isBlocked());
+            user.setBlocked(false);
     
             Role role = roleRepository.findByName(userRequestDto.getRoleName()).orElseThrow(() -> new RuntimeException("Role not found"));
             user.setRole(role);

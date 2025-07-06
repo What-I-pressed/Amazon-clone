@@ -18,7 +18,7 @@ public class UserDto {
     private String email;
     private String roleName;
     private LocalDateTime createdAt;
-    private boolean blocked;
+    private boolean blocked = false;
 
     public UserDto(User user){
         this.id = user.getId();

@@ -12,7 +12,6 @@ public class UserRequestDto {
     private String description;
     private String email;
     private String roleName;
-    private boolean blocked;
     
     private String password;
     private String oldPassword;
