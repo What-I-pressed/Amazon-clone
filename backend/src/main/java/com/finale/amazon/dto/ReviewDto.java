@@ -15,6 +15,8 @@ public class ReviewDto {
     private LocalDateTime date;
     private String username;
     private Long userId;
+    private Long parentId;
+    private Long productId;
     
     public ReviewDto(com.finale.amazon.entity.Review review) {
         this.id = review.getId();
