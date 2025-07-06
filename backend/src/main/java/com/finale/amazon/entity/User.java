@@ -46,6 +46,9 @@ public class User {
     @Column(columnDefinition = "DATE")
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    private boolean blocked = false;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Order> orders;
 

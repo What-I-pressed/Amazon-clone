@@ -72,6 +72,7 @@ public class UserService {
             user.setEmail(userRequestDto.getEmail());
             user.setPassword(userRequestDto.getPassword());
             user.setDescription(userRequestDto.getDescription());
+            user.setBlocked(userRequestDto.isBlocked());
     
             Role role = roleRepository.findByName(userRequestDto.getRoleName()).orElseThrow(() -> new RuntimeException("Role not found"));
             user.setRole(role);
@@ -111,6 +112,7 @@ public class UserService {
             if (userDetails.getRole() != null) {
                 existingUser.setRole(userDetails.getRole());
             }
+            existingUser.setBlocked(userDetails.isBlocked());
             
             return userRepository.save(existingUser);
         }
@@ -132,6 +134,9 @@ public class UserService {
         Optional<User> user = getUserByEmail(email);
         
         if (user.isPresent() && verifyPassword(password, user.get().getPassword())) {
+            if (user.get().isBlocked()) {
+                throw new RuntimeException("User account is blocked");
+            }
             return user;
         }
         
@@ -206,5 +211,46 @@ public class UserService {
         return user.isPresent() && 
                user.get().getRole() != null && 
                roleName.equals(user.get().getRole().getName());
+    }
+
+    public User blockUser(Long userId) {
+        Optional<User> optionalUser = userRepository.findById(userId);
+        
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setBlocked(true);
+            return userRepository.save(user);
+        }
+        
+        throw new RuntimeException("User not found with id: " + userId);
+    }
+
+    public User unblockUser(Long userId) {
+        Optional<User> optionalUser = userRepository.findById(userId);
+        
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setBlocked(false);
+            return userRepository.save(user);
+        }
+        
+        throw new RuntimeException("User not found with id: " + userId);
+    }
+
+    public boolean isUserBlocked(Long userId) {
+        Optional<User> user = userRepository.findById(userId);
+        return user.isPresent() && user.get().isBlocked();
+    }
+
+    public List<User> getBlockedUsers() {
+        return userRepository.findBlockedUsers();
+    }
+
+    public List<User> getActiveUsers() {
+        return userRepository.findActiveUsers();
+    }
+
+    public List<User> getUsersByBlockedStatus(boolean blocked) {
+        return userRepository.findByBlockedStatus(blocked);
     }
 }

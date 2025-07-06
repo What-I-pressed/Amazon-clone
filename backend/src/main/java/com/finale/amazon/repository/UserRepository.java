@@ -16,4 +16,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     @Query("Select u from User u where u.role.name = :role")
     List<User> findByRoleName(@Param("role") String role);
+    
+    @Query("Select u from User u where u.blocked = :blocked")
+    List<User> findByBlockedStatus(@Param("blocked") boolean blocked);
+    
+    @Query("Select u from User u where u.blocked = true")
+    List<User> findBlockedUsers();
+    
+    @Query("Select u from User u where u.blocked = false")
+    List<User> findActiveUsers();
 }
