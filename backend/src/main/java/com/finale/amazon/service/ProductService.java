@@ -92,4 +92,69 @@ public class ProductService {
 
         return productRepository.save(product);
     }
+
+    public Optional<Product> getProductById(Long id) {
+        return productRepository.findById(id);
+    }
+
+    public Product updateProduct(Long id, ProductCreationDto dto) {
+    Optional<Product> optionalProduct = productRepository.findById(id);
+    if (optionalProduct.isEmpty()) {
+        throw new RuntimeException("Product not found");  
+    }
+    Product product = optionalProduct.get();
+    product.setName(dto.getName());
+    product.setDescription(dto.getDescription());
+    product.setPrice(dto.getPrice());
+    product.setPriceWithoutDiscount(dto.getPriceWithoutDiscount());
+    product.setDiscountLaunchDate(dto.getDiscountLaunchDate());
+    product.setDiscountExpirationDate(dto.getDiscountExpirationDate());
+    product.setQuantityInStock(dto.getQuantityInStock());
+
+    if (dto.getCategoryName() != null) {
+            categoryRepository.findByName(dto.getCategoryName()).ifPresent(product::setCategory);
+        }
+        if (dto.getSubcategoryName() != null) {
+            subcategoryRepository.findByName(dto.getSubcategoryName()).ifPresent(product::setSubcategory);
+        }
+        if (dto.getCharacteristicTypeName() != null) {
+            characteristicTypeRepository.findByName(dto.getCharacteristicTypeName()).ifPresent(product::setCharacteristic);
+        }
+        if (dto.getVendorId() != null) {
+            userRepository.findById(dto.getVendorId()).ifPresent(product::setVendor);
+        }
+        if (dto.getImageIds() != null && !dto.getImageIds().isEmpty()) {
+            var pictures = dto.getImageIds().stream()
+                .map(pictureRepository::findById)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toList();
+            product.setPictures(pictures);
+        }
+        if (dto.getVariations() != null) {
+            product.setVariations(dto.getVariations().stream()
+                .map(variationDto -> {
+                    ProductVariation variation = new ProductVariation();
+                    variation.setQuantityInStock(variationDto.getQuantityInStock());
+                    if (variationDto.getCharacteristicValue() != null) {
+                        characteristicTypeRepository.findByName(dto.getCharacteristicTypeName())
+                            .ifPresent(type -> {
+                                type.getValues().stream()
+                                    .filter(val -> val.getValue().equals(variationDto.getCharacteristicValue()))
+                                    .findFirst()
+                                    .ifPresent(variation::setCharacteristic);
+                            });
+                    }
+                    variation.setProduct(product);
+                    return variation;
+                }).toList());
+        }
+
+    return productRepository.save(product);
+    }
+
+    public void deleteProduct(Long id) {
+        productRepository.deleteById(id);
+    }
+
 }
