@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,6 +34,15 @@ public class User {
     @Column(length = 8192)
     private String description;
 
+    @Column(nullable = false)
+    private boolean blocked = false;
+
+    @Column(nullable = false)
+    private boolean emailVerified = false;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private VerificationToken verificationToken;
+
     @ManyToOne
     @JoinTable(name = "user_role")
     private Role role;
@@ -45,9 +55,6 @@ public class User {
 
     @Column(columnDefinition = "DATE")
     private LocalDateTime createdAt;
-
-    @Column(nullable = false)
-    private boolean blocked = false;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Order> orders;
