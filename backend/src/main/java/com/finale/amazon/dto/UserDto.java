@@ -27,4 +27,4 @@ public class UserDto {
         this.roleName = user.getRole() != null ? user.getRole().getName() : null;
         this.createdAt = user.getCreatedAt();
     }
-} 
+}  

@@ -2,54 +2,42 @@ package com.finale.amazon.controller;
 
 import com.finale.amazon.dto.UserDto;
 import com.finale.amazon.entity.User;
-import com.finale.amazon.security.JwtUtil;
 import com.finale.amazon.service.UserService;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/user")
-@RequiredArgsConstructor
-@SecurityRequirement(name = "bearerAuth") 
+@CrossOrigin(origins = "*")
 public class UserController {
 
-    private final UserService userService;
-    private final JwtUtil jwtUtil;
+    @Autowired
+    private UserService userService;
 
     @GetMapping("/profile")
-    public ResponseEntity<UserDto> getProfile(@RequestHeader("Authorization") String authHeader) {
-        String email = extractEmailFromToken(authHeader);
+    public ResponseEntity<UserDto> getProfile(@RequestParam String email) {
         User user = userService.getUserByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         return ResponseEntity.ok(new UserDto(user));
     }
 
     @PutMapping("/profile")
-    public ResponseEntity<?> updateProfile(
-            @RequestHeader("Authorization") String authHeader,
-            @RequestBody UserDto userDto
-    ) {
-        String email = extractEmailFromToken(authHeader);
+    public ResponseEntity<UserDto> updateUserProfile(@RequestParam String email, @Valid @RequestBody UserDto userDto) {
         User user = userService.getUserByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        userService.updateUserProfile(
+        User updatedUser = userService.updateUserProfile(
                 user.getId(),
                 userDto.getUsername(),
                 userDto.getDescription(),
                 userDto.getEmail()
         );
 
-        return ResponseEntity.ok().build();
-    }
-
-    private String extractEmailFromToken(String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new RuntimeException("Invalid or missing Authorization header");
-        }
-        String token = authHeader.substring(7);
-        return jwtUtil.extractSubject(token); 
+        return ResponseEntity.ok(new UserDto(updatedUser));
     }
 }
