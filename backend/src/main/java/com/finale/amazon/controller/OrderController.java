@@ -3,6 +3,7 @@ package com.finale.amazon.controller;
 import com.finale.amazon.entity.Order;
 import com.finale.amazon.entity.User;
 import com.finale.amazon.service.OrderService;
+import com.finale.amazon.service.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,9 @@ public class OrderController {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private UserService userService;
 
     @GetMapping("/seller/{sellerId}")
     public ResponseEntity<List<Order>> getOrdersBySeller(@PathVariable Long sellerId) {
@@ -46,10 +50,32 @@ public class OrderController {
     public ResponseEntity<Order> updateOrderStatus(@PathVariable Long orderId,
                                                    @RequestParam String status) {
         try {
-            Order updatedOrder = orderService.updateOrderStatus(orderId, status);
+            Order updatedOrder = orderService.updateOrderStatus(orderId, status.toUpperCase());
             return ResponseEntity.ok(updatedOrder);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(null);
         }
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<List<Order>> getActiveOrders() {
+        List<Order> activeOrders = orderService.getOrdersByStatusNames(List.of(
+            "NEW", "PROCESSING", "SHIPPED"
+        ));
+
+        return activeOrders.isEmpty()
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.ok(activeOrders);
+    }
+
+    @GetMapping("/completed")
+    public ResponseEntity<List<Order>> getCompletedOrders() {
+        List<Order> completedOrders = orderService.getOrdersByStatusNames(List.of(
+            "DELIVERED", "CANCELLED"
+        ));
+
+        return completedOrders.isEmpty()
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.ok(completedOrders);
     }
 }

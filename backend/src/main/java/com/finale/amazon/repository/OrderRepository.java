@@ -14,5 +14,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     long countByProductSeller(User seller);
     long countByProductSellerAndOrderStatusNameIn(User seller, List<String> statusNames);
     List<Order> findByProductSellerAndOrderStatusName(User seller, String statusName);
+    List<Order> findByOrderStatus_NameIn(List<String> statusNames);
 
 }
