@@ -12,35 +12,51 @@ import java.util.List;
 @Service
 public class SellerService {
 
-    private final OrderRepository orderRepository;
+        private final OrderRepository orderRepository;
+        @Autowired
+        private ProductRepository productRepository;
+        @Autowired
+        private UserRepository userRepository; 
 
-    @Autowired
-    public SellerService(OrderRepository orderRepository) {
-        this.orderRepository = orderRepository;
-    }
+        @Autowired
+        public SellerService(OrderRepository orderRepository) {
+                this.orderRepository = orderRepository;
+        }
 
-    public SellerStatsDto getSellerStats(User seller) {
-        long totalOrders = orderRepository.countByProductSeller(seller);
+        public List<ProductDto> getFilteredSellerProducts(String email, String name, Long categoryId, String sortBy, String direction) {
+                User seller = userRepository.findByEmail(email)
+                        .orElseThrow(() -> new RuntimeException("Seller not found"));
 
-        long activeOrders = orderRepository.countByProductSellerAndOrderStatusNameIn(
-                seller, List.of("Pending", "Processing", "Shipped"));
+                Sort sort = Sort.by(Sort.Direction.fromString(direction), sortBy);
 
-        long completedOrders = orderRepository.countByProductSellerAndOrderStatusNameIn(
-                seller, List.of("Delivered"));
+                return productRepository.findFilteredProducts(seller.getId(), name, categoryId, sort)
+                .stream()
+                .map(ProductDto::new)
+                .toList();
+        }
 
-        long cancelledOrders = orderRepository.countByProductSellerAndOrderStatusNameIn(
-                seller, List.of("Cancelled"));
+        public SellerStatsDto getSellerStats(User seller) {
+                long totalOrders = orderRepository.countByProductSeller(seller);
 
-        double totalRevenue = orderRepository.findByProductSellerAndOrderStatusName(
-                seller, "Delivered"
-        ).stream().mapToDouble(Order::getPrice).sum();
+                long activeOrders = orderRepository.countByProductSellerAndOrderStatusNameIn(
+                        seller, List.of("Pending", "Processing", "Shipped"));
 
-        return new SellerStatsDto(
-                totalOrders,
-                activeOrders,
-                completedOrders,
-                cancelledOrders,
-                totalRevenue
-        );
-    }
+                long completedOrders = orderRepository.countByProductSellerAndOrderStatusNameIn(
+                        seller, List.of("Delivered"));
+
+                long cancelledOrders = orderRepository.countByProductSellerAndOrderStatusNameIn(
+                        seller, List.of("Cancelled"));
+
+                double totalRevenue = orderRepository.findByProductSellerAndOrderStatusName(
+                        seller, "Delivered"
+                ).stream().mapToDouble(Order::getPrice).sum();
+
+                return new SellerStatsDto(
+                        totalOrders,
+                        activeOrders,
+                        completedOrders,
+                        cancelledOrders,
+                        totalRevenue
+                );
+        }
 }
