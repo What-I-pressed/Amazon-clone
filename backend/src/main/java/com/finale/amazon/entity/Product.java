@@ -73,9 +73,15 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<Review> reviews;
 
-    @OneToMany(mappedBy = "product", cascade =  CascadeType.ALL)
-    private List<Order> orders;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = jakarta.persistence.FetchType.LAZY)
+    private List<OrderItem> orderItems;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<ProductVariation> variations;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<CartItem> cartItems;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<Favourite> favourites;
 }

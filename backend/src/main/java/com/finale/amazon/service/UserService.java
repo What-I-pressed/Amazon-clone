@@ -1,9 +1,11 @@
 package com.finale.amazon.service;
 
 import com.finale.amazon.entity.User;
+import com.finale.amazon.entity.VerificationToken;
 import com.finale.amazon.dto.UserRequestDto;
 import com.finale.amazon.entity.Role;
 import com.finale.amazon.repository.RoleRepository;
+import com.finale.amazon.repository.TokenRepository;
 import com.finale.amazon.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -24,6 +27,8 @@ public class UserService {
     @Autowired
     private RoleRepository roleRepository;
 
+    @Autowired
+    private TokenRepository tokenRepository;
     
     private String hashPassword(String password) {
         try {
@@ -39,6 +44,16 @@ public class UserService {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("Error hashing password", e);
         }
+    }
+
+    public String generateVerificationToken(User user) {
+        String token = UUID.randomUUID().toString();
+        VerificationToken verificationToken = new VerificationToken();
+        verificationToken.setToken(token);
+        verificationToken.setUser(user);
+        verificationToken.setExpiryDate(LocalDateTime.now().plusMinutes(60));
+        tokenRepository.save(verificationToken);
+        return token;
     }
 
     
@@ -58,9 +73,15 @@ public class UserService {
 
     
     public Optional<User> getUserByEmail(String email) {
-        return userRepository.findAll().stream()
-                .filter(user -> user.getEmail().equals(email))
-                .findFirst();
+        try {
+            User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+            if (user.isBlocked()) {
+                throw new RuntimeException("User is blocked");
+            }
+            return Optional.of(user);
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     
@@ -72,6 +93,7 @@ public class UserService {
             user.setEmail(userRequestDto.getEmail());
             user.setPassword(userRequestDto.getPassword());
             user.setDescription(userRequestDto.getDescription());
+            user.setBlocked(false);
     
             Role role = roleRepository.findByName(userRequestDto.getRoleName()).orElseThrow(() -> new RuntimeException("Role not found"));
             user.setRole(role);
@@ -111,6 +133,7 @@ public class UserService {
             if (userDetails.getRole() != null) {
                 existingUser.setRole(userDetails.getRole());
             }
+            existingUser.setBlocked(userDetails.isBlocked());
             
             return userRepository.save(existingUser);
         }
@@ -132,6 +155,9 @@ public class UserService {
         Optional<User> user = getUserByEmail(email);
         
         if (user.isPresent() && verifyPassword(password, user.get().getPassword())) {
+            if (user.get().isBlocked()) {
+                throw new RuntimeException("User account is blocked");
+            }
             return user;
         }
         
@@ -206,5 +232,46 @@ public class UserService {
         return user.isPresent() && 
                user.get().getRole() != null && 
                roleName.equals(user.get().getRole().getName());
+    }
+
+    public User blockUser(Long userId) {
+        Optional<User> optionalUser = userRepository.findById(userId);
+        
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setBlocked(true);
+            return userRepository.save(user);
+        }
+        
+        throw new RuntimeException("User not found with id: " + userId);
+    }
+
+    public User unblockUser(Long userId) {
+        Optional<User> optionalUser = userRepository.findById(userId);
+        
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setBlocked(false);
+            return userRepository.save(user);
+        }
+        
+        throw new RuntimeException("User not found with id: " + userId);
+    }
+
+    public boolean isUserBlocked(Long userId) {
+        Optional<User> user = userRepository.findById(userId);
+        return user.isPresent() && user.get().isBlocked();
+    }
+
+    public List<User> getBlockedUsers() {
+        return userRepository.findBlockedUsers();
+    }
+
+    public List<User> getActiveUsers() {
+        return userRepository.findActiveUsers();
+    }
+
+    public List<User> getUsersByBlockedStatus(boolean blocked) {
+        return userRepository.findByBlockedStatus(blocked);
     }
 }
