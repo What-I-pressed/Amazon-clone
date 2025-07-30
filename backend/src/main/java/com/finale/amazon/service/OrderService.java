@@ -28,6 +28,10 @@ public class OrderService {
         return orderRepository.findById(id);
     }
 
+    public List<Order> getOrdersByStatusNames(List<String> statusNames) {
+        return orderRepository.findByOrderStatus_NameIn(statusNames);
+    }
+
     public Order updateOrderStatus(Long orderId, String newStatusName) {
         Optional<Order> optionalOrder = orderRepository.findById(orderId);
         if (optionalOrder.isEmpty()) {
@@ -35,6 +39,11 @@ public class OrderService {
         }
 
         Order order = optionalOrder.get();
+        String currentStatus = order.getOrderStatus().getName();
+
+        if (currentStatus.equals("CANCELLED") || currentStatus.equals("DELIVERED")) {
+            throw new RuntimeException("Cannot change status of a completed or cancelled order.");
+        }
 
         Optional<OrderStatus> optionalStatus = orderStatusRepository.findByName(newStatusName);
         if (optionalStatus.isEmpty()) {
@@ -42,8 +51,8 @@ public class OrderService {
         }
 
         OrderStatus newStatus = optionalStatus.get();
-
         order.setOrderStatus(newStatus);
         return orderRepository.save(order);
     }
+
 }

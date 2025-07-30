@@ -11,4 +11,9 @@ import com.finale.amazon.entity.User;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByProductSeller(User seller);
+    long countByProductSeller(User seller);
+    long countByProductSellerAndOrderStatusNameIn(User seller, List<String> statusNames);
+    List<Order> findByProductSellerAndOrderStatusName(User seller, String statusName);
+    List<Order> findByOrderStatus_NameIn(List<String> statusNames);
+
 }
