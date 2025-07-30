@@ -39,4 +39,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     
     @Query("SELECT p FROM Product p WHERE ((p.priceWithoutDiscount - p.price) / p.priceWithoutDiscount * 100) >= :discountPercentage")
     List<Product> findByDiscountPercentageGreaterThan(@Param("discountPercentage") double discountPercentage);
+
+    @Query("SELECT p FROM Product p " +
+       "WHERE p.vendor.id = :vendorId " +
+       "AND (:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))) " +
+       "AND (:categoryId IS NULL OR p.category.id = :categoryId)")
+    List<Product> findFilteredProducts(@Param("vendorId") Long vendorId, @Param("name") String name, @Param("categoryId") Long categoryId, Sort sort);
+
 }

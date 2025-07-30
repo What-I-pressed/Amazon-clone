@@ -29,4 +29,4 @@ public class UserDto {
         this.createdAt = user.getCreatedAt();
         this.blocked = user.isBlocked();
     }
-} 
+}  
