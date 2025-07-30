@@ -12,11 +12,15 @@ import com.finale.amazon.dto.UserLoginRequestDto;
 import com.finale.amazon.dto.UserRequestDto;
 import com.finale.amazon.dto.UserDto;
 import com.finale.amazon.entity.User;
+import com.finale.amazon.entity.VerificationToken;
+import com.finale.amazon.repository.TokenRepository;
 import com.finale.amazon.security.JwtUtil;
 import com.finale.amazon.service.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,6 +29,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RestController
@@ -36,6 +41,68 @@ public class AuthController {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private TokenRepository tokenRepository;
+
+    @Autowired
+    private JavaMailSender mailSender;
+
+    @PostMapping("/send-verification-email")
+    public ResponseEntity<String> sendVerificationEmail(@RequestBody UserLoginRequestDto user) {
+        try{
+
+            User u = userService.getUserByEmail(user.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            
+
+            String token = jwtUtil.generateToken(u);
+            
+            VerificationToken verificationToken = new VerificationToken();
+            verificationToken.setToken(token);
+            verificationToken.setUser(u);
+            verificationToken.setExpiryDate(LocalDateTime.now().plusHours(24)); // 24 hours expiry
+            tokenRepository.save(verificationToken);
+            
+            String url = "http://localhost:8080/api/auth/verify?token=" + token;
+            String subject = "Please verify your email";
+            String body = "Click the link to verify your account: " + url;
+
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(user.getEmail());
+            message.setSubject(subject);
+            message.setText(body);
+
+            mailSender.send(message);
+            return ResponseEntity.ok("Verification email sent");
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(400).body("Error sending verification email: " + e.getMessage());
+        }
+    }
+
+
+    @GetMapping("/verify")
+    public ResponseEntity<String> verifyEmail(@RequestParam String token) {
+        
+        try{
+            VerificationToken verificationToken = tokenRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Token not found"));
+            if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+                return ResponseEntity.status(400).body("Token expired");
+            }
+            String email = jwtUtil.extractSubject(token);
+            User user = userService.getUserByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            user.setEmailVerified(true);
+            userService.updateUser(user.getId(), user);
+            return ResponseEntity.ok("Email verified");
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(400).body("Error verifying email: " + e.getMessage());
+        }
+    }
+    
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody UserLoginRequestDto user, 

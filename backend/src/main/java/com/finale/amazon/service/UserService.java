@@ -1,9 +1,11 @@
 package com.finale.amazon.service;
 
 import com.finale.amazon.entity.User;
+import com.finale.amazon.entity.VerificationToken;
 import com.finale.amazon.dto.UserRequestDto;
 import com.finale.amazon.entity.Role;
 import com.finale.amazon.repository.RoleRepository;
+import com.finale.amazon.repository.TokenRepository;
 import com.finale.amazon.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -24,6 +27,8 @@ public class UserService {
     @Autowired
     private RoleRepository roleRepository;
 
+    @Autowired
+    private TokenRepository tokenRepository;
     
     private String hashPassword(String password) {
         try {
@@ -39,6 +44,16 @@ public class UserService {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("Error hashing password", e);
         }
+    }
+
+    public String generateVerificationToken(User user) {
+        String token = UUID.randomUUID().toString();
+        VerificationToken verificationToken = new VerificationToken();
+        verificationToken.setToken(token);
+        verificationToken.setUser(user);
+        verificationToken.setExpiryDate(LocalDateTime.now().plusMinutes(60));
+        tokenRepository.save(verificationToken);
+        return token;
     }
 
     
