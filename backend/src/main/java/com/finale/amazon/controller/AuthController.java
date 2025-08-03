@@ -1,5 +1,13 @@
 package com.finale.amazon.controller;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import com.finale.amazon.dto.UserLoginRequestDto;
 import com.finale.amazon.dto.UserRequestDto;
 import com.finale.amazon.dto.UserDto;
@@ -124,16 +132,14 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody UserRequestDto userDto) {
-        try {
-            User user = authService.register(userDto);
-            String token = jwtUtil.generateToken(user);
-            return ResponseEntity.ok(token); // або обгортати в об'єкт з полями
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            // логування, не відкривати внутрішні деталі
-            return ResponseEntity.status(500).body("Серверна помилка при реєстрації");
+    public ResponseEntity<String> register(@RequestBody UserRequestDto user) {
+        try{
+            User u = userService.createUser(user);
+            String token = jwtUtil.generateToken(u);
+            return ResponseEntity.ok(token);
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(400).body("Error registering user: " + e.getMessage());
         }
     }
 

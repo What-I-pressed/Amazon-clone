@@ -153,8 +153,10 @@ public class UserService {
     
     public Optional<User> authenticateUser(String email, String password) {
         Optional<User> user = getUserByEmail(email);
-        
-        if (user.isPresent() && verifyPassword(password, user.get().getPassword()) && user.get().isEmailVerified()) {
+        if( !user.get().isEmailVerified()){
+            throw new RuntimeException("User email is unverified");
+        }
+        if (user.isPresent() && verifyPassword(password, user.get().getPassword())) {
             if (user.get().isBlocked()) {
                 throw new RuntimeException("User account is blocked");
             }

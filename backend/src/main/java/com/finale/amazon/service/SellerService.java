@@ -2,7 +2,6 @@ package com.finale.amazon.service;
 
 import com.finale.amazon.dto.ProductDto;
 import com.finale.amazon.dto.SellerStatsDto;
-import com.finale.amazon.entity.Order;
 import com.finale.amazon.entity.User;
 import com.finale.amazon.repository.OrderRepository;
 import com.finale.amazon.repository.ProductRepository;
