@@ -40,13 +40,6 @@ public class AuthController {
     @Autowired
     private JavaMailSender mailSender;
 
-    private AuthService authService;
-
-     public AuthController(AuthService authService, JwtUtil jwtUtil) {
-        this.authService = authService;
-        this.jwtUtil = jwtUtil;
-    }
-
     @PostMapping("/send-verification-email")
     public ResponseEntity<String> sendVerificationEmail(@RequestBody UserLoginRequestDto user) {
         try{
