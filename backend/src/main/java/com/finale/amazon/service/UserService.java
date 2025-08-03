@@ -154,7 +154,7 @@ public class UserService {
     public Optional<User> authenticateUser(String email, String password) {
         Optional<User> user = getUserByEmail(email);
         
-        if (user.isPresent() && verifyPassword(password, user.get().getPassword())) {
+        if (user.isPresent() && verifyPassword(password, user.get().getPassword()) && user.get().isEmailVerified()) {
             if (user.get().isBlocked()) {
                 throw new RuntimeException("User account is blocked");
             }
@@ -215,6 +215,7 @@ public class UserService {
                     throw new RuntimeException("Email already exists: " + email);
                 }
                 user.setEmail(email);
+                user.setEmailVerified(false);
             }
             
             return userRepository.save(user);

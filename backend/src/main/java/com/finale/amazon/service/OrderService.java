@@ -10,6 +10,7 @@ import com.finale.amazon.entity.Order;
 import com.finale.amazon.entity.OrderStatus;
 import com.finale.amazon.entity.User;
 import com.finale.amazon.repository.OrderRepository;
+import com.finale.amazon.repository.OrderStatusRepository;
 
 @Service
 public class OrderService {
