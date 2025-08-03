@@ -52,12 +52,12 @@ public class SellerService {
                         seller, "Delivered"
                 ).stream().mapToDouble(order -> order.getPrice()).sum();
 
-                return new SellerStatsDto(
-                        totalOrders,
-                        activeOrders,
-                        completedOrders,
-                        cancelledOrders,
-                        totalRevenue
-                );
+                SellerStatsDto stats = new SellerStatsDto();
+                stats.setTotalOrders(totalOrders);
+                stats.setActiveOrders(activeOrders);
+                stats.setCompletedOrders(completedOrders);
+                stats.setCancelledOrders(cancelledOrders);
+                stats.setTotalRevenue(totalRevenue);
+                return stats;
         }
 }

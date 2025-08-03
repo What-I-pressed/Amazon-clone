@@ -9,19 +9,22 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class ProductStatisticsService {
+public class StatisticsService {
 
     @Autowired
     private ProductRepository productRepository;
 
     public Optional<ProductStatisticsDto> getStatistics(Long productId) {
         return productRepository.findById(productId).map(product -> {
-            int reviewCount = product.getReviews() != null ? product.getReviews().size() : 0;
-            return new ProductStatisticsDto(
-                product.getQuantitySold(),
-                reviewCount,
-                product.getQuantityInStock()
-            );
+            ProductStatisticsDto dto = new ProductStatisticsDto();
+            dto.setQuantitySold(product.getQuantitySold());
+            dto.setTotalReviews(product.getReviews() != null ? product.getReviews().size() : 0);
+            dto.setTotalProducts(1); // This is for a specific product
+            dto.setTotalRevenue(0); // Would need to calculate from orders
+            dto.setTotalOrders(0); // Would need to calculate from orders
+            dto.setTotalUsers(0); // Would need to calculate from users
+            dto.setTotalCategories(0); // Would need to calculate from categories
+            return dto;
         });
     }
-}
+} 
