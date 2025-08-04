@@ -94,5 +94,24 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    public Order confirmOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        String currentStatus = order.getOrderStatus().getName();
+        if ("CANCELLED".equals(currentStatus) || "DELIVERED".equals(currentStatus)) {
+            throw new RuntimeException("Cannot confirm a cancelled or delivered order");
+        }
+        if ("NEW".equals(currentStatus) || "CONFIRMED".equals(currentStatus)) {
+            throw new RuntimeException("Order is already confirmed or new");
+        }
+
+        OrderStatus newStatus = orderStatusRepository.findByName("NEW")
+                .orElseThrow(() -> new RuntimeException("Order status 'NEW' not found"));
+
+        order.setOrderStatus(newStatus);
+
+        return orderRepository.save(order);
+    }
 
 }
