@@ -78,4 +78,17 @@ public class OrderController {
                 ? ResponseEntity.noContent().build()
                 : ResponseEntity.ok(completedOrders);
     }
+
+    @PostMapping
+    public ResponseEntity<Order> createOrder(@RequestBody OrderRequest orderRequest) {
+        Optional<User> optionalUser = userService.getUserById(orderRequest.getUserId());
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        User user = optionalUser.get();
+        Order order = orderService.createOrder(orderRequest, user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(order);
+    }
+    
 }

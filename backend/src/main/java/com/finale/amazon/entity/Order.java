@@ -32,15 +32,12 @@ public class Order {
     private double price;
 
     @Column(nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime orderDate;
 
     @Column(nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime arrivalDate;
 
     @Column(nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime shipmentDate;
 
     @ManyToOne
@@ -50,4 +47,8 @@ public class Order {
     @ManyToOne
     @JoinColumn(name = "order_status_id")
     private OrderStatus orderStatus;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }
