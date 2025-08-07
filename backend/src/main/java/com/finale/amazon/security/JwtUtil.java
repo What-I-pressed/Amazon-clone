@@ -39,7 +39,7 @@ public class JwtUtil {
         return extractClaim(token, claims -> claims.get("userId", Long.class));
     }
 
-    public Date extractExpiration(String token) {
+    private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
@@ -52,7 +52,7 @@ public class JwtUtil {
         return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
     }
 
-    private Boolean isTokenExpired(String token) {
+    public Boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 
