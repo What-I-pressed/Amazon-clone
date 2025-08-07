@@ -15,11 +15,17 @@ import com.finale.amazon.repository.OrderStatusRepository;
 @Service
 public class OrderService {
 
-    @Autowired
+   @Autowired
     private OrderRepository orderRepository;
 
     @Autowired
-    private OrderStatusRepository orderStatusRepository;  
+    private ProductRepository productRepository;
+
+    @Autowired
+    private OrderStatusRepository orderStatusRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public List<Order> getOrdersBySeller(User seller) {
         return orderRepository.findByProductSeller(seller);
@@ -53,6 +59,59 @@ public class OrderService {
 
         OrderStatus newStatus = optionalStatus.get();
         order.setOrderStatus(newStatus);
+        return orderRepository.save(order);
+    }
+
+    public Order createOrder(OrderRequest orderRequest, User user) {
+        Optional<OrderStatus> optionalStatus = orderStatusRepository.findById(orderRequest.getOrderStatusId());
+        if (optionalStatus.isEmpty()) {
+            throw new RuntimeException("Order status not found");
+        }
+
+        OrderStatus status = optionalStatus.get();
+
+        if (orderRequest.getOrderItems() == null || orderRequest.getOrderItems().isEmpty()) {
+            throw new RuntimeException("No products in the order");
+        }
+
+        OrderItemRequest firstItem = orderRequest.getOrderItems().get(0);
+
+        Product product = productRepository.findById(firstItem.getProductId())
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        double totalPrice = product.getPrice() * firstItem.getQuantity();
+
+        LocalDateTime now = LocalDateTime.now();
+
+        Order order = new Order();
+        order.setUser(user); 
+        order.setProduct(product);
+        order.setPrice(totalPrice);
+        order.setOrderStatus(status);
+        order.setOrderDate(now);
+        order.setShipmentDate(now.plusDays(1));   
+        order.setArrivalDate(now.plusDays(6));    
+
+        return orderRepository.save(order);
+    }
+
+    public Order confirmOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        String currentStatus = order.getOrderStatus().getName();
+        if ("CANCELLED".equals(currentStatus) || "DELIVERED".equals(currentStatus)) {
+            throw new RuntimeException("Cannot confirm a cancelled or delivered order");
+        }
+        if ("NEW".equals(currentStatus) || "CONFIRMED".equals(currentStatus)) {
+            throw new RuntimeException("Order is already confirmed or new");
+        }
+
+        OrderStatus newStatus = orderStatusRepository.findByName("NEW")
+                .orElseThrow(() -> new RuntimeException("Order status 'NEW' not found"));
+
+        order.setOrderStatus(newStatus);
+
         return orderRepository.save(order);
     }
 
