@@ -1,10 +1,13 @@
 package com.finale.amazon.service;
 
+import com.finale.amazon.dto.ProductDto;
 import com.finale.amazon.dto.SellerStatsDto;
-import com.finale.amazon.entity.Order;
 import com.finale.amazon.entity.User;
 import com.finale.amazon.repository.OrderRepository;
+import com.finale.amazon.repository.ProductRepository;
+import com.finale.amazon.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,13 +26,10 @@ public class SellerService {
                 this.orderRepository = orderRepository;
         }
 
-        public List<ProductDto> getFilteredSellerProducts(String email, String name, Long categoryId, String sortBy, String direction) {
-                User seller = userRepository.findByEmail(email)
-                        .orElseThrow(() -> new RuntimeException("Seller not found"));
-
+        public List<ProductDto> getFilteredSellerProducts(Long sellerId, String name, Long categoryId, String sortBy, String direction) {
                 Sort sort = Sort.by(Sort.Direction.fromString(direction), sortBy);
 
-                return productRepository.findFilteredProducts(seller.getId(), name, categoryId, sort)
+                return productRepository.findFilteredProducts(sellerId, name, categoryId, sort)
                 .stream()
                 .map(ProductDto::new)
                 .toList();
@@ -49,14 +49,14 @@ public class SellerService {
 
                 double totalRevenue = orderRepository.findByProductSellerAndOrderStatusName(
                         seller, "Delivered"
-                ).stream().mapToDouble(Order::getPrice).sum();
+                ).stream().mapToDouble(order -> order.getPrice()).sum();
 
-                return new SellerStatsDto(
-                        totalOrders,
-                        activeOrders,
-                        completedOrders,
-                        cancelledOrders,
-                        totalRevenue
-                );
+                SellerStatsDto stats = new SellerStatsDto();
+                stats.setTotalOrders(totalOrders);
+                stats.setActiveOrders(activeOrders);
+                stats.setCompletedOrders(completedOrders);
+                stats.setCancelledOrders(cancelledOrders);
+                stats.setTotalRevenue(totalRevenue);
+                return stats;
         }
 }

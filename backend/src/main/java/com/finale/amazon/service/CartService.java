@@ -8,7 +8,6 @@ import com.finale.amazon.repository.ProductRepository;
 import com.finale.amazon.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -64,7 +63,7 @@ public class CartService {
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new RuntimeException("Cart item not found"));
 
-        if (!cartItem.getUser().getId().equals(user.getId())) {
+        if (cartItem.getUser().getId() != user.getId()) {
             throw new RuntimeException("Unauthorized");
         }
 

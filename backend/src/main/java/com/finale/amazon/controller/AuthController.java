@@ -12,8 +12,6 @@ import com.finale.amazon.dto.UserLoginRequestDto;
 import com.finale.amazon.dto.UserRequestDto;
 import com.finale.amazon.dto.UserDto;
 import com.finale.amazon.entity.User;
-import com.finale.amazon.entity.VerificationToken;
-import com.finale.amazon.repository.TokenRepository;
 import com.finale.amazon.security.JwtUtil;
 import com.finale.amazon.service.UserService;
 
@@ -29,7 +27,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RestController
@@ -42,8 +39,8 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @Autowired
-    private TokenRepository tokenRepository;
+    // @Autowired
+    // private TokenRepository tokenRepository;
 
     @Autowired
     private JavaMailSender mailSender;
@@ -58,11 +55,11 @@ public class AuthController {
 
             String token = jwtUtil.generateToken(u);
             
-            VerificationToken verificationToken = new VerificationToken();
-            verificationToken.setToken(token);
-            verificationToken.setUser(u);
-            verificationToken.setExpiryDate(LocalDateTime.now().plusHours(24)); // 24 hours expiry
-            tokenRepository.save(verificationToken);
+            // VerificationToken verificationToken = new VerificationToken();
+            // verificationToken.setToken(token);
+            // verificationToken.setUser(u);
+            // verificationToken.setExpiryDate(LocalDateTime.now().plusHours(24)); // 24 hours expiry
+            // tokenRepository.save(verificationToken);
             
             String url = "http://localhost:8080/api/auth/verify?token=" + token;
             String subject = "Please verify your email";
@@ -86,9 +83,9 @@ public class AuthController {
     public ResponseEntity<String> verifyEmail(@RequestParam String token) {
         
         try{
-            VerificationToken verificationToken = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Token not found"));
-            if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            // VerificationToken verificationToken = tokenRepository.findByToken(token)
+            //     .orElseThrow(() -> new RuntimeException("Token not found"));
+            if (jwtUtil.isTokenExpired(token)) {
                 return ResponseEntity.status(400).body("Token expired");
             }
             String email = jwtUtil.extractSubject(token);
