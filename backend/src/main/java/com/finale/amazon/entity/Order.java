@@ -1,10 +1,7 @@
 package com.finale.amazon.entity;
 
-import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.List;
-
-import org.springframework.cglib.core.Local;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -15,7 +12,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
