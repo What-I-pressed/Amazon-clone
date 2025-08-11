@@ -36,7 +36,7 @@ public class Review {
     private Product product;
 
     @ManyToOne
-    @JoinColumn(name = "parent_id") 
+    @JoinColumn(name = "parent_id")  
     private Review parent;
 
     @ManyToOne

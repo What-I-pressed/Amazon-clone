@@ -20,17 +20,16 @@ public class ReviewService {
     private ProductRepository productRepository;
 
     public Review createReview(ReviewDto review) {
-    Review reviewEntity = new Review();
-    reviewEntity.setDescription(review.getDescription());
-    reviewEntity.setDate(review.getDate());
-    reviewEntity.setUser(userRepository.findById(review.getUserId()).orElseThrow(() -> new RuntimeException("User not found")));
-    reviewEntity.setProduct(productRepository.findById(review.getProductId()).orElseThrow(() -> new RuntimeException("Product not found")));
-    if (review.getParentId() != null) {
-        reviewEntity.setParent(reviewRepository.findById(review.getParentId()).orElseThrow(() -> new RuntimeException("Parent review not found")));
+        Review reviewEntity = new Review();
+        reviewEntity.setDescription(review.getDescription());
+        reviewEntity.setDate(review.getDate());
+        reviewEntity.setUser(userRepository.findById(review.getUserId()).orElseThrow(() -> new RuntimeException("User not found")));
+        reviewEntity.setProduct(productRepository.findById(review.getProductId()).orElseThrow(() -> new RuntimeException("Product not found")));
+        if (review.getParentId() != null) {
+            reviewEntity.setParent(reviewRepository.findById(review.getParentId()).orElseThrow(() -> new RuntimeException("Parent review not found")));
+        }
+        return reviewRepository.save(reviewEntity);
     }
-    return reviewRepository.save(reviewEntity);
-    }
-
     public void deleteReview(Long id) {
         reviewRepository.deleteById(id);
     }
