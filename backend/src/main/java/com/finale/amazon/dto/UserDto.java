@@ -18,6 +18,7 @@ public class UserDto {
     private String email;
     private String roleName;
     private LocalDateTime createdAt;
+    private boolean blocked = false;
 
     public UserDto(User user){
         this.id = user.getId();
@@ -26,5 +27,6 @@ public class UserDto {
         this.email = user.getEmail();
         this.roleName = user.getRole() != null ? user.getRole().getName() : null;
         this.createdAt = user.getCreatedAt();
+        this.blocked = user.isBlocked();
     }
 }  

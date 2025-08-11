@@ -6,24 +6,29 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "cart_items")
+@Table(name = "order_items")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CartItem {
-
+public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @ManyToOne
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
     @Column(nullable = false)
     private int quantity;
-}
+
+    @Column(nullable = false)
+    private double unitPrice; // Price per unit at the time of order
+
+    @Column(nullable = false)
+    private double totalPrice; // quantity * unitPrice
+} 

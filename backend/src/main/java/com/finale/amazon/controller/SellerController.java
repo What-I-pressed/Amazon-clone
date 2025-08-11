@@ -1,5 +1,6 @@
 package com.finale.amazon.controller;
 
+import com.finale.amazon.dto.ProductDto;
 import com.finale.amazon.dto.SellerStatsDto;
 import com.finale.amazon.dto.UserDto;
 import com.finale.amazon.entity.User;
@@ -10,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/seller")

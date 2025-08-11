@@ -64,7 +64,7 @@ public class CartService {
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new RuntimeException("Cart item not found"));
 
-        if (!cartItem.getUser().getId().equals(user.getId())) {
+        if (cartItem.getUser().getId() != user.getId()) {
             throw new RuntimeException("Unauthorized");
         }
 

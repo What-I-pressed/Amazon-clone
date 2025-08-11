@@ -20,6 +20,9 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Home";
 import Admin from "./pages/Dashboard/Home";
 import SellerProfile from "./pages/Seller/Profile";
+import LoginForm from './components/LoginForm';
+import Dashboard from './pages/Dashboard';
+
 
 export default function App() {
   return (
@@ -57,6 +60,10 @@ export default function App() {
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
 
+            {/* Login */}
+            <Route path="/login" element={<LoginForm />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+        
             {/* Fallback Route */}
             <Route path="*" element={<NotFound />} />
 

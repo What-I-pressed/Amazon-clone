@@ -4,8 +4,10 @@ import com.finale.amazon.entity.Order;
 import com.finale.amazon.entity.User;
 import com.finale.amazon.service.OrderService;
 import com.finale.amazon.service.UserService;
+import com.finale.amazon.security.JwtUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,12 +25,23 @@ public class OrderController {
     @Autowired
     private UserService userService;
 
-    @GetMapping("/seller/{sellerId}")
-    public ResponseEntity<List<Order>> getOrdersBySeller(@PathVariable Long sellerId) {
-        Optional<User> optionalSeller = userService.getUserById(sellerId);
-        if (optionalSeller.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    private String extractEmailFromAuthHeader(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) return null;
+        String token = authHeader.substring(7);
+        if (jwtUtil.isTokenExpired(token)) return null;
+        return jwtUtil.extractSubject(token);
+    }
+
+    @GetMapping("/seller")
+    public ResponseEntity<List<Order>> getOrdersBySeller(@RequestHeader("Authorization") String authHeader) {
+        String email = extractEmailFromAuthHeader(authHeader);
+        if (email == null) return ResponseEntity.status(401).build();
+
+        Optional<User> optionalSeller = userService.getUserByEmail(email);
+        if (optionalSeller.isEmpty()) return ResponseEntity.status(401).build();
 
         User seller = optionalSeller.get();
         List<Order> orders = orderService.getOrdersBySeller(seller);
@@ -40,15 +53,31 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}")
-    public ResponseEntity<Order> getOrderById(@PathVariable Long orderId) {
+    public ResponseEntity<Order> getOrderById(@PathVariable Long orderId,
+                                              @RequestHeader("Authorization") String authHeader) {
+        String email = extractEmailFromAuthHeader(authHeader);
+        if (email == null) return ResponseEntity.status(401).build();
+
+        Optional<User> optionalUser = userService.getUserByEmail(email);
+        if (optionalUser.isEmpty()) return ResponseEntity.status(401).build();
+
         Optional<Order> orderOpt = orderService.getOrderById(orderId);
-        return orderOpt.map(ResponseEntity::ok)
-                       .orElseGet(() -> ResponseEntity.notFound().build());
+        if (orderOpt.isEmpty()) return ResponseEntity.notFound().build();
+
+        Order order = orderOpt.get();
+        return ResponseEntity.ok(order);
     }
 
     @PutMapping("/{orderId}/status")
     public ResponseEntity<Order> updateOrderStatus(@PathVariable Long orderId,
-                                                   @RequestParam String status) {
+                                                   @RequestParam String status,
+                                                   @RequestHeader("Authorization") String authHeader) {
+        String email = extractEmailFromAuthHeader(authHeader);
+        if (email == null) return ResponseEntity.status(401).build();
+
+        Optional<User> userOpt = userService.getUserByEmail(email);
+        if (userOpt.isEmpty()) return ResponseEntity.status(401).build();
+
         try {
             Order updatedOrder = orderService.updateOrderStatus(orderId, status.toUpperCase());
             return ResponseEntity.ok(updatedOrder);
@@ -58,7 +87,10 @@ public class OrderController {
     }
 
     @GetMapping("/active")
-    public ResponseEntity<List<Order>> getActiveOrders() {
+    public ResponseEntity<List<Order>> getActiveOrders(@RequestHeader("Authorization") String authHeader) {
+        String email = extractEmailFromAuthHeader(authHeader);
+        if (email == null) return ResponseEntity.status(401).build();
+
         List<Order> activeOrders = orderService.getOrdersByStatusNames(List.of(
             "NEW", "PROCESSING", "SHIPPED"
         ));
@@ -69,7 +101,10 @@ public class OrderController {
     }
 
     @GetMapping("/completed")
-    public ResponseEntity<List<Order>> getCompletedOrders() {
+    public ResponseEntity<List<Order>> getCompletedOrders(@RequestHeader("Authorization") String authHeader) {
+        String email = extractEmailFromAuthHeader(authHeader);
+        if (email == null) return ResponseEntity.status(401).build();
+
         List<Order> completedOrders = orderService.getOrdersByStatusNames(List.of(
             "DELIVERED", "CANCELLED"
         ));
@@ -80,19 +115,27 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody OrderRequest orderRequest) {
-        Optional<User> optionalUser = userService.getUserById(orderRequest.getUserId());
-        if (optionalUser.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<Order> createOrder(@RequestBody OrderRequest orderRequest,
+                                             @RequestHeader("Authorization") String authHeader) {
+        String email = extractEmailFromAuthHeader(authHeader);
+        if (email == null) return ResponseEntity.status(401).build();
+
+        Optional<User> optionalUser = userService.getUserByEmail(email);
+        if (optionalUser.isEmpty()) return ResponseEntity.status(401).build();
 
         User user = optionalUser.get();
+        orderRequest.setUserId(user.getId());
+
         Order order = orderService.createOrder(orderRequest, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(order);
     }
 
     @PutMapping("/{orderId}/confirm")
-    public ResponseEntity<Order> confirmOrder(@PathVariable Long orderId) {
+    public ResponseEntity<Order> confirmOrder(@PathVariable Long orderId,
+                                              @RequestHeader("Authorization") String authHeader) {
+        String email = extractEmailFromAuthHeader(authHeader);
+        if (email == null) return ResponseEntity.status(401).build();
+
         try {
             Order confirmedOrder = orderService.confirmOrder(orderId);
             return ResponseEntity.ok(confirmedOrder);
@@ -100,5 +143,4 @@ public class OrderController {
             return ResponseEntity.badRequest().body(null);
         }
     }
-
 }

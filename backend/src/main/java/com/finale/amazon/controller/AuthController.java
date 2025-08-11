@@ -6,16 +6,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.finale.amazon.dto.UserLoginRequestDto;
 import com.finale.amazon.dto.UserRequestDto;
 import com.finale.amazon.dto.UserDto;
 import com.finale.amazon.entity.User;
+import com.finale.amazon.entity.VerificationToken;
+import com.finale.amazon.repository.TokenRepository;
 import com.finale.amazon.security.JwtUtil;
 import com.finale.amazon.service.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +28,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -34,11 +42,88 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody UserLoginRequestDto user) {
+    // @Autowired
+    // private TokenRepository tokenRepository;
+
+    @Autowired
+    private JavaMailSender mailSender;
+
+    @PostMapping("/send-verification-email")
+    public ResponseEntity<String> sendVerificationEmail(@RequestBody UserLoginRequestDto user) {
         try{
-            User u = userService.authenticateUser(user.getEmail(), user.getPassword()).orElseThrow(() -> new RuntimeException("User not found"));
+
+            User u = userService.getUserByEmail(user.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            
+
             String token = jwtUtil.generateToken(u);
+            
+            // VerificationToken verificationToken = new VerificationToken();
+            // verificationToken.setToken(token);
+            // verificationToken.setUser(u);
+            // verificationToken.setExpiryDate(LocalDateTime.now().plusHours(24)); // 24 hours expiry
+            // tokenRepository.save(verificationToken);
+            
+            String url = "http://localhost:8080/api/auth/verify?token=" + token;
+            String subject = "Please verify your email";
+            String body = "Click the link to verify your account: " + url;
+
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(user.getEmail());
+            message.setSubject(subject);
+            message.setText(body);
+
+            mailSender.send(message);
+            return ResponseEntity.ok("Verification email sent");
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(400).body("Error sending verification email: " + e.getMessage());
+        }
+    }
+
+
+    @GetMapping("/verify")
+    public ResponseEntity<String> verifyEmail(@RequestParam String token) {
+        
+        try{
+            // VerificationToken verificationToken = tokenRepository.findByToken(token)
+            //     .orElseThrow(() -> new RuntimeException("Token not found"));
+            if (jwtUtil.isTokenExpired(token)) {
+                return ResponseEntity.status(400).body("Token expired");
+            }
+            String email = jwtUtil.extractSubject(token);
+            User user = userService.getUserByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            user.setEmailVerified(true);
+            userService.updateUser(user.getId(), user);
+            return ResponseEntity.ok("Email verified");
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(400).body("Error verifying email: " + e.getMessage());
+        }
+    }
+    
+
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody UserLoginRequestDto user, 
+                                       @RequestParam(defaultValue = "normal") String tokenType) {
+        try{
+            User u = userService.authenticateUser(user.getEmail(), user.getPassword())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            String token;
+            switch (tokenType.toLowerCase()) {
+                case "short":
+                    token = jwtUtil.generateShortToken(u);
+                    break;
+                case "long":
+                    token = jwtUtil.generateLongToken(u);
+                    break;
+                default:
+                    token = jwtUtil.generateToken(u);
+                    break;
+            }
+            
             return ResponseEntity.ok(token);
         }
         catch (Exception e) {
@@ -62,9 +147,8 @@ public class AuthController {
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<UserDto> getCurrentUser(
         @Parameter(description = "JWT Bearer token", in = ParameterIn.HEADER, name = "Authorization", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
-        @RequestHeader(value = "Authorization", required = false) String authHeader, 
+        @RequestHeader(value = "Authorization", required = true) String authHeader, 
         HttpServletRequest request) {
-        // Debug logging
         System.out.println("=== DEBUG INFO ===");
         System.out.println("Authorization header: " + authHeader);
         System.out.println("All headers:");
@@ -95,9 +179,12 @@ public class AuthController {
             
             String email = jwtUtil.extractSubject(token);
             
-            User user = userService.getUserByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            Optional<User> userOptional = userService.getUserByEmail(email);
+            if (userOptional.isEmpty()) {
+                return ResponseEntity.status(401).body(null);
+            }
             
+            User user = userOptional.get();
             return ResponseEntity.ok(new UserDto(user));
         } catch (Exception e) {
             System.out.println("Error in /me endpoint: " + e.getMessage());
@@ -106,8 +193,6 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/test")
-    public ResponseEntity<String> test() {
-        return ResponseEntity.ok("Auth controller is working!");
-    }
+    
+    
 }
