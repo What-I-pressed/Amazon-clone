@@ -26,32 +26,29 @@ import Dashboard from './pages/Dashboard';
 
 export default function App() {
   return (
-      <>
-        <Router>
-          <ScrollToTop />
-          <Routes>
-            {/* Головна сторінка Home*/}
-            <Route path="/" element={<Home />} />
+    <>
+      <Router>
+        <ScrollToTop />
+        <Routes>
+          {/* All routes that need the common layout */}
+          <Route path="/" element={<AppLayout />}>
+            {/* Home */}
+            <Route index element={<Home />} />
 
-            {/* Адмін панель*/}
-            <Route path="/admin" element={<AppLayout />}>
+            {/* Admin */}
+            <Route path="admin">
               <Route index element={<Admin />} />
-
-
               <Route path="profile" element={<UserProfiles />} />
               <Route path="calendar" element={<Calendar />} />
               <Route path="blank" element={<Blank />} />
-
               <Route path="form-elements" element={<FormElements />} />
               <Route path="basic-tables" element={<BasicTables />} />
-
               <Route path="alerts" element={<Alerts />} />
               <Route path="avatars" element={<Avatars />} />
               <Route path="badge" element={<Badges />} />
               <Route path="buttons" element={<Buttons />} />
               <Route path="images" element={<Images />} />
               <Route path="videos" element={<Videos />} />
-
               <Route path="line-chart" element={<LineChart />} />
               <Route path="bar-chart" element={<BarChart />} />
             </Route>
@@ -60,10 +57,6 @@ export default function App() {
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
 
-            {/* Login */}
-            <Route path="/login" element={<LoginForm />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-        
             {/* Fallback Route */}
             <Route path="*" element={<NotFound />} />
 

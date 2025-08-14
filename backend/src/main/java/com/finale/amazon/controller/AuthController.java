@@ -12,8 +12,6 @@ import com.finale.amazon.dto.UserLoginRequestDto;
 import com.finale.amazon.dto.UserRequestDto;
 import com.finale.amazon.dto.UserDto;
 import com.finale.amazon.entity.User;
-import com.finale.amazon.entity.VerificationToken;
-import com.finale.amazon.repository.TokenRepository;
 import com.finale.amazon.security.JwtUtil;
 import com.finale.amazon.service.UserService;
 
@@ -29,7 +27,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RestController
