@@ -11,9 +11,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.finale.amazon.dto.UserLoginRequestDto;
 import com.finale.amazon.dto.UserRequestDto;
 import com.finale.amazon.dto.UserDto;
+import com.finale.amazon.dto.UserRegistrationDto;
+import com.finale.amazon.dto.SellerRegistrationDto;
+import com.finale.amazon.dto.ValidationErrorResponse;
 import com.finale.amazon.entity.User;
+import com.finale.amazon.entity.Role;
 import com.finale.amazon.security.JwtUtil;
 import com.finale.amazon.service.UserService;
+import com.finale.amazon.service.ValidationService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,11 +27,13 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -38,6 +45,9 @@ public class AuthController {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private ValidationService validationService;
 
     // @Autowired
     // private TokenRepository tokenRepository;
@@ -102,11 +112,11 @@ public class AuthController {
     
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody UserLoginRequestDto user, 
+    public ResponseEntity<String> login(@Valid @RequestBody UserLoginRequestDto user, 
                                        @RequestParam(defaultValue = "normal") String tokenType) {
         try{
             User u = userService.authenticateUser(user.getEmail(), user.getPassword())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
             
             String token;
             switch (tokenType.toLowerCase()) {
@@ -128,6 +138,63 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/register/user")
+    public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegistrationDto userDto) {
+        try {
+            // Custom validation
+            List<String> validationErrors = validationService.validateUserRegistration(userDto);
+            if (!validationErrors.isEmpty()) {
+                ValidationErrorResponse errorResponse = new ValidationErrorResponse(
+                    "Registration validation failed", validationErrors);
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            // Create user with USER role
+            UserRequestDto userRequest = new UserRequestDto();
+            userRequest.setUsername(userDto.getUsername());
+            userRequest.setDescription(userDto.getDescription());
+            userRequest.setEmail(userDto.getEmail());
+            userRequest.setPassword(userDto.getPassword());
+            userRequest.setRoleName("CUSTOMER");
+
+            User u = userService.createUser(userRequest);
+            String token = jwtUtil.generateToken(u);
+            return ResponseEntity.ok(token);
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(400).body("Error registering user: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/register/seller")
+    public ResponseEntity<?> registerSeller(@Valid @RequestBody SellerRegistrationDto sellerDto) {
+        try {
+            // Custom validation
+            List<String> validationErrors = validationService.validateSellerRegistration(sellerDto);
+            if (!validationErrors.isEmpty()) {
+                ValidationErrorResponse errorResponse = new ValidationErrorResponse(
+                    "Seller registration validation failed", validationErrors);
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            // Create user with SELLER role
+            UserRequestDto userRequest = new UserRequestDto();
+            userRequest.setUsername(sellerDto.getUsername());
+            userRequest.setDescription(sellerDto.getDescription());
+            userRequest.setEmail(sellerDto.getEmail());
+            userRequest.setPassword(sellerDto.getPassword());
+            userRequest.setRoleName("SELLER");
+
+            User u = userService.createUser(userRequest);
+            String token = jwtUtil.generateToken(u);
+            return ResponseEntity.ok(token);
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(400).body("Error registering seller: " + e.getMessage());
+        }
+    }
+
+    // Keep the old register endpoint for backward compatibility
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody UserRequestDto user) {
         try{

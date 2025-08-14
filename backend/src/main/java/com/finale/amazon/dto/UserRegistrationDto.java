@@ -10,7 +10,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserRequestDto {
+public class UserRegistrationDto {
+    
     @NotBlank(message = "Username is required")
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     private String username;
@@ -23,13 +24,10 @@ public class UserRequestDto {
     @Size(max = 512, message = "Email cannot exceed 512 characters")
     private String email;
     
-    @NotBlank(message = "Role name is required")
-    private String roleName;
-    
     @NotBlank(message = "Password is required")
     @Size(min = 8, max = 100, message = "Password must be between 8 and 100 characters")
     private String password;
     
-    private String oldPassword;
-    private String newPassword;
+    @NotBlank(message = "Password confirmation is required")
+    private String confirmPassword;
 } 
