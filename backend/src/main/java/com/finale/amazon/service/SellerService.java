@@ -2,9 +2,11 @@ package com.finale.amazon.service;
 
 import com.finale.amazon.dto.ProductDto;
 import com.finale.amazon.dto.SellerStatsDto;
+import com.finale.amazon.entity.Review;
 import com.finale.amazon.entity.User;
 import com.finale.amazon.repository.OrderRepository;
 import com.finale.amazon.repository.ProductRepository;
+import com.finale.amazon.repository.ReviewRepository;
 import com.finale.amazon.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -20,6 +22,8 @@ public class SellerService {
         private ProductRepository productRepository;
         @Autowired
         private UserRepository userRepository; 
+        @Autowired
+        private ReviewRepository reviewRepository;
 
         @Autowired
         public SellerService(OrderRepository orderRepository) {
@@ -50,13 +54,20 @@ public class SellerService {
                 double totalRevenue = orderRepository.findByProductSellerAndOrderStatusName(
                         seller, "Delivered"
                 ).stream().mapToDouble(order -> order.getPrice()).sum();
-
+                double customerFeedback = reviewRepository.findByProduct_Vendor_Username(seller.getUsername()).get().stream().mapToDouble(review -> review.getStars()).average().orElse(1.0);
+                long numOfReviews = reviewRepository.findByProduct_Vendor_Username(seller.getUsername()).get().stream().count();
                 SellerStatsDto stats = new SellerStatsDto();
                 stats.setTotalOrders(totalOrders);
                 stats.setActiveOrders(activeOrders);
                 stats.setCompletedOrders(completedOrders);
                 stats.setCancelledOrders(cancelledOrders);
                 stats.setTotalRevenue(totalRevenue);
+                stats.setAvgFeedback(customerFeedback);
+                stats.setTotalOrders(numOfReviews);
                 return stats;
+        }
+
+        public List<Review> getSellersReviews(User seller){
+                return reviewRepository.findByProduct_Vendor_Username(seller.getUsername()).get();
         }
 }

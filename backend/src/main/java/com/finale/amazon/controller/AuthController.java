@@ -202,7 +202,8 @@ public class AuthController {
     public ResponseEntity<UserDto> getCurrentUser(
         @Parameter(description = "JWT Bearer token", in = ParameterIn.HEADER, name = "Authorization", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
         @RequestHeader(value = "Authorization", required = true) String authHeader, 
-        HttpServletRequest request) {
+        HttpServletRequest request) 
+        {
         System.out.println("=== DEBUG INFO ===");
         System.out.println("Authorization header: " + authHeader);
         System.out.println("All headers:");
