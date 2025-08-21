@@ -61,9 +61,9 @@ const SellerEditProfile = () => {
     "w-full px-6 py-4 border placeholder-gray-500 focus:outline-none transition-colors";
   const inputNormal =
     inputBase +
-    " bg-[#DFDFDF] border-[#DFDFDF] rounded-full hover:border-gray-400 focus:bg-white";
+    " bg-[#DFDFDF] border-gray-400 rounded-full hover:border-gray-300 focus:bg-gray-2";
   const inputArea =
-    "w-full px-6 py-4 border rounded-2xl placeholder-gray-500 focus:outline-none transition-colors resize-none bg-[#DFDFDF] border-[#DFDFDF] hover:border-gray-400 focus:bg-white";
+    "w-full px-6 py-4 border-gray-400 rounded-2xl placeholder-gray-500 focus:outline-none transition-colors resize-none bg-[#DFDFDF] border-gray-300 hover:border-gray-400 focus:bg-white";
 
   const buttonClass =
     "px-12 py-3 bg-[#282828] text-white font-medium rounded-full hover:bg-[#3A3A3A] disabled:opacity-50 disabled:cursor-not-allowed transition-colors";

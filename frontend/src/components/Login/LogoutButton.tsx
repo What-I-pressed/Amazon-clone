@@ -1,4 +1,4 @@
-import { logout } from '../utilites/auth';
+import { logout } from '../../utilites/auth';
 
 const LogoutButton = () => (
   <button onClick={logout}>Вийти</button>
