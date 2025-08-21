@@ -2,7 +2,6 @@ package com.finale.amazon.entity;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

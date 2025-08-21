@@ -3,7 +3,6 @@ package com.finale.amazon.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import jakarta.persistence.Access;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
