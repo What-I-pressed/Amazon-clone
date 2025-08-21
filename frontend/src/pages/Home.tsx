@@ -1,5 +1,5 @@
 import React from "react";
-import BannerSlider from "../../components/BannerSlider";
+import BannerSlider from "../components/BannerSlider";
 
 const HomePage: React.FC = () => {
   return (
@@ -11,4 +11,4 @@ const HomePage: React.FC = () => {
   );
 };
 
-export default Home;
+export default HomePage;
