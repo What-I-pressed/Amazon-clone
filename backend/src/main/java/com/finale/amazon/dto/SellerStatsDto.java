@@ -13,4 +13,6 @@ public class SellerStatsDto {
     private long completedOrders;
     private long cancelledOrders;
     private double totalRevenue;
+    private long buyersReviews;
+    private double avgFeedback;
 }

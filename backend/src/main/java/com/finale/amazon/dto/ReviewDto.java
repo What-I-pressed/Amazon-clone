@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class ReviewDto {
     private Long id;
     private String description;
+    private Long stars;
     private LocalDateTime date;
     private String username;
     private Long userId;
@@ -27,5 +28,7 @@ public class ReviewDto {
             this.username = review.getUser().getUsername();
             this.userId = review.getUser().getId();
         }
+        parentId = review.getParent().getId();
+        stars = (long)review.getStars();
     }
 } 
