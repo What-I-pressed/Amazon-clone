@@ -1,28 +1,36 @@
 package com.finale.amazon.controller;
 
-import com.finale.amazon.dto.UserLoginRequestDto;
-import com.finale.amazon.dto.UserRequestDto;
-import com.finale.amazon.dto.UserDto;
-import com.finale.amazon.entity.User;
-import com.finale.amazon.entity.VerificationToken;
-import com.finale.amazon.repository.TokenRepository;
-import com.finale.amazon.security.JwtUtil;
-import com.finale.amazon.service.UserService;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.servlet.http.HttpServletRequest;
+import com.finale.amazon.dto.UserDto;
+import com.finale.amazon.dto.UserLoginRequestDto;
+import com.finale.amazon.dto.UserRegistrationDto;
+import com.finale.amazon.dto.UserRequestDto;
+import com.finale.amazon.entity.User;
+import com.finale.amazon.security.JwtUtil;
+import com.finale.amazon.service.UserService;
 
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
-
-import java.time.LocalDateTime;
-import java.util.Optional;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -34,17 +42,16 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @Autowired
-    private TokenRepository tokenRepository;
+    // @Autowired
+    // private TokenRepository tokenRepository;
 
     @Autowired
     private JavaMailSender mailSender;
 
-    private AuthService authService;
-
-     public AuthController(AuthService authService, JwtUtil jwtUtil) {
-        this.authService = authService;
-        this.jwtUtil = jwtUtil;
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleValidationErrors(MethodArgumentNotValidException ex) {
+        String errorMsg = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+        return ResponseEntity.badRequest().body(errorMsg);
     }
 
     @PostMapping("/send-verification-email")
@@ -57,11 +64,11 @@ public class AuthController {
 
             String token = jwtUtil.generateToken(u);
             
-            VerificationToken verificationToken = new VerificationToken();
-            verificationToken.setToken(token);
-            verificationToken.setUser(u);
-            verificationToken.setExpiryDate(LocalDateTime.now().plusHours(24)); // 24 hours expiry
-            tokenRepository.save(verificationToken);
+            // VerificationToken verificationToken = new VerificationToken();
+            // verificationToken.setToken(token);
+            // verificationToken.setUser(u);
+            // verificationToken.setExpiryDate(LocalDateTime.now().plusHours(24)); // 24 hours expiry
+            // tokenRepository.save(verificationToken);
             
             String url = "http://localhost:8080/api/auth/verify?token=" + token;
             String subject = "Please verify your email";
@@ -85,9 +92,7 @@ public class AuthController {
     public ResponseEntity<String> verifyEmail(@RequestParam String token) {
         
         try{
-            VerificationToken verificationToken = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Token not found"));
-            if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            if (jwtUtil.isTokenExpired(token)) {
                 return ResponseEntity.status(400).body("Token expired");
             }
             String email = jwtUtil.extractSubject(token);
@@ -104,11 +109,11 @@ public class AuthController {
     
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody UserLoginRequestDto user, 
+    public ResponseEntity<String> login(@Valid @RequestBody UserLoginRequestDto user, 
                                        @RequestParam(defaultValue = "normal") String tokenType) {
         try{
             User u = userService.authenticateUser(user.getEmail(), user.getPassword())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
             
             String token;
             switch (tokenType.toLowerCase()) {
@@ -130,26 +135,75 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody UserRequestDto userDto) {
+    @PostMapping("/register/user")
+    public ResponseEntity<String> registerUser(@Valid @RequestBody UserRegistrationDto userDto,
+        BindingResult result) {
+            if (result.hasErrors()) {
+        String errorMsg = result.getAllErrors().get(0).getDefaultMessage();
+        return ResponseEntity.badRequest().body(errorMsg);
+    }
         try {
-            User user = authService.register(userDto);
-            String token = jwtUtil.generateToken(user);
-            return ResponseEntity.ok(token); // або обгортати в об'єкт з полями
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            // логування, не відкривати внутрішні деталі
-            return ResponseEntity.status(500).body("Серверна помилка при реєстрації");
+
+
+            // Create user with USER role
+            UserRequestDto userRequest = new UserRequestDto();
+            userRequest.setUsername(userDto.getUsername());
+            userRequest.setEmail(userDto.getEmail());
+            userRequest.setPassword(userDto.getPassword());
+            userRequest.setRoleName("CUSTOMER");
+
+            User u = userService.createUser(userRequest);
+            String token = jwtUtil.generateToken(u);
+            return ResponseEntity.ok(token);
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(400).body("Error registering user: " + e.getMessage());
         }
     }
+
+    @PostMapping("/register/seller")
+    public ResponseEntity<String> registerSeller(@Valid @RequestBody UserRegistrationDto sellerDto,
+        BindingResult result) {
+            if (result.hasErrors()) {
+        String errorMsg = result.getAllErrors().get(0).getDefaultMessage();
+        return ResponseEntity.badRequest().body(errorMsg);
+    }
+        try {
+
+            UserRequestDto userRequest = new UserRequestDto();
+            userRequest.setUsername(sellerDto.getUsername());
+            userRequest.setEmail(sellerDto.getEmail());
+            userRequest.setPassword(sellerDto.getPassword());
+            userRequest.setRoleName("SELLER");
+
+            User u = userService.createUser(userRequest);
+            String token = jwtUtil.generateToken(u);
+            return ResponseEntity.ok(token);
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(400).body("Error registering seller: " + e.getMessage());
+        }
+    }
+
+    // @PostMapping("/register")
+    // public ResponseEntity<String> register(@RequestBody UserRequestDto user) {
+    //     try{
+    //         User u = userService.createUser(user);
+    //         String token = jwtUtil.generateToken(u);
+    //         return ResponseEntity.ok(token);
+    //     }
+    //     catch (Exception e) {
+    //         return ResponseEntity.status(400).body("Error registering user: " + e.getMessage());
+    //     }
+    // }
 
     @GetMapping("/me")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<UserDto> getCurrentUser(
         @Parameter(description = "JWT Bearer token", in = ParameterIn.HEADER, name = "Authorization", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
         @RequestHeader(value = "Authorization", required = true) String authHeader, 
-        HttpServletRequest request) {
+        HttpServletRequest request) 
+        {
         System.out.println("=== DEBUG INFO ===");
         System.out.println("Authorization header: " + authHeader);
         System.out.println("All headers:");

@@ -1,8 +1,12 @@
 package com.finale.amazon.controller;
 
+import com.fasterxml.jackson.databind.annotation.JsonAppend.Attr;
+import com.finale.amazon.dto.ProductDto;
+import com.finale.amazon.dto.ReviewDto;
 import com.finale.amazon.dto.SellerStatsDto;
 import com.finale.amazon.dto.UserDto;
 import com.finale.amazon.entity.User;
+import com.finale.amazon.security.JwtUtil;
 import com.finale.amazon.service.SellerService;
 import com.finale.amazon.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,19 +15,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.lang.StackWalker.Option;
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/seller")
 @CrossOrigin(origins = "*")
 public class SellerController {
-
-    private final UserService userService;
-    private final SellerService sellerService;
-
     @Autowired
-    public SellerController(UserService userService, SellerService sellerService) {
-        this.userService = userService;
-        this.sellerService = sellerService;
-    }
+    private UserService userService;
+    @Autowired
+    private SellerService sellerService;
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @GetMapping("/profile")
     public ResponseEntity<UserDto> getSellerProfile(@RequestParam String email) {
@@ -69,6 +73,21 @@ public class SellerController {
         );
 
         return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("profile/reviews")
+    public ResponseEntity<List<ReviewDto>> getSellersReviews(@RequestParam String token){
+        try{
+            if(jwtUtil.isTokenExpired(token)){
+                return ResponseEntity.status(400).body(null);
+            }
+            User seller = userService.getUserByEmail(jwtUtil.extractSubject(token)).get();
+            return ResponseEntity.status(200).body(sellerService.getSellersReviews(seller).stream().map(review -> new ReviewDto(review)).toList());
+        }
+        catch(Exception ex){
+            return ResponseEntity.status(400).body(null);
+        }
+        
     }
 
 }

@@ -9,12 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProductStatisticsDto {
     private long quantitySold;
-    private int reviewCount;
-    private long quantityInStock;
-
-    public ProductStatisticsDto(long quantitySold, int reviewCount, long quantityInStock) {
-        this.quantitySold = quantitySold;
-        this.reviewCount = reviewCount;
-        this.quantityInStock = quantityInStock;
-    }
+    private long totalRevenue;
+    private long totalOrders;
+    private long totalUsers;
+    private long totalProducts;
+    private long totalReviews;
+    private long totalCategories;
 }

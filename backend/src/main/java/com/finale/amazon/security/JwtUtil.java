@@ -1,74 +1,94 @@
-package com.finale.amazon.controller;
+package com.finale.amazon.security;
 
-import com.finale.amazon.dto.UserDto;
 import com.finale.amazon.entity.User;
-import com.finale.amazon.security.JwtUtil;
-import com.finale.amazon.service.UserService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 
-import java.util.Optional;
+@Component
+public class JwtUtil {
 
-@RestController
-@RequestMapping("/api/user")
-@CrossOrigin(origins = "*")
-public class UserController {
+    @Value("${jwt.secret}")
+    private String secret;
 
-    @Autowired
-    private UserService userService;
+    @Value("${jwt.expiration:86400000}") // 24 hours default
+    private long expiration;
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    @Value("${jwt.short-expiration:3600000}") // 1 hour default
+    private long shortExpiration;
 
-    @GetMapping("/profile")
-    public ResponseEntity<UserDto> getUserProfile(@RequestHeader("Authorization") String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(401).build();
-        }
+    @Value("${jwt.long-expiration:604800000}") // 7 days default
+    private long longExpiration;
 
-        String token = authHeader.substring(7);
-        String email = jwtUtil.extractSubject(token);
-
-        Optional<User> userOpt = userService.getUserByEmail(email);
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        User user = userOpt.get();
-        return ResponseEntity.ok(new UserDto(user));
+    public String extractSubject(String token) {
+        return extractClaim(token, Claims::getSubject);
     }
 
-    @PutMapping("/profile")
-    public ResponseEntity<?> updateUserProfile(
-            @RequestHeader("Authorization") String authHeader,
-            @RequestBody UserDto userDto) {
+    public String extractUsername(String token) {
+        return extractClaim(token, claims -> claims.get("username", String.class));
+    }
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(401).build();
-        }
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("userId", Long.class));
+    }
 
-        String token = authHeader.substring(7);
-        String email = jwtUtil.extractSubject(token);
+    private Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
 
-        Optional<User> userOpt = userService.getUserByEmail(email);
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
 
-        User user = userOpt.get();
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+    }
 
-        try {
-            userService.updateUserProfile(
-                    user.getId(),
-                    userDto.getUsername(),
-                    userDto.getDescription(),
-                    userDto.getEmail()
-            );
-            return ResponseEntity.ok().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public Boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    public String generateToken(User user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("username", user.getUsername());
+        claims.put("userId", user.getId());
+        return createToken(claims, user.getEmail(), expiration);
+    }
+
+    public String generateShortToken(User user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("username", user.getUsername());
+        claims.put("userId", user.getId());
+        return createToken(claims, user.getEmail(), shortExpiration);
+    }
+
+    public String generateLongToken(User user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("username", user.getUsername());
+        claims.put("userId", user.getId());
+        return createToken(claims, user.getEmail(), longExpiration);
+    }
+
+    private String createToken(Map<String, Object> claims, String subject, long expirationTime) {
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(subject)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+                .signWith(SignatureAlgorithm.HS256, secret)
+                .compact();
+    }
+
+    public Boolean validateToken(String token, String email) {
+        final String username = extractSubject(token);
+        return (username.equals(email) && !isTokenExpired(token));
     }
 }
