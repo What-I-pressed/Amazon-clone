@@ -20,6 +20,8 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Home";
 import Admin from "./pages/Dashboard/Home";
 import SellerProfile from "./pages/Seller/Profile";
+import SellerDashboard from "./pages/Seller/Dashboard"; 
+import SellerEditProfile from "./pages/Seller/Edit";
 
 export default function App() {
   return (
@@ -27,7 +29,7 @@ export default function App() {
       <Router>
         <ScrollToTop />
         <Routes>
-          {/* All routes that need the common layout */}
+          {/* З лейаутом */}
           <Route path="/" element={<AppLayout />}>
             {/* Home */}
             <Route index element={<Home />} />
@@ -50,10 +52,12 @@ export default function App() {
               <Route path="bar-chart" element={<BarChart />} />
             </Route>
 
-            {/* Seller */}
             <Route path="seller">
-              <Route path=":id" element={<SellerProfile />} />
+              <Route index element={<SellerProfile />} /> 
+              <Route path="dashboard" element={<SellerDashboard />} /> 
+              <Route path="edit" element={<SellerEditProfile />} /> 
             </Route>
+
           </Route>
 
           {/* Auth — without layout */}

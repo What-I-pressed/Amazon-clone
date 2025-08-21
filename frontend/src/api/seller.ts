@@ -1,46 +1,60 @@
+// api/seller.ts
 import type { Seller } from "../types/seller";
+import type { SellerStats } from "../types/sellerstats";
 
-const API_BASE = "/api/sellers";
+const API_BASE = "/api/seller";
 
-export async function fetchSellerProfile(id: string | undefined): Promise<Seller> {
-    if (!id) {
-        throw new Error("Ідентифікатор продавця не може бути пустим");
-    }
-
-    try {
-        const res = await fetch(`${API_BASE}/${id}`);
-        if (!res.ok) {
-            throw new Error(`Не вдалося отримати профіль продавця з id: ${id}`);
-        }
-        return res.json();
-    } catch (error) {
-        console.error(`[API] Помилка fetchSellerProfile (id: ${id}):`, error);
-        throw error;
-    }
+// helper для заголовків
+function getAuthHeaders() {
+  const token = localStorage.getItem("token"); // або з cookies/sessionStorage
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
 }
 
-export async function updateSellerProfile(id: string, data: Partial<Seller>): Promise<Seller> {
-    if (!id) {
-        throw new Error("Ідентифікатор продавця не може бути пустим");
-    }
-    if (!data) {
-        throw new Error("Дані для оновлення профілю відсутні");
-    }
+// отримання профілю продавця
+export async function fetchSellerProfile(): Promise<Seller> {
+  try {
+    const res = await fetch(`${API_BASE}/profile`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error("Не вдалося отримати профіль продавця");
+    return res.json();
+  } catch (e) {
+    console.error("[API] fetchSellerProfile:", e);
+    throw e;
+  }
+}
 
-    try {
-        const res = await fetch(`${API_BASE}/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
+// оновлення профілю продавця
+export async function updateSellerProfile(data: Partial<Seller>): Promise<Seller> {
+  try {
+    const res = await fetch(`${API_BASE}/profile`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error("Не вдалося оновити профіль продавця");
+    return res.json();
+  } catch (e) {
+    console.error("[API] updateSellerProfile:", e);
+    throw e;
+  }
+}
 
-        if (!res.ok) {
-            throw new Error(`Не вдалося оновити профіль продавця з id: ${id}`);
-        }
-
-        return res.json();
-    } catch (error) {
-        console.error(`[API] Помилка updateSellerProfile (id: ${id}):`, error);
-        throw error;
-    }
+// отримання статистики продавця
+export async function fetchSellerStats(): Promise<SellerStats> {
+  try {
+    const res = await fetch(`${API_BASE}/profile/stats`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error("Не вдалося отримати статистику продавця");
+    return res.json();
+  } catch (e) {
+    console.error("[API] fetchSellerStats:", e);
+    throw e;
+  }
 }
