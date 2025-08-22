@@ -1,6 +1,8 @@
 package com.finale.amazon.entity;
 
+import jakarta.persistence.Basic;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -20,11 +22,12 @@ public class Picture {
     private long id;
     
     @Lob
+    @Basic(fetch = FetchType.LAZY) 
     private byte[] data;
     
-    private String fileName;    
-    private String mimeType;    
-    private long fileSize;      
+    private String name;    
+    private String mimeType;      
+    private Long fileSize;
 
     @ManyToOne
     private Product product;

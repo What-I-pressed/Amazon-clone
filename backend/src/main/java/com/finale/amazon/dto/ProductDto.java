@@ -31,7 +31,7 @@ public class ProductDto {
     private String vendorName;
     private Long vendorId;
     
-    private List<String> imageUrls;
+    private List<PictureDto> pictures;
     private List<ReviewDto> reviews;
     private List<ProductVariationDto> variations;
     
@@ -45,6 +45,7 @@ public class ProductDto {
         this.discountExpirationDate = product.getDiscountExpirationDate();
         this.quantityInStock = product.getQuantityInStock();
         this.quantitySold = product.getQuantitySold();
+        
         
         if (this.priceWithoutDiscount > 0) {
             this.discountPercentage = ((this.priceWithoutDiscount - this.price) / this.priceWithoutDiscount) * 100;
@@ -81,9 +82,7 @@ public class ProductDto {
         }
         
         if (product.getPictures() != null) {
-            this.imageUrls = product.getPictures().stream()
-                    .map(picture -> "/api/images/" + picture.getId())
-                    .toList();
+            pictures = product.getPictures().stream().map(PictureDto::new).toList();
         }
         
         if (product.getReviews() != null) {

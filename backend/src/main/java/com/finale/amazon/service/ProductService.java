@@ -11,8 +11,10 @@ import com.finale.amazon.repository.CategoryRepository;
 import com.finale.amazon.repository.SubcategoryRepository;
 import com.finale.amazon.repository.CharacteristicTypeRepository;
 import com.finale.amazon.repository.UserRepository;
+
 import com.finale.amazon.repository.PictureRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.finale.amazon.dto.ProductCreationDto;
 import com.finale.amazon.entity.Product;
@@ -33,8 +35,6 @@ public class ProductService {
     private CharacteristicTypeRepository characteristicTypeRepository;
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private PictureRepository pictureRepository;
 
     public Page<Product> getProductsPage(Pageable pageable) {
         return productRepository.findAll(pageable);
@@ -52,32 +52,25 @@ public class ProductService {
         product.setQuantitySold(0);
 
         if (dto.getCategoryName() != null) {
-            categoryRepository.findByName(dto.getCategoryName()).ifPresent(product::setCategory);
+            categoryRepository.findByName(dto.getCategoryName().toLowerCase()).ifPresent(product::setCategory);
         }
         if (dto.getSubcategoryName() != null) {
-            subcategoryRepository.findByName(dto.getSubcategoryName()).ifPresent(product::setSubcategory);
+            subcategoryRepository.findByName(dto.getSubcategoryName().toLowerCase()).ifPresent(product::setSubcategory);
         }
         if (dto.getCharacteristicTypeName() != null) {
-            characteristicTypeRepository.findByName(dto.getCharacteristicTypeName()).ifPresent(product::setCharacteristic);
+            characteristicTypeRepository.findByName(dto.getCharacteristicTypeName().toLowerCase()).ifPresent(product::setCharacteristic);
         }
         if (dto.getVendorId() != null) {
             userRepository.findById(dto.getVendorId()).ifPresent(product::setVendor);
         }
-        if (dto.getImageIds() != null && !dto.getImageIds().isEmpty()) {
-            var pictures = dto.getImageIds().stream()
-                .map(pictureRepository::findById)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .toList();
-            product.setPictures(pictures);
-        }
+
         if (dto.getVariations() != null) {
             product.setVariations(dto.getVariations().stream()
                 .map(variationDto -> {
                     ProductVariation variation = new ProductVariation();
                     variation.setQuantityInStock(variationDto.getQuantityInStock());
                     if (variationDto.getCharacteristicValue() != null) {
-                        characteristicTypeRepository.findByName(dto.getCharacteristicTypeName())
+                        characteristicTypeRepository.findByName(dto.getCharacteristicTypeName().toLowerCase())
                             .ifPresent(type -> {
                                 type.getValues().stream()
                                     .filter(val -> val.getValue().equals(variationDto.getCharacteristicValue()))
@@ -91,10 +84,6 @@ public class ProductService {
         }
 
         return productRepository.save(product);
-    }
-
-    public Optional<Product> getProductById(Long id) {
-        return productRepository.findById(id);
     }
 
     public Product updateProduct(Long id, ProductCreationDto dto) {
@@ -112,24 +101,16 @@ public class ProductService {
     product.setQuantityInStock(dto.getQuantityInStock());
 
     if (dto.getCategoryName() != null) {
-            categoryRepository.findByName(dto.getCategoryName()).ifPresent(product::setCategory);
+            categoryRepository.findByName(dto.getCategoryName().toLowerCase()).ifPresent(product::setCategory);
         }
         if (dto.getSubcategoryName() != null) {
-            subcategoryRepository.findByName(dto.getSubcategoryName()).ifPresent(product::setSubcategory);
+            subcategoryRepository.findByName(dto.getSubcategoryName().toLowerCase()).ifPresent(product::setSubcategory);
         }
         if (dto.getCharacteristicTypeName() != null) {
-            characteristicTypeRepository.findByName(dto.getCharacteristicTypeName()).ifPresent(product::setCharacteristic);
+            characteristicTypeRepository.findByName(dto.getCharacteristicTypeName().toLowerCase()).ifPresent(product::setCharacteristic);
         }
         if (dto.getVendorId() != null) {
             userRepository.findById(dto.getVendorId()).ifPresent(product::setVendor);
-        }
-        if (dto.getImageIds() != null && !dto.getImageIds().isEmpty()) {
-            var pictures = dto.getImageIds().stream()
-                .map(pictureRepository::findById)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .toList();
-            product.setPictures(pictures);
         }
         if (dto.getVariations() != null) {
             product.setVariations(dto.getVariations().stream()
@@ -137,7 +118,7 @@ public class ProductService {
                     ProductVariation variation = new ProductVariation();
                     variation.setQuantityInStock(variationDto.getQuantityInStock());
                     if (variationDto.getCharacteristicValue() != null) {
-                        characteristicTypeRepository.findByName(dto.getCharacteristicTypeName())
+                        characteristicTypeRepository.findByName(dto.getCharacteristicTypeName().toLowerCase())
                             .ifPresent(type -> {
                                 type.getValues().stream()
                                     .filter(val -> val.getValue().equals(variationDto.getCharacteristicValue()))
@@ -155,6 +136,11 @@ public class ProductService {
 
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
+    }
+    
+    @Transactional(readOnly = true)
+    public Optional<Product> getProductById(Long productId){
+        return productRepository.findByIdWithPictures(productId);
     }
 
 }
