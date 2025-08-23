@@ -22,6 +22,8 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
+    
+
     // Отримати сторінку продуктів (нумерація з 0)
     @GetMapping("page/{page}")
     public ResponseEntity<Page<ProductDto>> getProductsPage(@PathVariable int page,

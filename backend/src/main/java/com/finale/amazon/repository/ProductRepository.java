@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
@@ -34,6 +35,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByQuantityInStockGreaterThan(Long quantity);
     
     long countByCategory(Category category);
+
+    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.pictures WHERE p.id = :id")
+    Optional<Product> findByIdWithPictures(@Param("id") Long id);
     
     @Query("SELECT p FROM Product p WHERE p.price BETWEEN :minPrice AND :maxPrice")
     List<Product> findByPriceRange(@Param("minPrice") double minPrice, @Param("maxPrice") double maxPrice);

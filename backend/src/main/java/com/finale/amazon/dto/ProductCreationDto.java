@@ -40,52 +40,26 @@ public class ProductCreationDto {
     @Min(value = 0, message = "Quantity in stock cannot be negative")
     private Long quantityInStock;
     
-    // Category and subcategory by name (will be resolved in service)
+    @NotBlank
     private String categoryName;
     private String subcategoryName;
     
-    // Characteristic type by name (will be resolved in service)
     private String characteristicTypeName;
     
-    // Vendor by ID (will be resolved in service)
     @NotNull(message = "Vendor ID is required")
     private Long vendorId;
-    
-    // List of image IDs that were previously uploaded
-    private List<Long> imageIds;
-    
-    // List of product variations (optional)
+
     private List<ProductVariationDto> variations;
     
-    // Validation method to ensure discount dates are logical
     public boolean isValidDiscountDates() {
         if (discountLaunchDate == null && discountExpirationDate == null) {
-            return true; // No discount
+            return true;
         }
         
         if (discountLaunchDate != null && discountExpirationDate != null) {
             return discountLaunchDate.isBefore(discountExpirationDate);
         }
         
-        return false; // One date is null but not the other
-    }
-    
-    // Validation method to ensure price logic is correct
-    public boolean isValidPricing() {
-        if (price == null || priceWithoutDiscount == null) {
-            return false;
-        }
-        
-        // If there's a discount, price should be less than priceWithoutDiscount
-        if (discountLaunchDate != null && discountExpirationDate != null) {
-            LocalDateTime now = LocalDateTime.now();
-            boolean discountActive = now.isAfter(discountLaunchDate) && now.isBefore(discountExpirationDate);
-            
-            if (discountActive && price >= priceWithoutDiscount) {
-                return false;
-            }
-        }
-        
-        return true;
+        return false;
     }
 }
