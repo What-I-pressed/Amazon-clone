@@ -32,7 +32,7 @@ const SellerProfileView = () => {
         const productsData: Product[] = await fetchSellerProducts(sellerData.id, 0, 12);
         setProducts(productsData);
       } catch (e) {
-        console.error("Ошибка при загрузке данных селлера:", e);
+        console.error("Помилка при завантаженні даних продавця:", e);
       } finally {
         setLoading(false);
       }
