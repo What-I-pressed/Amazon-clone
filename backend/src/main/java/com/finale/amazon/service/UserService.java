@@ -3,6 +3,7 @@ package com.finale.amazon.service;
 import com.finale.amazon.entity.User;
 import com.finale.amazon.entity.VerificationToken;
 import com.finale.amazon.dto.UserRequestDto;
+import com.finale.amazon.dto.UserDto;
 import com.finale.amazon.entity.Role;
 import com.finale.amazon.repository.RoleRepository;
 import com.finale.amazon.repository.TokenRepository;
@@ -276,5 +277,23 @@ public class UserService {
 
     public List<User> getUsersByBlockedStatus(boolean blocked) {
         return userRepository.findByBlockedStatus(blocked);
+    }
+
+    public User updateSellerProfile(User seller, UserDto updateRequest) {
+        if (updateRequest.getUsername() != null) {
+            seller.setUsername(updateRequest.getUsername());
+        }
+        if (updateRequest.getDescription() != null) {
+            seller.setDescription(updateRequest.getDescription());
+        }
+        if (updateRequest.getEmail() != null && !updateRequest.getEmail().equals(seller.getEmail())) {
+            if (userExistsByEmail(updateRequest.getEmail())) {
+                throw new RuntimeException("Email already exists: " + updateRequest.getEmail());
+            }
+            seller.setEmail(updateRequest.getEmail());
+            seller.setEmailVerified(false);
+        }
+        
+        return userRepository.save(seller);
     }
 }

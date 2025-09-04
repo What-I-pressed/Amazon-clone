@@ -1,33 +1,9 @@
 import { useEffect, useState } from "react";
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  images: string[];
-  createdAt: string;
-  updatedAt: string;
-  views: number;
-  sold: number;
-  rating?: number;
-}
-
-type SellerStats = {
-  totalOrders: number;
-  completedOrders: number;
-  cancelledOrders: number;
-};
-
-type Seller = {
-  id: string;
-  email: string;
-  avatar: string;
-  rating: number;
-  stats: SellerStats;
-  name: string;
-  description?: string;
-};
+import { fetchSellerProfile, fetchSellerStats } from "../../api/seller";
+import { fetchSellerProducts } from "../../api/products"; 
+import type { Seller } from "../../types/seller";
+import type { SellerStats } from "../../types/sellerstats";
+import type { Product } from "../../types/product";
 
 const SellerProfileView = () => {
   const [seller, setSeller] = useState<Seller | null>(null);
@@ -35,39 +11,34 @@ const SellerProfileView = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fakeSeller: Seller = {
-      id: "test-id",
-      email: "seller@example.com",
-      avatar: "https://m.media-amazon.com/images/S/sash/MzMwWD6VTDRGHD8.png",
-      rating: 4.7,
-      stats: {
-        totalOrders: 150,
-        completedOrders: 140,
-        cancelledOrders: 5,
-      },
-      name: "Best Electronics Store",
-      description:
-        "Your trusted seller for high-quality electronics, fast shipping, and excellent customer service.",
+    const loadData = async () => {
+      try {
+        const sellerData: Seller = await fetchSellerProfile();
+
+        setSeller({
+          ...sellerData,
+          stats: {
+            totalOrders: 0,
+            activeOrders: 0,
+            completedOrders: 0,
+            cancelledOrders: 0,
+            totalRevenue: 0,
+          },
+        });
+
+        const stats: SellerStats = await fetchSellerStats();
+        setSeller(prev => prev ? { ...prev, stats } : prev);
+
+        const productsData: Product[] = await fetchSellerProducts(sellerData.id, 0, 12);
+        setProducts(productsData);
+      } catch (e) {
+        console.error("Ошибка при загрузке данных селлера:", e);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const fakeProducts: Product[] = Array.from({ length: 8 }, (_, i) => ({
-      id: String(i + 1),
-      name: `Product ${i + 1}`,
-      description: `Description for product ${i + 1}`,
-      price: 99.99,
-      images: [""], // пусто → заглушка
-      createdAt: "2025-08-01",
-      updatedAt: "2025-08-10",
-      views: 100,
-      sold: 50,
-      rating: 4.3,
-    }));
-
-    setTimeout(() => {
-      setSeller(fakeSeller);
-      setProducts(fakeProducts);
-      setLoading(false);
-    }, 400);
+    loadData();
   }, []);
 
   if (loading)
@@ -117,9 +88,9 @@ const SellerProfileView = () => {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Статистика</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
-              { label: "Всього замовлень", value: seller.stats.totalOrders },
-              { label: "Виконані", value: seller.stats.completedOrders },
-              { label: "Скасовані", value: seller.stats.cancelledOrders },
+              { label: "Всього замовлень", value: seller.stats?.totalOrders ?? 0 },
+              { label: "Виконані", value: seller.stats?.completedOrders ?? 0 },
+              { label: "Скасовані", value: seller.stats?.cancelledOrders ?? 0 },
             ].map((stat, i) => (
               <div
                 key={i}
@@ -132,25 +103,22 @@ const SellerProfileView = () => {
           </div>
         </section>
 
-        {/* Products styled like your screenshot */}
+        {/* Products */}
         <section>
           <h2 className="text-xl font-semibold text-gray-900 mb-6">
             Товари продавця
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((product) => (
+            {products.map(product => (
               <div
                 key={product.id}
                 className="relative bg-white border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-end"
               >
-                {/* Заглушка под картинку */}
                 <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
                   <span className="text-gray-400 text-sm">Image</span>
                 </div>
                 <div className="p-4">
-                  <h3 className="text-md font-semibold text-gray-900">
-                    {product.name}
-                  </h3>
+                  <h3 className="text-md font-semibold text-gray-900">{product.name}</h3>
                   <p className="text-sm text-gray-500">{product.description}</p>
                   <div className="mt-2 text-lg font-bold text-amazon-blue">
                     ${product.price.toFixed(2)}
@@ -159,7 +127,7 @@ const SellerProfileView = () => {
                     {"★".repeat(Math.floor(product.rating || 0))}
                     {"☆".repeat(5 - Math.floor(product.rating || 0))}
                     <span className="text-gray-600 text-sm ml-2">
-                      {product.rating?.toFixed(1)}
+                      {(product.rating ?? 0).toFixed(1)}
                     </span>
                   </div>
                   <div className="text-sm text-gray-500 mt-1">
@@ -174,15 +142,5 @@ const SellerProfileView = () => {
     </div>
   );
 };
-
-// Tailwind config addition for Amazon style
-// theme: {
-//   extend: {
-//     colors: {
-//       'amazon-blue': '#146eb4',
-//       'amazon-blue-dark': '#0f4a7b',
-//     }
-//   }
-// }
 
 export default SellerProfileView;
