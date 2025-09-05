@@ -46,8 +46,8 @@ public class ProductCreationDto {
     
     private String characteristicTypeName;
     
-    @NotNull(message = "Vendor ID is required")
-    private Long vendorId;
+    @NotNull(message = "seller ID is required")
+    private Long sellerId;
 
     private List<ProductVariationDto> variations;
     

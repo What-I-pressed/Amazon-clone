@@ -1,6 +1,9 @@
 package com.finale.amazon.entity;
 
+import org.hibernate.annotations.Fetch;
+
 import jakarta.persistence.Basic;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -17,21 +20,24 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Picture {
+    private Long fileSize;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     
+    @ManyToOne
+    private Product product;
+    
+    @ManyToOne
+    private Review review;
+
+    private String mimeType;      
+
     @Lob
-    @Basic(fetch = FetchType.LAZY) 
+    @Basic(fetch =FetchType.LAZY)
     private byte[] data;
     
     private String name;    
-    private String mimeType;      
-    private Long fileSize;
 
-    @ManyToOne
-    private Product product;
-
-    @ManyToOne
-    private Review review;
 }

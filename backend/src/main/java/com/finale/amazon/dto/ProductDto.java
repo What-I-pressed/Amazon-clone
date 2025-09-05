@@ -28,8 +28,8 @@ public class ProductDto {
     private String subcategoryName;
     private String characteristicType;
     
-    private String vendorName;
-    private Long vendorId;
+    private String sellerName;
+    private Long sellerId;
     
     private List<PictureDto> pictures;
     private List<ReviewDto> reviews;
@@ -70,9 +70,9 @@ public class ProductDto {
             this.characteristicType = product.getCharacteristic().getName();
         }
         
-        if (product.getVendor() != null) {
-            this.vendorName = product.getVendor().getUsername();
-            this.vendorId = product.getVendor().getId();
+        if (product.getSeller() != null) {
+            this.sellerName = product.getSeller().getUsername();
+            this.sellerId = product.getSeller().getId();
         }
         
         if (product.getReviews() != null) {

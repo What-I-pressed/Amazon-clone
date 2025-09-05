@@ -54,8 +54,8 @@ public class SellerService {
                 double totalRevenue = orderRepository.findByProductSellerAndOrderStatusName(
                         seller, "Delivered"
                 ).stream().mapToDouble(order -> order.getPrice()).sum();
-                double customerFeedback = reviewRepository.findByProduct_Vendor_Username(seller.getUsername()).get().stream().mapToDouble(review -> review.getStars()).average().orElse(1.0);
-                long numOfReviews = reviewRepository.findByProduct_Vendor_Username(seller.getUsername()).get().stream().count();
+                double customerFeedback = reviewRepository.findByProduct_seller_Username(seller.getUsername()).get().stream().mapToDouble(review -> review.getStars()).average().orElse(1.0);
+                long numOfReviews = reviewRepository.findByProduct_seller_Username(seller.getUsername()).get().stream().count();
                 SellerStatsDto stats = new SellerStatsDto();
                 stats.setTotalOrders(totalOrders);
                 stats.setActiveOrders(activeOrders);
@@ -68,6 +68,6 @@ public class SellerService {
         }
 
         public List<Review> getSellersReviews(User seller){
-                return reviewRepository.findByProduct_Vendor_Username(seller.getUsername()).get();
+                return reviewRepository.findByProduct_seller_Username(seller.getUsername()).get();
         }
 }
