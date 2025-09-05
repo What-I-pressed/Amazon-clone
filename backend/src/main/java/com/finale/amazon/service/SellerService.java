@@ -11,6 +11,8 @@ import com.finale.amazon.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import com.finale.amazon.dto.UserDto;
+
 
 import java.util.List;
 
@@ -70,4 +72,37 @@ public class SellerService {
         public List<Review> getSellersReviews(User seller){
                 return reviewRepository.findByProduct_Vendor_Username(seller.getUsername()).get();
         }
+
+        public User updateSellerProfile(User seller, UserDto updateRequest) {
+                if (!"SELLER".equalsIgnoreCase(seller.getRole().getName())) {
+                    throw new IllegalArgumentException("User is not a seller");
+                }
+            
+                // Валідація username
+                if (updateRequest.getUsername() != null && !updateRequest.getUsername().isBlank()) {
+                    if (updateRequest.getUsername().length() < 3 || updateRequest.getUsername().length() > 50) {
+                        throw new IllegalArgumentException("Username must be 3-50 characters");
+                    }
+                    seller.setUsername(updateRequest.getUsername());
+                }
+            
+                // Валідація description
+                if (updateRequest.getDescription() != null) {
+                    if (updateRequest.getDescription().length() > 500) {
+                        throw new IllegalArgumentException("Description max 500 characters");
+                    }
+                    seller.setDescription(updateRequest.getDescription());
+                }
+            
+                // Валідація email
+                if (updateRequest.getEmail() != null && !updateRequest.getEmail().isBlank()) {
+                    if (!updateRequest.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+                        throw new IllegalArgumentException("Invalid email format");
+                    }
+                    seller.setEmail(updateRequest.getEmail());
+                }
+            
+                return userRepository.save(seller);
+            }
+            
 }

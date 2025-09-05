@@ -2,40 +2,41 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import SellerStats from "../../components/seller/SellerStats";
 import type { Seller } from "../../types/seller";
-import type { SellerStats as Stats } from "../../types/sellerstats";
-
-// Mock data
-const mockStats: Stats = {
-  totalOrders: 152,
-  activeOrders: 12,
-  completedOrders: 130,
-  cancelledOrders: 10,
-  totalRevenue: 15640.5,
-};
-
-const mockSeller: Seller = {
-  id: "1",
-  name: "Тестовий Продавець",
-  email: "test@example.com",
-  rating: 4.7,
-  stats: mockStats,
-};
+import { fetchSellerProfile } from "../../api/seller"; 
 
 const SellerDashboard: React.FC = () => {
   const [seller, setSeller] = useState<Seller | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setTimeout(() => {
-      setSeller(mockSeller);
-      setLoading(false);
-    }, 600); // simulate API delay
+    const loadSeller = async () => {
+      try {
+        const profile = await fetchSellerProfile(); 
+        setSeller(profile);
+      } catch (err: any) {
+        setError("Не вдалося завантажити профіль продавця");
+        console.error("[SellerDashboard] Error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSeller();
   }, []);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-800"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 text-red-600">
+        {error}
       </div>
     );
   }

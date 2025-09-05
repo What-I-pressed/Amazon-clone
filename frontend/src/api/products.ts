@@ -99,3 +99,25 @@ export async function deleteProduct(id: string): Promise<void> {
         throw error;
     }
 }
+
+export async function fetchSellerProducts(
+    vendorId: string,
+    page = 0,
+    size = 12
+  ): Promise<Product[]> {
+    if (!vendorId) {
+      throw new Error("Ідентифікатор продавця не може бути пустим");
+    }
+  
+    try {
+      const res = await fetch(`${API_BASE}/vendor/${vendorId}?page=${page}&size=${size}`);
+      if (!res.ok) {
+        throw new Error(`Не вдалося отримати товари продавця з id: ${vendorId}`);
+      }
+      return res.json();
+    } catch (error) {
+      console.error(`[API] Помилка fetchSellerProducts (vendorId: ${vendorId}):`, error);
+      throw error;
+    }
+  }
+  
