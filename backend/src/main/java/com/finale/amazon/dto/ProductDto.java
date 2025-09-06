@@ -25,12 +25,16 @@ public class ProductDto {
     private int reviewCount;
     
     private String categoryName;
+    private Long categoryId;
     private String subcategoryName;
+    private Long subcategoryId;
     private String characteristicType;
+
     
     private String sellerName;
     private Long sellerId;
     
+    private List<CharacteristicDto> characteristics;
     private List<PictureDto> pictures;
     private List<ReviewDto> reviews;
     private List<ProductVariationDto> variations;
@@ -62,12 +66,18 @@ public class ProductDto {
         
         if (product.getCategory() != null) {
             this.categoryName = product.getCategory().getName();
+            categoryId = product.getCategory().getId();
         }
         if (product.getSubcategory() != null) {
             this.subcategoryName = product.getSubcategory().getName();
+            subcategoryId = product.getSubcategory().getId();
         }
         if (product.getCharacteristic() != null) {
             this.characteristicType = product.getCharacteristic().getName();
+        }
+
+        if(product.getCharacteristics() != null){
+            characteristics = product.getCharacteristics().stream().map(CharacteristicDto::new).toList();
         }
         
         if (product.getSeller() != null) {

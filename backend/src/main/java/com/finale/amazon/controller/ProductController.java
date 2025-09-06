@@ -5,6 +5,8 @@ import com.finale.amazon.dto.ProductDto;
 import com.finale.amazon.entity.Product;
 import com.finale.amazon.service.ProductService;
 
+import io.swagger.v3.oas.annotations.Parameter;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +34,7 @@ public class ProductController {
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Double lowerPriceBound,
             @RequestParam(required = false) Double upperPriceBound,
+            @Parameter(description = "Map of characteristics, e.g. ?color=red&size=XL")
             @RequestParam(required = false) Map<String, String> characteristics) {
         Map<String, String> chars = new HashMap<>(characteristics != null ? characteristics : Map.of());
         chars.remove("name");
