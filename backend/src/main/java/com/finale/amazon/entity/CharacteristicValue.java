@@ -26,4 +26,8 @@ public class CharacteristicValue {
     @ManyToOne
     @JoinColumn(name = "characteristic_type_id")
     private CharacteristicType characteristicType;
+
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private Product product;
 }
