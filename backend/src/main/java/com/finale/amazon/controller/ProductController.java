@@ -50,9 +50,10 @@ public class ProductController {
         return ResponseEntity.ok(productsPage);
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<ProductDto> createProduct(@RequestBody ProductCreationDto productCreationDto) {
-        Product product = productService.createProduct(productCreationDto);
+    @PostMapping("/create/{sellerId}")
+    public ResponseEntity<ProductDto> createProduct(@PathVariable Long sellerId,
+                                                    @RequestBody ProductCreationDto productCreationDto) {
+        Product product = productService.createProduct(productCreationDto, sellerId);
         return ResponseEntity.ok(new ProductDto(product));
     }
 
@@ -83,4 +84,14 @@ public class ProductController {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/vendor/{vendorId}")
+    public ResponseEntity<Page<ProductDto>> getProductsByVendor(
+        @PathVariable Long vendorId,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "12") int size) {
+        Page<Product> productsPage = productService.getProductsByVendor(vendorId, PageRequest.of(page, size));
+        return ResponseEntity.ok(productsPage.map(ProductDto::new));
+}
+
 }

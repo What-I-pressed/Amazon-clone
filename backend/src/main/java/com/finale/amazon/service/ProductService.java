@@ -3,6 +3,7 @@ package com.finale.amazon.service;
 import java.io.Console;
 import java.util.List;
 import java.util.Map;
+
 import java.util.Optional;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -27,6 +28,11 @@ import com.finale.amazon.dto.ProductDto;
 import com.finale.amazon.entity.Picture;
 import com.finale.amazon.entity.Product;
 import com.finale.amazon.entity.ProductVariation;
+import com.finale.amazon.repository.CategoryRepository;
+import com.finale.amazon.repository.CharacteristicTypeRepository;
+import com.finale.amazon.repository.SubcategoryRepository;
+import com.finale.amazon.repository.UserRepository;
+import com.finale.amazon.repository.ProductRepository;
 
 @Service
 public class ProductService {
@@ -76,6 +82,43 @@ public class ProductService {
 
     public Product createProduct(ProductCreationDto dto) {
         Product product = new Product();
+        fillProductFromDto(product, dto);
+        return productRepository.save(product);
+    }
+
+    // Новый метод для создания продукта с конкретным sellerId (можно брать из токена)
+    public Product createProduct(ProductCreationDto dto, Long sellerId) {
+        Product product = new Product();
+        fillProductFromDto(product, dto);
+        userRepository.findById(sellerId).ifPresent(product::setSeller);
+        return productRepository.save(product);
+    }
+
+    public Product updateProduct(Long id, ProductCreationDto dto) {
+        Optional<Product> optionalProduct = productRepository.findById(id);
+        if (optionalProduct.isEmpty()) {
+            throw new RuntimeException("Product not found");  
+        }
+        Product product = optionalProduct.get();
+        fillProductFromDto(product, dto);
+        return productRepository.save(product);
+    }
+
+    public void deleteProduct(Long id) {
+        productRepository.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Product> getProductById(Long productId){
+        return productRepository.findByIdWithPictures(productId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Product> getProductsByVendor(Long vendorId, Pageable pageable) {
+        return productRepository.findBySeller(vendorId, pageable);
+    }
+
+    private void fillProductFromDto(Product product, ProductCreationDto dto) {
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
         product.setPrice(dto.getPrice());
@@ -86,10 +129,12 @@ public class ProductService {
         product.setQuantitySold(0);
 
         if (dto.getCategoryName() != null) {
-            categoryRepository.findByName(dto.getCategoryName().toLowerCase()).ifPresent(product::setCategory);
+            categoryRepository.findByName(dto.getCategoryName().toLowerCase())
+                              .ifPresent(product::setCategory);
         }
         if (dto.getSubcategoryName() != null) {
-            subcategoryRepository.findByName(dto.getSubcategoryName().toLowerCase()).ifPresent(product::setSubcategory);
+            subcategoryRepository.findByName(dto.getSubcategoryName().toLowerCase())
+                                 .ifPresent(product::setSubcategory);
         }
         if (dto.getCharacteristicTypeName() != null) {
             characteristicTypeRepository.findByName(dto.getCharacteristicTypeName().toLowerCase())
@@ -97,6 +142,8 @@ public class ProductService {
         }
         if (dto.getSellerId() != null) {
             userRepository.findById(dto.getSellerId()).ifPresent(product::setSeller);
+            characteristicTypeRepository.findByName(dto.getCharacteristicTypeName().toLowerCase())
+                                        .ifPresent(product::setCharacteristic);
         }
 
         if (dto.getVariations() != null) {
@@ -119,66 +166,7 @@ public class ProductService {
                     }).toList());
         }
 
-        return productRepository.save(product);
-    }
-
-    public Product updateProduct(Long id, ProductCreationDto dto) {
-        Optional<Product> optionalProduct = productRepository.findById(id);
-        if (optionalProduct.isEmpty()) {
-            throw new RuntimeException("Product not found");
-        }
-        Product product = optionalProduct.get();
-        product.setName(dto.getName());
-        product.setDescription(dto.getDescription());
-        product.setPrice(dto.getPrice());
-        product.setPriceWithoutDiscount(dto.getPriceWithoutDiscount());
-        product.setDiscountLaunchDate(dto.getDiscountLaunchDate());
-        product.setDiscountExpirationDate(dto.getDiscountExpirationDate());
-        product.setQuantityInStock(dto.getQuantityInStock());
-
-        if (dto.getCategoryName() != null) {
-            categoryRepository.findByName(dto.getCategoryName().toLowerCase()).ifPresent(product::setCategory);
-        }
-        if (dto.getSubcategoryName() != null) {
-            subcategoryRepository.findByName(dto.getSubcategoryName().toLowerCase()).ifPresent(product::setSubcategory);
-        }
-        if (dto.getCharacteristicTypeName() != null) {
-            characteristicTypeRepository.findByName(dto.getCharacteristicTypeName().toLowerCase())
-                    .ifPresent(product::setCharacteristic);
-        }
-        if (dto.getSellerId() != null) {
-            userRepository.findById(dto.getSellerId()).ifPresent(product::setSeller);
-        }
-        if (dto.getVariations() != null) {
-            product.setVariations(dto.getVariations().stream()
-                    .map(variationDto -> {
-                        ProductVariation variation = new ProductVariation();
-                        variation.setQuantityInStock(variationDto.getQuantityInStock());
-                        if (variationDto.getCharacteristicValue() != null) {
-                            characteristicTypeRepository.findByName(dto.getCharacteristicTypeName().toLowerCase())
-                                    .ifPresent(type -> {
-                                        type.getValues().stream()
-                                                .filter(val -> val.getValue()
-                                                        .equals(variationDto.getCharacteristicValue()))
-                                                .findFirst()
-                                                .ifPresent(variation::setCharacteristic);
-                                    });
-                        }
-                        variation.setProduct(product);
-                        return variation;
-                    }).toList());
-        }
-
-        return productRepository.save(product);
-    }
-
-    public void deleteProduct(Long id) {
-        productRepository.deleteById(id);
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<Product> getProductById(Long productId) {
-        return productRepository.findByIdWithPictures(productId);
+        productRepository.save(product);
     }
 
 }

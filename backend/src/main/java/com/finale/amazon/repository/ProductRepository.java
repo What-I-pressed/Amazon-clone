@@ -34,6 +34,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     // """)
     // Page<Product> findAll(Pageable pageable);
     
+    Page<Product> findBySeller(Long vendorId, Pageable pageable);
+
     List<Product> findByCategory(Category category);
     
     List<Product> findBySubcategory(Subcategory subcategory);
