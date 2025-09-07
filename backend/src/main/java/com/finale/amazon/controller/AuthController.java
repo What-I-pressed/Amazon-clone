@@ -228,7 +228,6 @@ public class AuthController {
             System.out.println("=== TOKEN DEBUG ===");
             System.out.println("Token: " + token);
             System.out.println("Subject (email): " + jwtUtil.extractSubject(token));
-            System.out.println("Username claim: " + jwtUtil.extractUsername(token));
             System.out.println("User ID: " + jwtUtil.extractUserId(token));
             System.out.println("==================");
             

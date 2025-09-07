@@ -17,9 +17,8 @@ public class OrderDto {
     private LocalDateTime orderDate;
     private LocalDateTime arrivalDate;
     private LocalDateTime shipmentDate;
-    private double totalPrice;
+    private double totalPrice = 0;
     private String orderStatus;
-    private String userName;
     private Long userId;
     private List<OrderItemDto> orderItems;
     
@@ -35,7 +34,6 @@ public class OrderDto {
         }
         
         if (order.getUser() != null) {
-            this.userName = order.getUser().getUsername();
             this.userId = order.getUser().getId();
         }
         

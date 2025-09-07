@@ -3,6 +3,8 @@ package com.finale.amazon.entity;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -31,26 +33,27 @@ public class Order {
 
     private double price;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime orderDate;
-
-    @Column(nullable = false)
+    
+    @Column(nullable = true)
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime arrivalDate;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime shipmentDate;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = jakarta.persistence.FetchType.LAZY)
+    @JsonManagedReference
     private List<OrderItem> orderItems;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "order_status_id")
     private OrderStatus orderStatus;
 }
