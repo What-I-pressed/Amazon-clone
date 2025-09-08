@@ -53,7 +53,7 @@ const Navbar: React.FC = () => {
             <div className="relative" ref={categoryRef}>
               <button
                 type="button"
-                className="px-3 flex items-center h-full bg-[#757575] text-white text-sm select-none transition-colors duration-300 ease-in-out hover:bg-gray-600 focus:outline-none"
+                className="px-3 flex items-center h-full bg-[#757575] text-white text-sm select-none transition-colors duration-300 ease-in-out hover:bg-[#343434] focus:outline-none"
                 onClick={(e) => {
                   e.preventDefault();
                   setCategoryDropdown((prev) => !prev);
@@ -65,7 +65,7 @@ const Navbar: React.FC = () => {
                 </span>
               </button>
 
-              {/* Dropdown menu Зараз не працює */}
+              {/* Dropdown menu */}
               <div
                 className={`absolute top-full left-0 mt-1 w-48 rounded-md shadow-lg z-50 overflow-hidden transition-all duration-300 ease-out transform ${
                   categoryDropdown ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
@@ -86,7 +86,7 @@ const Navbar: React.FC = () => {
                   ].map((cat) => (
                     <button
                       key={cat}
-                      className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-600 transition-colors duration-200 ease-out focus:outline-none"
+                      className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-[#343434] transition-colors duration-200 ease-out focus:outline-none"
                       onClick={(e) => {
                         e.preventDefault();
                         setCategoryDropdown(false);
@@ -108,7 +108,7 @@ const Navbar: React.FC = () => {
 
             {/* Search button */}
             <button
-              className="px-3 py-2 flex items-center justify-center transition-colors duration-300 ease-in-out hover:bg-gray-600 group focus:outline-none"
+              className="px-3 py-2 flex items-center justify-center transition-colors duration-300 ease-in-out hover:bg-[#343434] group focus:outline-none"
               style={{ backgroundColor: "#757575" }}
               aria-label="Search"
             >
@@ -147,14 +147,8 @@ const Navbar: React.FC = () => {
                 {["EN", "UA"].map((lang) => (
                   <button
                     key={lang}
-                    className="block w-full text-center px-3 py-2 text-sm text-white transition-colors duration-200 ease-out"
+                    className="block w-full text-center px-3 py-2 text-sm text-white hover:bg-[#343434] transition-colors duration-200 ease-out focus:outline-none"
                     onClick={() => setLanguageDropdown(false)}
-                    onMouseEnter={(e) => {
-                      (e.target as HTMLElement).style.backgroundColor = "#5a5a5a";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.target as HTMLElement).style.backgroundColor = "transparent";
-                    }}
                   >
                     {lang}
                   </button>
@@ -164,14 +158,14 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Returns & Orders */}
-          <div className="cursor-pointer text-center text-sm transition-colors duration-300 ease-in-out hover:text-gray-300">
+          <div className="cursor-pointer text-center text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]">
             <div>Returns &amp; Orders</div>
           </div>
 
           {/* Account dropdown */}
           <div className="relative" ref={accountRef}>
             <div
-              className="cursor-pointer text-center text-sm transition-colors duration-300 ease-in-out hover:text-gray-300"
+              className="cursor-pointer text-center text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
               onClick={() => setAccountDropdown((prev) => !prev)}
             >
               <div>Hello, sign in</div>
@@ -194,14 +188,8 @@ const Navbar: React.FC = () => {
                 {["Sign In", "Sign Up"].map((action) => (
                   <button
                     key={action}
-                    className="block w-full text-center px-4 py-2 text-sm text-white transition-colors duration-200 ease-out"
+                    className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434] transition-colors duration-200 ease-out focus:outline-none"
                     onClick={() => setAccountDropdown(false)}
-                    onMouseEnter={(e) => {
-                      (e.target as HTMLElement).style.backgroundColor = "#5a5a5a";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.target as HTMLElement).style.backgroundColor = "transparent";
-                    }}
                   >
                     {action}
                   </button>
@@ -211,7 +199,7 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Cart */}
-          <div className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300">
+          <div className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]">
             Cart
           </div>
         </div>

@@ -6,13 +6,13 @@ import AppFooter from "./AppFooter";
 
 const LayoutContent: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-white">
       <AppHeader />
 
       <main
-        className="flex-grow p-4 max-w-7xl mx-auto md:p-6"
+        className="flex-grow"
         style={{
-          minHeight: "calc(100vh - 144px + 69px)", 
+          minHeight: "calc(100vh - 144px + 69px)",
         }}
       >
         <Outlet />
