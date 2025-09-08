@@ -4,6 +4,9 @@ import com.finale.amazon.dto.PictureDto;
 import com.finale.amazon.service.PictureService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -16,15 +19,17 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/api/pictures")
 @RequiredArgsConstructor
+@Tag(name = "Pictures Controller", description = "Контролер для роботи з зображеннями продуктів")
 public class PictureController {
 
     private final PictureService pictureService;
 
+    @Operation(summary = "Завантажити зображення продукту", description = "Завантажує зображення для певного продукту")
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "Upload a picture")
     public ResponseEntity<String> uploadPicture(
-            @RequestPart("file") MultipartFile file,
-            @RequestParam("ProductId") Long productId) throws IOException {
+            @Parameter(description = "Файл зображення") @RequestPart("file") MultipartFile file,
+            @Parameter(description = "ID продукту") @RequestParam("ProductId") Long productId) throws IOException {
+
         pictureService.savePicture(file, productId);
         return ResponseEntity.ok("Picture was successfully loaded");
     }
@@ -36,8 +41,11 @@ public class PictureController {
     //             .orElse(ResponseEntity.notFound().build());
     // }
 
+    @Operation(summary = "Отримати зображення продукту за ID", description = "Повертає зображення продукту у вигляді байтового масиву")
     @GetMapping("/{id}")
-    public ResponseEntity<byte[]> getRawPicture(@PathVariable Long id) {
+    public ResponseEntity<byte[]> getRawPicture(
+            @Parameter(description = "ID зображення") @PathVariable Long id) {
+
         return pictureService.getPicture(id)
                 .map(dto -> ResponseEntity.ok()
                         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + dto.getName() + "\"")

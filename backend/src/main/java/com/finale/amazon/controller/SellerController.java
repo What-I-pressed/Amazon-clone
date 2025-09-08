@@ -17,9 +17,16 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 @RestController
 @RequestMapping("/api/seller")
 @CrossOrigin(origins = "*")
+@Tag(name = "Seller Controller", description = "Контролер для роботи з продавцями")
 public class SellerController {
 
     @Autowired
@@ -31,6 +38,12 @@ public class SellerController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Operation(summary = "Отримати профіль продавця")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Профіль успішно отримано"),
+            @ApiResponse(responseCode = "404", description = "Продавця не знайдено"),
+            @ApiResponse(responseCode = "400", description = "Користувач не є продавцем")
+    })
     @GetMapping("/profile")
     public ResponseEntity<UserDto> getSellerProfile(Authentication authentication) {
         String email = authentication.getName(); 
@@ -44,6 +57,11 @@ public class SellerController {
         return ResponseEntity.ok(new UserDto(seller));
     }
 
+    @Operation(summary = "Отримати статистику продавця")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Статистика успішно отримана"),
+            @ApiResponse(responseCode = "404", description = "Продавця не знайдено")
+    })
     @GetMapping("/profile/stats")
     public ResponseEntity<SellerStatsDto> getSellerStats(Authentication authentication) {
         String email = authentication.getName();
@@ -53,6 +71,7 @@ public class SellerController {
         return ResponseEntity.ok(sellerService.getSellerStats(seller));
     }
 
+    @Operation(summary = "Отримати продукти продавця з фільтрацією та сортуванням")
     @GetMapping("/profile/products")
     public ResponseEntity<List<ProductDto>> getSellerProducts(
             Authentication authentication,
@@ -72,6 +91,7 @@ public class SellerController {
         return ResponseEntity.ok(products);
     }
 
+    @Operation(summary = "Отримати відгуки продавця")
     @GetMapping("/profile/reviews")
     public ResponseEntity<List<ReviewDto>> getSellersReviews(Authentication authentication) {
         String email = authentication.getName();
@@ -85,6 +105,12 @@ public class SellerController {
         );
     }
 
+    @Operation(summary = "Оновити профіль продавця")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Профіль успішно оновлено"),
+            @ApiResponse(responseCode = "404", description = "Продавця не знайдено"),
+            @ApiResponse(responseCode = "400", description = "Користувач не є продавцем")
+    })
     @PutMapping("/profile")
     public ResponseEntity<UserDto> updateSellerProfile(
             Authentication authentication,
@@ -101,6 +127,4 @@ public class SellerController {
         User updated = userService.updateSellerProfile(seller, updateRequest);
         return ResponseEntity.ok(new UserDto(updated));
     }
-    
-    
 }
