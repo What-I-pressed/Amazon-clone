@@ -1,11 +1,9 @@
 package com.finale.amazon.service;
 
-import java.io.Console;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 
 import java.util.Optional;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,14 +23,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.finale.amazon.dto.ProductCreationDto;
 import com.finale.amazon.dto.ProductDto;
-import com.finale.amazon.entity.Picture;
+import com.finale.amazon.entity.CharacteristicType;
+import com.finale.amazon.entity.CharacteristicValue;
 import com.finale.amazon.entity.Product;
 import com.finale.amazon.entity.ProductVariation;
-import com.finale.amazon.repository.CategoryRepository;
-import com.finale.amazon.repository.CharacteristicTypeRepository;
-import com.finale.amazon.repository.SubcategoryRepository;
-import com.finale.amazon.repository.UserRepository;
-import com.finale.amazon.repository.ProductRepository;
 
 @Service
 public class ProductService {
@@ -86,7 +80,18 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    // Новый метод для создания продукта с конкретным sellerId (можно брать из токена)
+    public void changeQuantity(Product product, Long add){
+        if(product.getQuantityInStock() + add < 0) throw new RuntimeException("Unable to order so much");
+        product.setQuantityInStock(product.getQuantityInStock() + add);
+        if(add < 0) product.setQuantitySold(product.getQuantitySold() - add);
+        //productRepository.save(product);
+    }
+
+    public void changeQuantitySold(Product product, Long add){
+        product.setQuantitySold(product.getQuantitySold() + add);
+        productRepository.save(product);
+    }
+
     public Product createProduct(ProductCreationDto dto, Long sellerId) {
         Product product = new Product();
         fillProductFromDto(product, dto);
@@ -97,7 +102,7 @@ public class ProductService {
     public Product updateProduct(Long id, ProductCreationDto dto) {
         Optional<Product> optionalProduct = productRepository.findById(id);
         if (optionalProduct.isEmpty()) {
-            throw new RuntimeException("Product not found");  
+            throw new RuntimeException("Product not found");
         }
         Product product = optionalProduct.get();
         fillProductFromDto(product, dto);
@@ -109,8 +114,12 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<Product> getProductById(Long productId){
+    public Optional<Product> getProductById(Long productId) {
         return productRepository.findByIdWithPictures(productId);
+    }
+
+    public Product findProductById(Long id) {
+        return productRepository.findById(id).orElseThrow(()-> new RuntimeException("Product not found"));
     }
 
     @Transactional(readOnly = true)
@@ -144,6 +153,29 @@ public class ProductService {
             userRepository.findById(dto.getSellerId()).ifPresent(product::setSeller);
             characteristicTypeRepository.findByName(dto.getCharacteristicTypeName().toLowerCase())
                                         .ifPresent(product::setCharacteristic);
+        }
+
+        if(dto.getCharacteristics() != null){
+            dto.getCharacteristics().stream().forEach(chare -> {
+                Optional<CharacteristicType> exist = characteristicTypeRepository.findByName(chare.getCharacteristic());
+                CharacteristicValue val = new CharacteristicValue();
+                if(exist.isPresent()){
+                    val.setValue(chare.getValue().toLowerCase());
+                    val.setProduct(product);
+                    val.setCharacteristicType(exist.get());
+                }
+                else{
+                    CharacteristicType typ = new CharacteristicType();
+                    typ.setName(chare.getCharacteristic().toLowerCase());
+                    val.setValue(chare.getValue().toLowerCase());
+                    val.setProduct(product);
+                    val.setCharacteristicType(typ);
+                }
+                if (product.getCharacteristics() == null) {
+                    product.setCharacteristics(new ArrayList<>());
+                }
+                product.getCharacteristics().add(val);
+            });
         }
 
         if (dto.getVariations() != null) {

@@ -1,7 +1,9 @@
 package com.finale.amazon.controller;
 
 import com.finale.amazon.dto.CartItemDto;
+import com.finale.amazon.dto.CartItemResponseDto;
 import com.finale.amazon.entity.CartItem;
+import com.finale.amazon.security.JwtUtil;
 import com.finale.amazon.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,25 +20,28 @@ public class CartController {
     @Autowired
     private CartService cartService;
 
-    @GetMapping("/user/{email}")
-    public ResponseEntity<List<CartItemDto>> getCartItemsByUser(@PathVariable String email) {
-        List<CartItem> items = cartService.getCartItemsByUserEmail(email);
-        List<CartItemDto> dtos = items.stream()
-                                     .map(CartItemDto::new)
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @GetMapping("")
+    public ResponseEntity<List<CartItemResponseDto>> getCartItemsByUser(@RequestParam String token) {
+        List<CartItem> items = cartService.getCartItemsByUserId(jwtUtil.extractUserId(token));
+        List<CartItemResponseDto> dtos = items.stream()
+                                     .map(CartItemResponseDto::new)
                                      .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
     }
 
     @PostMapping("/add")
-    public ResponseEntity<CartItemDto> addCartItem(@RequestParam String email, @RequestParam Long productId, @RequestParam int quantity) {
-        CartItem item = cartService.addOrUpdateCartItem(email, productId, quantity);
-        return ResponseEntity.ok(new CartItemDto(item));
+    public ResponseEntity<?> addCartItem(@RequestParam String token, @RequestBody CartItemDto cartItemDto) {
+        cartService.Add(jwtUtil.extractUserId(token), cartItemDto);
+        return ResponseEntity.ok("Successfully added to cart");
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCartItem(@PathVariable Long id, @RequestParam String email) {
+    public ResponseEntity<?> deleteCartItem(@RequestParam String token, @PathVariable Long id ) {
         try {
-            cartService.removeCartItem(email, id);
+            cartService.removeCartItem(jwtUtil.extractUserId(token), id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -44,8 +49,8 @@ public class CartController {
     }
 
     @DeleteMapping("/clear")
-    public ResponseEntity<Void> clearCart(@RequestParam String email) {
-        cartService.clearCart(email);
+    public ResponseEntity<Void> clearCart(@RequestParam String token) {
+        cartService.clearCart(jwtUtil.extractUserId(token));
         return ResponseEntity.noContent().build();
     }
 }

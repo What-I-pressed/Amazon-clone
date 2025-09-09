@@ -19,11 +19,12 @@ import java.util.List;
 @Service
 public class SellerService {
 
-        private final OrderRepository orderRepository;
+        @Autowired
+        private OrderRepository orderRepository;
         @Autowired
         private ProductRepository productRepository;
         @Autowired
-        private UserRepository userRepository; 
+        private static UserRepository userRepository; 
         @Autowired
         private ReviewRepository reviewRepository;
 
@@ -39,6 +40,10 @@ public class SellerService {
                 .stream()
                 .map(ProductDto::new)
                 .toList();
+        }
+
+        public static boolean isSeller(Long userId){
+                return userRepository.findById(userId).get().getRole().getName() == "SELLER";
         }
 
         public SellerStatsDto getSellerStats(User seller) {

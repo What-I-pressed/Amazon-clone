@@ -50,6 +50,8 @@ public class ProductCreationDto {
     private Long sellerId;
 
     private List<ProductVariationDto> variations;
+
+    private List<CharacteristicDto> characteristics;
     
     public boolean isValidDiscountDates() {
         if (discountLaunchDate == null && discountExpirationDate == null) {

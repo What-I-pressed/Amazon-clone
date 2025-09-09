@@ -50,7 +50,6 @@ public class ProductDto {
         this.quantityInStock = product.getQuantityInStock();
         this.quantitySold = product.getQuantitySold();
         
-        
         if (this.priceWithoutDiscount > 0) {
             this.discountPercentage = ((this.priceWithoutDiscount - this.price) / this.priceWithoutDiscount) * 100;
         } else {

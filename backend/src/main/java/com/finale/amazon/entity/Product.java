@@ -64,7 +64,7 @@ public class Product {
     @JoinColumn(name = "characteristic_type_id")
     private CharacteristicType characteristic;
 
-    @OneToMany(mappedBy = "product")
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     @Basic(fetch = FetchType.LAZY)
     private List<CharacteristicValue> characteristics;
 

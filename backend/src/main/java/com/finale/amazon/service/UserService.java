@@ -8,6 +8,8 @@ import com.finale.amazon.entity.Role;
 import com.finale.amazon.repository.RoleRepository;
 import com.finale.amazon.repository.TokenRepository;
 import com.finale.amazon.repository.UserRepository;
+import com.finale.amazon.security.JwtUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +32,9 @@ public class UserService {
 
     @Autowired
     private TokenRepository tokenRepository;
+
+    @Autowired
+    private JwtUtil jwtUtil;
     
     private String hashPassword(String password) {
         try {
@@ -59,8 +64,16 @@ public class UserService {
 
     
     private boolean verifyPassword(String password, String hashedPassword) {
+        
         return hashPassword(password).equals(hashedPassword);
     }
+
+    // private void cp(String password, String email){
+    //     User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+    //     user.setPassword(hashPassword(password));
+
+    //     userRepository.save(user);
+    // }
 
     
     public List<User> getAllUsers() {
@@ -68,8 +81,8 @@ public class UserService {
     }
 
     
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     
@@ -154,9 +167,11 @@ public class UserService {
     
     public Optional<User> authenticateUser(String email, String password) {
         Optional<User> user = getUserByEmail(email);
+        //cp(password, email);
         if( !user.get().isEmailVerified()){
             throw new RuntimeException("User email is unverified");
         }
+
         if (user.isPresent() && verifyPassword(password, user.get().getPassword())) {
             if (user.get().isBlocked()) {
                 throw new RuntimeException("User account is blocked");
@@ -165,6 +180,24 @@ public class UserService {
         }
         
         return Optional.empty();
+    }
+
+        public String authenticateToken(String token) {
+        
+        if(jwtUtil.isTokenExpired(token)) return "Token expired";
+
+        Optional<User> user = getUserByEmail(jwtUtil.extractSubject(token));
+
+
+        if( !user.get().isEmailVerified()){
+            return "Email is unverified";
+        }
+
+        
+        if (user.get().isBlocked()) {
+            return "User is blocked";
+        }
+        return null;
     }
 
    

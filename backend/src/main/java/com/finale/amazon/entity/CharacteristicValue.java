@@ -1,5 +1,6 @@
 package com.finale.amazon.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -23,7 +24,7 @@ public class CharacteristicValue {
     @Column(name = "characteristic_value")
     private String value;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "characteristic_type_id")
     private CharacteristicType characteristicType;
 
