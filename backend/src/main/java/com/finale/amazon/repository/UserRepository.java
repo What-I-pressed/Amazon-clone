@@ -26,6 +26,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     @Query("Select u from User u where u.blocked = false")
     List<User> findActiveUsers();
+
+    Optional<User> findById(Long id);
     
     Optional<User> findByEmail(String email);
 }

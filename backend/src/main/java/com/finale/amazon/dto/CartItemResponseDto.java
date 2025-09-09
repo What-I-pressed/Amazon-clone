@@ -7,13 +7,15 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CartItemDto {
-    private Long productId;
+public class CartItemResponseDto {
+    private Long id;
+    private ProductDto product;
     private int quantity;
 
-    public CartItemDto(com.finale.amazon.entity.CartItem cartItem) {
+    public CartItemResponseDto(com.finale.amazon.entity.CartItem cartItem) {
         if (cartItem.getProduct() != null) {
-            this.productId = cartItem.getProduct().getId();
+            this.id = cartItem.getId();
+            this.product = new ProductDto(cartItem.getProduct());
         }
         this.quantity = cartItem.getQuantity();
     }
