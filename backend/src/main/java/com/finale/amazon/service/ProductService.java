@@ -1,12 +1,9 @@
 package com.finale.amazon.service;
 
-import java.io.Console;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import java.util.Optional;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +15,6 @@ import com.finale.amazon.repository.ProductRepository;
 import com.finale.amazon.repository.CategoryRepository;
 import com.finale.amazon.repository.SubcategoryRepository;
 import com.finale.amazon.repository.CharacteristicTypeRepository;
-import com.finale.amazon.repository.CharacteristicValueRepository;
 import com.finale.amazon.repository.UserRepository;
 import com.finale.amazon.specification.ProductSpecification;
 import com.finale.amazon.repository.PictureRepository;
@@ -29,14 +25,8 @@ import com.finale.amazon.dto.ProductCreationDto;
 import com.finale.amazon.dto.ProductDto;
 import com.finale.amazon.entity.CharacteristicType;
 import com.finale.amazon.entity.CharacteristicValue;
-import com.finale.amazon.entity.Picture;
 import com.finale.amazon.entity.Product;
 import com.finale.amazon.entity.ProductVariation;
-import com.finale.amazon.repository.CategoryRepository;
-import com.finale.amazon.repository.CharacteristicTypeRepository;
-import com.finale.amazon.repository.SubcategoryRepository;
-import com.finale.amazon.repository.UserRepository;
-import com.finale.amazon.repository.ProductRepository;
 
 @Service
 public class ProductService {
@@ -49,8 +39,6 @@ public class ProductService {
     private SubcategoryRepository subcategoryRepository;
     @Autowired
     private CharacteristicTypeRepository characteristicTypeRepository;
-    @Autowired
-    private CharacteristicValueRepository characteristicValueRepository;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -116,6 +104,10 @@ public class ProductService {
     @Transactional(readOnly = true)
     public Optional<Product> getProductById(Long productId) {
         return productRepository.findByIdWithPictures(productId);
+    }
+
+    public Product findProductById(Long id) {
+        return productRepository.findById(id).orElseThrow(()-> new RuntimeException("Product not found"));
     }
 
     @Transactional(readOnly = true)

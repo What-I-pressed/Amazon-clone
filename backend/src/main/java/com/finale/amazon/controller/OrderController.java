@@ -37,12 +37,7 @@ public class OrderController {
         if (jwtUtil.isTokenExpired(token)) {
                 return ResponseEntity.status(400).body("Token expired");
             }
-        Optional<User> optionalSeller = userService.getUserById(jwtUtil.extractUserId(token));
-        if (optionalSeller.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        User seller = optionalSeller.get();
+        User seller  = userService.getUserById(jwtUtil.extractUserId(token));
         List<Order> orders = orderService.getOrdersBySeller(seller);
 
         if (orders.isEmpty()) {
@@ -56,13 +51,8 @@ public class OrderController {
         if (jwtUtil.isTokenExpired(token)) {
                 return ResponseEntity.status(400).body("Token expired");
             }
-        Optional<User> optionalSeller = userService.getUserById(jwtUtil.extractUserId(token));
-        if (optionalSeller.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+        User seller = userService.getUserById(jwtUtil.extractUserId(token));
         //System.out.println(optionalSeller.get().getEmail());
-
-        User seller = optionalSeller.get();
         List<Order> orders = orderService.getOrdersByUser(seller);
 
         if (orders.isEmpty()) {

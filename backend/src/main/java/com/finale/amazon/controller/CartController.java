@@ -23,7 +23,7 @@ public class CartController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @GetMapping("/cart")
+    @GetMapping("")
     public ResponseEntity<List<CartItemResponseDto>> getCartItemsByUser(@RequestParam String token) {
         List<CartItem> items = cartService.getCartItemsByUserId(jwtUtil.extractUserId(token));
         List<CartItemResponseDto> dtos = items.stream()

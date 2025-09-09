@@ -93,7 +93,7 @@ public class OrderService {
         Order order = new Order();
         order.setOrderDate(LocalDateTime.now());
         order.setOrderStatus(orderStatusRepository.findByName("NEW").get());
-        order.setUser(userService.getUserById(userId).get());
+        order.setUser(userService.getUserById(userId));
         List<OrderItem> items = dto.getOrderItems().stream()
                 .map(itemDto -> fillOrderItem(itemDto, order))
                 .collect(Collectors.toList());
