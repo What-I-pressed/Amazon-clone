@@ -9,15 +9,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.finale.amazon.dto.OrderCreationDto;
-import com.finale.amazon.dto.OrderDto;
 import com.finale.amazon.dto.OrderItemCreationDto;
-import com.finale.amazon.dto.OrderItemDto;
 import com.finale.amazon.entity.Order;
 import com.finale.amazon.entity.OrderItem;
 import com.finale.amazon.entity.OrderStatus;
+import com.finale.amazon.entity.Product;
 import com.finale.amazon.entity.User;
 import com.finale.amazon.repository.OrderRepository;
 import com.finale.amazon.repository.OrderStatusRepository;
+import com.finale.amazon.repository.ProductRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class OrderService {
@@ -33,6 +35,9 @@ public class OrderService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     public List<Order> getOrdersBySeller(User seller) {
         return orderRepository.findByProductSeller(seller);
@@ -89,17 +94,50 @@ public class OrderService {
     // return order;
     // }
 
+    // public Order creatOrder(OrderCreationDto dto, Long userId) {
+    // Order order = new Order();
+    // order.setOrderDate(LocalDateTime.now());
+    // order.setOrderStatus(orderStatusRepository.findByName("NEW").get());
+    // order.setUser(userService.getUserById(userId));
+    // List<OrderItem> items = dto.getOrderItems().stream()
+    // .map(itemDto -> fillOrderItem(itemDto, order))
+    // .collect(Collectors.toList());
+
+    // order.setOrderItems(items);
+    // order.setPrice(order.getOrderItems().stream().mapToDouble(OrderItem::getTotalPrice).sum());
+    // return orderRepository.save(order);
+    // }
+
+    @Transactional
     public Order creatOrder(OrderCreationDto dto, Long userId) {
         Order order = new Order();
         order.setOrderDate(LocalDateTime.now());
-        order.setOrderStatus(orderStatusRepository.findByName("NEW").get());
+        order.setOrderStatus(orderStatusRepository.findByName("NEW").orElseThrow());
         order.setUser(userService.getUserById(userId));
-        List<OrderItem> items = dto.getOrderItems().stream()
-                .map(itemDto -> fillOrderItem(itemDto, order))
-                .collect(Collectors.toList());
 
+        List<OrderItem> items = dto.getOrderItems().stream()
+                .map(itemDto -> {
+                    OrderItem orderItem = fillOrderItem(itemDto, order);
+
+                    Product product = orderItem.getProduct();
+
+                    if (product.getQuantityInStock() < orderItem.getQuantity()) {
+                        throw new IllegalArgumentException("Not enough stock for product: " + product.getName());
+                    }
+
+                    product.setQuantityInStock(product.getQuantityInStock() - orderItem.getQuantity());
+                    product.setQuantitySold(product.getQuantitySold() + orderItem.getQuantity());
+
+                    productRepository.save(product);
+
+                    return orderItem;
+                })
+                .collect(Collectors.toList());
         order.setOrderItems(items);
-        order.setPrice(order.getOrderItems().stream().mapToDouble(OrderItem::getTotalPrice).sum());
+        order.setPrice(order.getOrderItems().stream()
+                .mapToDouble(OrderItem::getTotalPrice)
+                .sum());
+
         return orderRepository.save(order);
     }
 
@@ -108,9 +146,10 @@ public class OrderService {
         if (optionalOrder.isEmpty()) {
             throw new RuntimeException("Order not found");
         }
-        
+
         Order order = optionalOrder.get();
-        if(order.getUser().getId() != userId) throw new RuntimeException("User is not authorized to change order status");
+        if (order.getUser().getId() != userId)
+            throw new RuntimeException("User is not authorized to change order status");
         String currentStatus = order.getOrderStatus().getName();
 
         if (currentStatus.equals("CANCELLED") || currentStatus.equals("DELIVERED")) {
@@ -122,8 +161,19 @@ public class OrderService {
             throw new RuntimeException("Order status not found");
         }
 
-        OrderStatus newStatus = optionalStatus.get();
-        order.setOrderStatus(newStatus);
+        if (newStatusName.equals("CANCELLED")) {
+            for (OrderItem item : order.getOrderItems()) {
+                Product product = item.getProduct();
+                product.setQuantityInStock(product.getQuantityInStock() + item.getQuantity());
+
+                product.setQuantitySold(product.getQuantitySold() - item.getQuantity());
+
+                productRepository.save(product);
+            }
+
+            OrderStatus newStatus = optionalStatus.get();
+            order.setOrderStatus(newStatus);
+        }
         return orderRepository.save(order);
     }
 
@@ -132,7 +182,7 @@ public class OrderService {
         if (optionalOrder.isEmpty()) {
             throw new RuntimeException("Order not found");
         }
-        
+
         Order order = optionalOrder.get();
         String currentStatus = order.getOrderStatus().getName();
 

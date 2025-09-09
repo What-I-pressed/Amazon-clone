@@ -80,6 +80,18 @@ public class ProductService {
         return productRepository.save(product);
     }
 
+    public void changeQuantity(Product product, Long add){
+        if(product.getQuantityInStock() + add < 0) throw new RuntimeException("Unable to order so much");
+        product.setQuantityInStock(product.getQuantityInStock() + add);
+        if(add < 0) product.setQuantitySold(product.getQuantitySold() - add);
+        //productRepository.save(product);
+    }
+
+    public void changeQuantitySold(Product product, Long add){
+        product.setQuantitySold(product.getQuantitySold() + add);
+        productRepository.save(product);
+    }
+
     public Product createProduct(ProductCreationDto dto, Long sellerId) {
         Product product = new Product();
         fillProductFromDto(product, dto);
