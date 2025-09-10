@@ -3,9 +3,11 @@ package com.finale.amazon.entity;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -62,9 +64,13 @@ public class Product {
     @JoinColumn(name = "characteristic_type_id")
     private CharacteristicType characteristic;
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @Basic(fetch = FetchType.LAZY)
+    private List<CharacteristicValue> characteristics;
+
     @ManyToOne
-    @JoinColumn(name = "vendor_id", referencedColumnName = "id")
-    private User vendor;
+    @JoinColumn(name = "seller_id", referencedColumnName = "id")
+    private User seller;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<Picture> pictures;

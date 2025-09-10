@@ -25,13 +25,17 @@ public class ProductDto {
     private int reviewCount;
     
     private String categoryName;
+    private Long categoryId;
     private String subcategoryName;
+    private Long subcategoryId;
     private String characteristicType;
+
     
-    private String vendorName;
-    private Long vendorId;
+    private String sellerName;
+    private Long sellerId;
     
-    private List<String> imageUrls;
+    private List<CharacteristicDto> characteristics;
+    private List<PictureDto> pictures;
     private List<ReviewDto> reviews;
     private List<ProductVariationDto> variations;
     
@@ -61,17 +65,23 @@ public class ProductDto {
         
         if (product.getCategory() != null) {
             this.categoryName = product.getCategory().getName();
+            categoryId = product.getCategory().getId();
         }
         if (product.getSubcategory() != null) {
             this.subcategoryName = product.getSubcategory().getName();
+            subcategoryId = product.getSubcategory().getId();
         }
         if (product.getCharacteristic() != null) {
             this.characteristicType = product.getCharacteristic().getName();
         }
+
+        if(product.getCharacteristics() != null){
+            characteristics = product.getCharacteristics().stream().map(CharacteristicDto::new).toList();
+        }
         
-        if (product.getVendor() != null) {
-            this.vendorName = product.getVendor().getUsername();
-            this.vendorId = product.getVendor().getId();
+        if (product.getSeller() != null) {
+            this.sellerName = product.getSeller().getUsername();
+            this.sellerId = product.getSeller().getId();
         }
         
         if (product.getReviews() != null) {
@@ -81,9 +91,7 @@ public class ProductDto {
         }
         
         if (product.getPictures() != null) {
-            this.imageUrls = product.getPictures().stream()
-                    .map(picture -> "/api/images/" + picture.getId())
-                    .toList();
+            pictures = product.getPictures().stream().map(PictureDto::new).toList();
         }
         
         if (product.getReviews() != null) {

@@ -1,5 +1,5 @@
-import { isLoggedIn, getUser } from "../utils/auth";
-import LogoutButton from "../components/LogoutButton";
+import { isLoggedIn } from "../utilites/auth";
+import LogoutButton from "../components/Login/LogoutButton";
 import React from "react";
 
 const Dashboard: React.FC = () => {

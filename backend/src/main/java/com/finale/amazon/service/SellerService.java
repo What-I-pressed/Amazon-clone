@@ -11,17 +11,20 @@ import com.finale.amazon.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import com.finale.amazon.dto.UserDto;
+
 
 import java.util.List;
 
 @Service
 public class SellerService {
 
-        private final OrderRepository orderRepository;
+        @Autowired
+        private OrderRepository orderRepository;
         @Autowired
         private ProductRepository productRepository;
         @Autowired
-        private UserRepository userRepository; 
+        private static UserRepository userRepository; 
         @Autowired
         private ReviewRepository reviewRepository;
 
@@ -39,6 +42,10 @@ public class SellerService {
                 .toList();
         }
 
+        public static boolean isSeller(Long userId){
+                return userRepository.findById(userId).get().getRole().getName() == "SELLER";
+        }
+
         public SellerStatsDto getSellerStats(User seller) {
                 long totalOrders = orderRepository.countByProductSeller(seller);
 
@@ -54,8 +61,8 @@ public class SellerService {
                 double totalRevenue = orderRepository.findByProductSellerAndOrderStatusName(
                         seller, "Delivered"
                 ).stream().mapToDouble(order -> order.getPrice()).sum();
-                double customerFeedback = reviewRepository.findByProduct_Vendor_Username(seller.getUsername()).get().stream().mapToDouble(review -> review.getStars()).average().orElse(1.0);
-                long numOfReviews = reviewRepository.findByProduct_Vendor_Username(seller.getUsername()).get().stream().count();
+                double customerFeedback = reviewRepository.findByProduct_seller_Username(seller.getUsername()).get().stream().mapToDouble(review -> review.getStars()).average().orElse(1.0);
+                long numOfReviews = reviewRepository.findByProduct_seller_Username(seller.getUsername()).get().stream().count();
                 SellerStatsDto stats = new SellerStatsDto();
                 stats.setTotalOrders(totalOrders);
                 stats.setActiveOrders(activeOrders);
@@ -68,6 +75,39 @@ public class SellerService {
         }
 
         public List<Review> getSellersReviews(User seller){
-                return reviewRepository.findByProduct_Vendor_Username(seller.getUsername()).get();
+                return reviewRepository.findByProduct_seller_Username(seller.getUsername()).get();
         }
+
+        public User updateSellerProfile(User seller, UserDto updateRequest) {
+                if (!"SELLER".equalsIgnoreCase(seller.getRole().getName())) {
+                    throw new IllegalArgumentException("User is not a seller");
+                }
+            
+                // Валідація username
+                if (updateRequest.getUsername() != null && !updateRequest.getUsername().isBlank()) {
+                    if (updateRequest.getUsername().length() < 3 || updateRequest.getUsername().length() > 50) {
+                        throw new IllegalArgumentException("Username must be 3-50 characters");
+                    }
+                    seller.setUsername(updateRequest.getUsername());
+                }
+            
+                // Валідація description
+                if (updateRequest.getDescription() != null) {
+                    if (updateRequest.getDescription().length() > 500) {
+                        throw new IllegalArgumentException("Description max 500 characters");
+                    }
+                    seller.setDescription(updateRequest.getDescription());
+                }
+            
+                // Валідація email
+                if (updateRequest.getEmail() != null && !updateRequest.getEmail().isBlank()) {
+                    if (!updateRequest.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+                        throw new IllegalArgumentException("Invalid email format");
+                    }
+                    seller.setEmail(updateRequest.getEmail());
+                }
+            
+                return userRepository.save(seller);
+            }
+            
 }

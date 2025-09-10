@@ -11,19 +11,7 @@ const AppFooter = () => {
   return (
     <footer className="w-full bg-[#434343] text-white">
 
-      <div className="border-b border-gray-700 py-12 bg-[#666666]">
-        <div className="max-w-7xl mx-auto px-8">
-          <div className="flex justify-between items-center overflow-x-auto whitespace-nowrap text-[#434343] text-xs uppercase font-semibold tracking-wider">
-            <span className="mr-8">She Finds</span>
-            <span className="mx-8">yahoo!</span>
-            <span className="mx-8 italic">healthline</span>
-            <span className="mx-8">yahoo!</span>
-            <span className="mx-8">yahoo!</span>
-            <span className="mx-8">msn</span>
-            <span className="mx-8">yahoo!</span>
-          </div>
-        </div>
-      </div>
+      
 
       <div className="py-18 px-8">
         <div className="max-w-3xl mx-auto text-center">

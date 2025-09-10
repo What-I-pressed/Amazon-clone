@@ -9,13 +9,12 @@ interface CartItem {
   image: string;
 }
 
-const CheckoutPage: React.FC = () => {
-  // 🛒 тимчасові дані (можна замінити на CartContext або Redux)
-  const [cart] = useState<CartItem[]>([
-    { id: 1, name: "Ноутбук Acer Aspire 5", price: 18999, qty: 1, image: "/banner.png" },
-    { id: 2, name: "Навушники Sony WH-1000XM5", price: 12999, qty: 2, image: "/banner.png" },
-  ]);
+// You'll need to define your cart data here or import from context
+const cart: CartItem[] = [
+  // Add your cart items here or use CartContext/Redux
+];
 
+const CheckoutPage: React.FC = () => {
   // 📌 state для форми
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -74,7 +73,7 @@ const CheckoutPage: React.FC = () => {
         <h2 className="text-lg font-semibold mb-2">Контактні дані</h2>
         <input
           type="text"
-          placeholder="Повне ім’я"
+          placeholder="Повне ім'я"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
           className="w-full border rounded-lg p-2 mb-2"

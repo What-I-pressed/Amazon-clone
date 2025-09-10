@@ -5,10 +5,12 @@ import com.finale.amazon.entity.CartItem;
 import com.finale.amazon.entity.Product;
 import com.finale.amazon.entity.User;
 import com.finale.amazon.repository.CartItemRepository;
+import com.finale.amazon.repository.PictureRepository;
 import com.finale.amazon.repository.ProductRepository;
 import com.finale.amazon.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,24 +27,32 @@ public class CartItemService {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private PictureRepository pictureRepository;
+
+    private void Authorize(Long userId, Long cartItemUserId){
+        if(userId != cartItemUserId) throw new RuntimeException("Unauthorized");
+    }
+
+    @Transactional(readOnly = true)
     public List<CartItem> getCartItemsByUserId(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return cartItemRepository.findByUser(user);
+        List<CartItem> items = cartItemRepository.findByUserWithMainPicture(user);
+        return items;
     }
 
-    public CartItem addCartItem(CartItemDto cartItemDto) {
-        User user = userRepository.findById(cartItemDto.getUserId())
+    public CartItem addCartItem(Long userId,CartItemDto cartItemDto) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         Product product = productRepository.findById(cartItemDto.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        // Check if item already exists in cart
         Optional<CartItem> existingItem = cartItemRepository.findByUser(user).stream()
                 .filter(item -> item.getProduct().getId() == product.getId())
                 .findFirst();
-
+        
         if (existingItem.isPresent()) {
             CartItem item = existingItem.get();
             item.setQuantity(item.getQuantity() + cartItemDto.getQuantity());
@@ -56,10 +66,11 @@ public class CartItemService {
         }
     }
 
-    public CartItem updateQuantity(Long id, int quantity) {
+    public CartItem updateQuantity(Long userId, Long id, int quantity) {
         Optional<CartItem> itemOpt = cartItemRepository.findById(id);
         if (itemOpt.isPresent()) {
             CartItem item = itemOpt.get();
+            Authorize(userId, item.getUser().getId());
             if (quantity <= 0) {
                 cartItemRepository.delete(item);
                 return null;
@@ -70,12 +81,18 @@ public class CartItemService {
         return null;
     }
 
-    public boolean deleteCartItem(Long id) {
+    public boolean deleteCartItem(Long userId, Long id) {
         Optional<CartItem> itemOpt = cartItemRepository.findById(id);
         if (itemOpt.isPresent()) {
+            Authorize(userId, itemOpt.get().getUser().getId());
             cartItemRepository.delete(itemOpt.get());
             return true;
         }
         return false;
+    }
+
+    @Transactional
+    public void deleteAllItemsByUserId(Long userId){
+        cartItemRepository.deleteByUser(userRepository.findById(userId).get());
     }
 } 
