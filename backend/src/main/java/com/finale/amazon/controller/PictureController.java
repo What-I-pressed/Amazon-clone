@@ -5,7 +5,6 @@ import com.finale.amazon.service.PictureService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,12 +36,7 @@ public class PictureController {
     // }
 
     @GetMapping("/{id}")
-    public ResponseEntity<byte[]> getRawPicture(@PathVariable Long id) {
-        return pictureService.getPicture(id)
-                .map(dto -> ResponseEntity.ok()
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + dto.getName() + "\"")
-                        .contentType(MediaType.parseMediaType(dto.getMimeType()))
-                        .body(dto.getData()))
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<PictureDto> getRawPicture(@PathVariable Long id) {
+        return ResponseEntity.ok(pictureService.getPicture(id).orElseThrow(() -> new RuntimeException("Couldnt get picture with id : " + id.toString())));
     }
 }
