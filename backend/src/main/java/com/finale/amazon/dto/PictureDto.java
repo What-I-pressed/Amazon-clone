@@ -1,5 +1,13 @@
 package com.finale.amazon.dto;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+
 import com.finale.amazon.entity.Picture;
 
 import lombok.AllArgsConstructor;
@@ -12,13 +20,17 @@ import lombok.NoArgsConstructor;
 public class PictureDto {
     private Long id;
     private String name;
-    private String mimeType;
-    private byte[] data;
+    private String url;
+    private String pictureType;
 
     public PictureDto(Picture picture) {
         this.id = picture.getId();
         this.name = picture.getName();
-        this.mimeType = picture.getMimeType();
-        this.data = picture.getData();
+        // Path path = Paths.get("uploads/pictures/" + picture.getPath());
+        System.out.println(picture.getPath());
+        pictureType = picture.getPictureType().getName();
+
+        url = "uploads/pictures/" + picture.getPath();
+
     }
 }
