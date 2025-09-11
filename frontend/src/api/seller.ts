@@ -1,6 +1,7 @@
 // api/seller.ts
 import type { Seller } from "../types/seller";
 import type { SellerStats } from "../types/sellerstats";
+import type { Product } from "../types/product";
 
 const API_BASE = "/api/seller";
 
@@ -55,6 +56,20 @@ export async function fetchSellerStats(): Promise<SellerStats> {
     return res.json();
   } catch (e) {
     console.error("[API] fetchSellerStats:", e);
+    throw e;
+  }
+}
+
+export async function fetchSellerProducts(): Promise<Product[]> {
+  try {
+    const res = await fetch(`${API_BASE}/products`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error("Не вдалося отримати товари продавця");
+    return res.json();
+  } catch (e) {
+    console.error("[API] fetchSellerProducts:", e);
     throw e;
   }
 }

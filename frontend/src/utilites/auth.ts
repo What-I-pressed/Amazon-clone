@@ -1,12 +1,12 @@
 export const logout = () => {
-  localStorage.removeItem('token');
-  window.location.href = '/login';
+  localStorage.removeItem("token");
 };
 
-export const isLoggedIn = () => {
-  return !!localStorage.getItem('token');
+export const logoutAndRedirect = () => {
+  localStorage.removeItem("token");
+  window.location.href = "/login";
 };
 
-export const getToken = () => {
-  return localStorage.getItem('token');
-};
+export const isLoggedIn = () => !!localStorage.getItem("token");
+
+export const getToken = () => localStorage.getItem("token");

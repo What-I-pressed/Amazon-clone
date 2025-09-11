@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { fetchSellerProfile, fetchSellerStats } from "../../api/seller";
-import { fetchSellerProducts } from "../../api/products"; 
+import { fetchSellerProfile, fetchSellerProducts } from "../../api/seller";
 import type { Seller } from "../../types/seller";
-import type { SellerStats } from "../../types/sellerstats";
 import type { Product } from "../../types/product";
+import ProductCard from "../ProductCard";
 
-const SellerProfileView = () => {
+export default function App() {
   const [seller, setSeller] = useState<Seller | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -13,26 +12,13 @@ const SellerProfileView = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const sellerData: Seller = await fetchSellerProfile();
+        const sellerData = await fetchSellerProfile();
+        setSeller(sellerData);
 
-        setSeller({
-          ...sellerData,
-          stats: {
-            totalOrders: 0,
-            activeOrders: 0,
-            completedOrders: 0,
-            cancelledOrders: 0,
-            totalRevenue: 0,
-          },
-        });
-
-        const stats: SellerStats = await fetchSellerStats();
-        setSeller(prev => prev ? { ...prev, stats } : prev);
-
-        const productsData: Product[] = await fetchSellerProducts(sellerData.id, 0, 12);
+        const productsData = await fetchSellerProducts();
         setProducts(productsData);
-      } catch (e) {
-        console.error("Помилка при завантаженні даних продавця:", e);
+      } catch (err) {
+        console.error("Loading error:", err);
       } finally {
         setLoading(false);
       }
@@ -41,106 +27,121 @@ const SellerProfileView = () => {
     loadData();
   }, []);
 
-  if (loading)
-    return (
-      <div className="flex justify-center items-center h-64 text-gray-600 animate-pulse">
-        Завантаження профілю...
-      </div>
-    );
+  if (loading) {
+    return <div className="p-6 text-center">Loading...</div>;
+  }
 
-  if (!seller)
-    return (
-      <div className="text-gray-500 text-center mt-4">Профіль не знайдено</div>
-    );
+  if (!seller) {
+    return <div className="p-6 text-center">Seller not found</div>;
+  }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      {/* Banner */}
-      <div className="w-full h-56 bg-gray-200 flex items-center justify-center">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-700">
-          {seller.name}
-        </h1>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-[1332px] mx-auto py-8 px-6">
+        {/* Banner */}
+        {seller.banner && (
+          <div className="rounded-2xl overflow-hidden mb-8 h-[232px]">
+            <img
+              src={seller.banner}
+              alt="banner"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
 
-      <div className="p-6 md:p-12 space-y-12">
-        {/* Profile Header */}
-        <div className="bg-white shadow-sm border rounded-lg p-6 flex flex-col md:flex-row items-center md:items-start gap-6">
-          <img
-            src={seller.avatar}
-            alt="Seller Avatar"
-            className="w-20 h-20 rounded-full border border-gray-300"
-          />
+        {/* Seller Info */}
+        <div className="bg-white rounded-2xl shadow-sm p-6 flex items-center gap-6 mb-8">
+          {seller.avatar && (
+            <img
+              src={seller.avatar}
+              alt="avatar"
+              className="w-[83px] h-[83px] rounded-full object-cover"
+            />
+          )}
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-gray-900">{seller.name}</h2>
-            <p className="text-sm text-gray-500">{seller.email}</p>
-            <div className="mt-2 flex items-center">
-              <span className="text-yellow-500 mr-1 text-lg">★</span>
-              <span className="text-gray-700 font-medium">{seller.rating}</span>
-            </div>
+            <h1 className="text-2xl font-semibold">{seller.name}</h1>
             {seller.description && (
-              <p className="mt-4 text-gray-700">{seller.description}</p>
+              <p className="text-sm text-gray-500">{seller.description}</p>
             )}
+          </div>
+          <div className="flex gap-3">
+            <button className="px-4 py-2 border rounded-lg">Share</button>
+            <button className="px-4 py-2 bg-black text-white rounded-lg">
+              Go to catalog
+            </button>
           </div>
         </div>
 
-        {/* Statistics */}
-        <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Статистика</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[
-              { label: "Всього замовлень", value: seller.stats?.totalOrders ?? 0 },
-              { label: "Виконані", value: seller.stats?.completedOrders ?? 0 },
-              { label: "Скасовані", value: seller.stats?.cancelledOrders ?? 0 },
-            ].map((stat, i) => (
-              <div
-                key={i}
-                className="bg-white border rounded-lg p-6 text-center hover:shadow transition"
-              >
-                <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-                <div className="text-sm text-gray-500">{stat.label}</div>
+        <div className="grid grid-cols-12 gap-8">
+          {/* Sidebar */}
+          <aside className="col-span-3">
+            <div className="bg-white rounded-2xl p-6 shadow-sm">
+              <h3 className="font-semibold mb-4">Filters</h3>
+              <div className="space-y-3">
+                <label className="flex items-center gap-2">
+                  <input type="checkbox" className="w-4 h-4" />
+                  <span className="text-sm">In stock</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input type="checkbox" className="w-4 h-4" />
+                  <span className="text-sm">Discount</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input type="checkbox" className="w-4 h-4" />
+                  <span className="text-sm">New arrivals</span>
+                </label>
               </div>
-            ))}
-          </div>
-        </section>
 
-        {/* Products */}
-        <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            Товари продавця
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map(product => (
-              <div
-                key={product.id}
-                className="relative bg-white border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-end"
-              >
-                <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                  <span className="text-gray-400 text-sm">Image</span>
-                </div>
-                <div className="p-4">
-                  <h3 className="text-md font-semibold text-gray-900">{product.name}</h3>
-                  <p className="text-sm text-gray-500">{product.description}</p>
-                  <div className="mt-2 text-lg font-bold text-amazon-blue">
-                    ${product.price.toFixed(2)}
-                  </div>
-                  <div className="mt-1 flex items-center text-yellow-500">
-                    {"★".repeat(Math.floor(product.rating || 0))}
-                    {"☆".repeat(5 - Math.floor(product.rating || 0))}
-                    <span className="text-gray-600 text-sm ml-2">
-                      {(product.rating ?? 0).toFixed(1)}
-                    </span>
-                  </div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    Продано: {product.sold}
-                  </div>
+              <div className="mt-6">
+                <h4 className="text-sm text-gray-600 mb-2">Price</h4>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    placeholder="from"
+                    className="w-1/2 p-2 border rounded-lg"
+                  />
+                  <input
+                    type="number"
+                    placeholder="to"
+                    className="w-1/2 p-2 border rounded-lg"
+                  />
                 </div>
               </div>
-            ))}
-          </div>
-        </section>
+            </div>
+          </aside>
+
+          {/* Products */}
+          <main className="col-span-9">
+            <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold">All products</h2>
+                  <p className="text-sm text-gray-500">
+                    Found: {products.length}
+                  </p>
+                </div>
+                <div className="flex gap-3 items-center">
+                  <input
+                    className="px-3 py-2 border rounded-lg"
+                    placeholder="Search"
+                  />
+                  <select className="px-3 py-2 border rounded-lg">
+                    <option>Popular</option>
+                    <option>Price</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Product Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );
-};
-
-export default SellerProfileView;
+}
