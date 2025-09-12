@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 type ProductCardVariant = 'grid' | 'carousel';
 
 type ProductCardProps = {
+  id?: string | number;
   imageUrl: string;
   title: string;
   price: string; 
@@ -12,6 +14,7 @@ type ProductCardProps = {
 };
 
 const ProductCard: React.FC<ProductCardProps> = ({
+  id,
   imageUrl,
   title,
   price,
@@ -28,11 +31,21 @@ const ProductCard: React.FC<ProductCardProps> = ({
     <div className={`${cardWidth} rounded-2xl overflow-hidden border border-gray-200 bg-white`}>
       {/* Image + Discount */}
       <div className={`relative ${imageHeight} group overflow-hidden`}>
-        <img 
-          src={imageUrl}
-          alt={title}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-        />
+        {id ? (
+          <Link to={`/product/${id}`} className="block w-full h-full">
+            <img 
+              src={imageUrl}
+              alt={title}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
+            />
+          </Link>
+        ) : (
+          <img 
+            src={imageUrl}
+            alt={title}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        )}
         {discountPercent ? (
           <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-md">
             {discountPercent}
@@ -42,7 +55,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
       {/* Info */}
       <div className="p-4 space-y-2">
-        <h3 className="text-base font-medium text-gray-800">{title}</h3>
+        {id ? (
+          <Link to={`/product/${id}`} className="block">
+            <h3 className="text-base font-medium text-gray-800 hover:underline cursor-pointer">{title}</h3>
+          </Link>
+        ) : (
+          <h3 className="text-base font-medium text-gray-800">{title}</h3>
+        )}
 
         <div className="flex items-center gap-2">
           <span className="text-xl font-semibold text-black">{price}</span>

@@ -8,12 +8,19 @@ import com.finale.amazon.entity.Product;
 
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
 
 public class ProductSpecification {
     public static Specification<Product> hasName(String name) {
         return (root, query, cb) -> name == null ? null
                 : cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%");
+    }
+
+    public static Specification<Product> sellerIs(Long sellerId) {
+        return (root, query, cb) -> {
+            if(sellerId == null ) return null
+            Join<Product, User> seller = root.join("seller", JoinType.LEFT);
+                    return cb.equal(seller.get("id"), sellerId);
+        };
     }
 
     public static Specification<Product> hasCategory(Long categoryId) {

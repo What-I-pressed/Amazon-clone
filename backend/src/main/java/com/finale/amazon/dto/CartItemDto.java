@@ -10,11 +10,4 @@ import lombok.NoArgsConstructor;
 public class CartItemDto {
     private Long productId;
     private int quantity;
-
-    public CartItemDto(com.finale.amazon.entity.CartItem cartItem) {
-        if (cartItem.getProduct() != null) {
-            this.productId = cartItem.getProduct().getId();
-        }
-        this.quantity = cartItem.getQuantity();
-    }
 }

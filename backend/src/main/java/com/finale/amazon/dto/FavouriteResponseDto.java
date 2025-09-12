@@ -1,7 +1,6 @@
 package com.finale.amazon.dto;
 
 import com.finale.amazon.entity.Favourite;
-import com.finale.amazon.entity.Product;
 
 
 import lombok.AllArgsConstructor;

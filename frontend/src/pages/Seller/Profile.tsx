@@ -14,18 +14,20 @@ export default function App() {
       try {
         const sellerData = await fetchSellerProfile();
         setSeller(sellerData);
-
-        const productsData = await fetchSellerProducts();
-        setProducts(productsData);
+  
+        const productsPage = await fetchSellerProducts(sellerData.id);
+        setProducts(productsPage.content || []); 
       } catch (err) {
         console.error("Loading error:", err);
       } finally {
         setLoading(false);
       }
     };
-
+  
     loadData();
   }, []);
+  
+  
 
   if (loading) {
     return <div className="p-6 text-center">Loading...</div>;
@@ -138,7 +140,12 @@ export default function App() {
               {products.map((product) => (
                 <ProductCard
                   key={product.id}
-                  imageUrl={product.images?.[0] || "/public/product/card-01.jpg"}
+                  id={product.id}
+                  imageUrl={
+                    product.pictures && product.pictures.length > 0 
+                      ? `http://localhost:8080/${product.pictures[0].url}`
+                      : "/images/product/placeholder.jpg"
+                  }
                   title={product.name}
                   price={`$${product.price.toFixed(2)}`}
                 />

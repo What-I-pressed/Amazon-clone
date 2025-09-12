@@ -44,8 +44,7 @@ public class ProductService {
     @Autowired
     private PictureRepository pictureRepository;
 
-    @Transactional(readOnly = true)
-    public Page<ProductDto> getProductsPage(Pageable pageable, String name, Long categoryId, Double lowerBound,
+    private Specification<Product> getSpec(String name, Long categoryId, Double lowerBound,
             Double upperBound, Map<String, String> characteristics) {
         Map<String, String> filtered = characteristics.entrySet().stream().filter(entry -> entry.getValue() != null)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -68,6 +67,13 @@ public class ProductService {
                 .reduce(Specification.where(null), Specification::and);
 
         spec = spec.and(charSpec);
+        return spec;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductDto> getProductsPage(Pageable pageable, String name, Long categoryId, Double lowerBound,
+            Double upperBound, Map<String, String> characteristics) {
+        Specification<Product> spec = getSpec(name, categoryId, lowerBound, upperBound, characteristics);
 
         Page<Product> page = productRepository.findAll(spec, pageable);
         page.getContent().stream().forEach(prod -> prod.setPictures(pictureRepository.findMainPicture(prod.getId())));
@@ -80,14 +86,18 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    public void changeQuantity(Product product, Long add){
-        if(product.getQuantityInStock() + add < 0) throw new RuntimeException("Unable to order so much");
-        product.setQuantityInStock(product.getQuantityInStock() + add);
-        if(add < 0) product.setQuantitySold(product.getQuantitySold() - add);
-        //productRepository.save(product);
+    public Page<ProductDto> getProductsBySeller(Pageable pageable, String name, Long categoryId, Double lowerBound,
+            Double upperBound, Map<String, String> characteristics, Long sellerId) {
+        Specification<Product> spec = getSpec(name, categoryId, lowerBound, upperBound, characteristics);
+
+        spec = spec.and(ProductSpecification.sellerIs(sellerId));
+
+        Page<Product> page = productRepository.findAll(spec, pageable);
+        page.getContent().stream().forEach(prod -> prod.setPictures(pictureRepository.findMainPicture(prod.getId())));
+        return page.map(ProductDto::new);
     }
 
-    public void changeQuantitySold(Product product, Long add){
+    public void changeQuantitySold(Product product, Long add) {
         product.setQuantitySold(product.getQuantitySold() + add);
         productRepository.save(product);
     }
@@ -119,7 +129,7 @@ public class ProductService {
     }
 
     public Product findProductById(Long id) {
-        return productRepository.findById(id).orElseThrow(()-> new RuntimeException("Product not found"));
+        return productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
     }
 
     @Transactional(readOnly = true)
@@ -139,11 +149,11 @@ public class ProductService {
 
         if (dto.getCategoryName() != null) {
             categoryRepository.findByName(dto.getCategoryName().toLowerCase())
-                              .ifPresent(product::setCategory);
+                    .ifPresent(product::setCategory);
         }
         if (dto.getSubcategoryName() != null) {
             subcategoryRepository.findByName(dto.getSubcategoryName().toLowerCase())
-                                 .ifPresent(product::setSubcategory);
+                    .ifPresent(product::setSubcategory);
         }
         if (dto.getCharacteristicTypeName() != null) {
             characteristicTypeRepository.findByName(dto.getCharacteristicTypeName().toLowerCase())
@@ -152,19 +162,18 @@ public class ProductService {
         if (dto.getSellerId() != null) {
             userRepository.findById(dto.getSellerId()).ifPresent(product::setSeller);
             characteristicTypeRepository.findByName(dto.getCharacteristicTypeName().toLowerCase())
-                                        .ifPresent(product::setCharacteristic);
+                    .ifPresent(product::setCharacteristic);
         }
 
-        if(dto.getCharacteristics() != null){
+        if (dto.getCharacteristics() != null) {
             dto.getCharacteristics().stream().forEach(chare -> {
                 Optional<CharacteristicType> exist = characteristicTypeRepository.findByName(chare.getCharacteristic());
                 CharacteristicValue val = new CharacteristicValue();
-                if(exist.isPresent()){
+                if (exist.isPresent()) {
                     val.setValue(chare.getValue().toLowerCase());
                     val.setProduct(product);
                     val.setCharacteristicType(exist.get());
-                }
-                else{
+                } else {
                     CharacteristicType typ = new CharacteristicType();
                     typ.setName(chare.getCharacteristic().toLowerCase());
                     val.setValue(chare.getValue().toLowerCase());
