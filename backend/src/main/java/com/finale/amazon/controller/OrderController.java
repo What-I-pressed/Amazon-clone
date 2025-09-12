@@ -143,16 +143,19 @@ public class OrderController {
                 : ResponseEntity.ok(completedOrders);
     }
 
-    @Operation(summary = "Підтвердити замовлення", description = "Змінює статус замовлення на CONFIRMED (тільки для ADMIN)")
+    @Operation(summary = "Підтвердити замовлення", description = "Змінює статус замовлення на CONFIRMED (для ADMIN або SELLER)")
     @PutMapping("/status/confirm")
     public ResponseEntity<?> confirmOrder(@RequestParam String token, @RequestParam Long orderId) {
         if (jwtUtil.isTokenExpired(token)) 
             return ResponseEntity.status(400).body("Token is expired");
-        if (!"ADMIN".equals(jwtUtil.extractRole(token))) 
+        
+        String role = jwtUtil.extractRole(token);
+        if (!"SELLER".equals(role) && !"ADMIN".equals(role)) 
             return ResponseEntity.status(403).body("You are not authorized to change order status!");
         
         return ResponseEntity.ok(new OrderDto(orderService.updateOrderStatus(orderId, "CONFIRMED")));
     }
+
 
     @Operation(summary = "Редагувати замовлення", description = "Оновлює дані замовлення за його ID")
     @PutMapping("/{id}")
