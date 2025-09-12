@@ -41,6 +41,9 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     List<Product> findByseller(User seller);
     
     List<Product> findByNameContainingIgnoreCase(String name);
+
+    @Query("SELECT DISTINCT p.seller FROM Product p WHERE p.subcategory.id = :subcategoryId")
+    List<User> findSellersBySubcategoryId(@Param("subcategoryId") Long subcategoryId);
     
     List<Product> findByDiscountLaunchDateBeforeAndDiscountExpirationDateAfter(LocalDateTime start, LocalDateTime end);
     

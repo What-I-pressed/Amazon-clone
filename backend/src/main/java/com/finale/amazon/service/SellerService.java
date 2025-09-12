@@ -15,6 +15,7 @@ import com.finale.amazon.dto.UserDto;
 
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SellerService {
@@ -44,6 +45,10 @@ public class SellerService {
 
         public static boolean isSeller(Long userId){
                 return userRepository.findById(userId).get().getRole().getName() == "SELLER";
+        }
+
+        public List<UserDto> getBySubcategoryId(Long subcategoryId){
+                return productRepository.findSellersBySubcategoryId(subcategoryId).stream().map(UserDto::new).collect(Collectors.toList());
         }
 
         public SellerStatsDto getSellerStats(User seller) {
