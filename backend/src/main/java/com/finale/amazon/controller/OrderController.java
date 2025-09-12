@@ -37,6 +37,7 @@ public class OrderController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Operation(summary = "Отримати замовлення продавця", description = "Повертає список всіх замовлень для поточного продавця")
     @GetMapping("/seller/orders")
     public ResponseEntity<?> getOrdersBySeller(@RequestParam String token) {
         if (jwtUtil.isTokenExpired(token)) {
@@ -51,6 +52,7 @@ public class OrderController {
         return ResponseEntity.ok(orders);
     }
 
+    @Operation(summary = "Отримати замовлення користувача", description = "Повертає всі замовлення поточного користувача")
     @GetMapping("/all")
     public ResponseEntity<?> getOrdersByUser(@RequestParam String token) {
         if (jwtUtil.isTokenExpired(token)) {
@@ -66,6 +68,7 @@ public class OrderController {
         return ResponseEntity.ok(orders.stream().map(OrderDto::new).collect(Collectors.toList()));
     }
 
+    @Operation(summary = "Отримати замовлення за ID", description = "Повертає замовлення за його унікальним ID")
     @GetMapping("/{orderId}")
     public ResponseEntity<Order> getOrderById(
             @Parameter(description = "ID замовлення") @PathVariable Long orderId) {
@@ -75,12 +78,14 @@ public class OrderController {
                        .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Створити замовлення", description = "Створює нове замовлення для користувача")
     @PutMapping("/create")
     public ResponseEntity<?> CreateOrder(@RequestParam String token, @RequestBody OrderCreationDto order){
         if(jwtUtil.isTokenExpired(token)) return ResponseEntity.status(400).body("Token is expired");
         return ResponseEntity.ok(new OrderDto(orderService.creatOrder(order, jwtUtil.extractUserId(token))));
     }
 
+    @Operation(summary = "Обробити замовлення", description = "Змінює статус замовлення на PROCESSING (тільки для ADMIN)")
     @PutMapping("/status/process")
     public ResponseEntity<?> ProccesOrder(@RequestParam String token,@RequestParam Long orderId){
         if(jwtUtil.isTokenExpired(token)) return ResponseEntity.status(403).body("Token is expired");
@@ -88,6 +93,7 @@ public class OrderController {
         return ResponseEntity.ok(new OrderDto(orderService.updateOrderStatus(orderId, "PROCESSING")));
     }
 
+    @Operation(summary = "Відправити замовлення", description = "Змінює статус замовлення на SHIPPED (тільки для ADMIN)")
     @PutMapping("/status/ship")
     public ResponseEntity<?> ShipOrder(@RequestParam String token,@RequestParam Long orderId){
         if(jwtUtil.isTokenExpired(token)) return ResponseEntity.status(400).body("Token is expired");
@@ -95,6 +101,7 @@ public class OrderController {
         return ResponseEntity.ok(new OrderDto(orderService.updateOrderStatus(orderId, "SHIPPED")));
     }
 
+    @Operation(summary = "Доставити замовлення", description = "Змінює статус замовлення на DELIVERED (тільки для ADMIN)")
     @PutMapping("/status/deliver")
     public ResponseEntity<?> DeliverOrder(@RequestParam String token,@RequestParam Long orderId){
         if(jwtUtil.isTokenExpired(token)) return ResponseEntity.status(400).body("Token is expired");
@@ -102,6 +109,7 @@ public class OrderController {
         return ResponseEntity.ok(new OrderDto(orderService.updateOrderStatus(orderId, "DELIVERED")));
     }
 
+    @Operation(summary = "Скасувати замовлення", description = "Скасовує замовлення користувачем або адміністратором")
     @PutMapping("/status/cancel")
     public ResponseEntity<?> CancelOrder(@RequestParam String token,@RequestParam Long orderId){
         if(jwtUtil.isTokenExpired(token)) return ResponseEntity.status(400).body("Token is expired");
@@ -109,7 +117,7 @@ public class OrderController {
         return ResponseEntity.ok(new OrderDto(orderService.updateOrderStatus(orderId, jwtUtil.extractUserId(token) , "CANCELLED")));
     }
 
-
+    @Operation(summary = "Отримати активні замовлення", description = "Повертає замовлення зі статусом NEW, PROCESSING або SHIPPED")
     @GetMapping("/active")
     public ResponseEntity<?> getActiveOrders(@RequestParam String token) {
         if(jwtUtil.isTokenExpired(token)) return ResponseEntity.status(400).body("Token is expired");

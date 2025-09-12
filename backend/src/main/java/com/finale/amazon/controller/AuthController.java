@@ -21,7 +21,7 @@ import com.finale.amazon.entity.User;
 import com.finale.amazon.security.JwtUtil;
 import com.finale.amazon.service.UserService;
 
-
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -103,7 +103,7 @@ public class AuthController {
         }
     }
 
-    @Operation(summary = "Увійти в акаунт та отримати JWT")
+@Operation(summary = "Увійти в акаунт", description = "Аутентифікує користувача за email та паролем і повертає JWT токен разом з роллю")
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody UserLoginRequestDto user) {
         try {

@@ -40,7 +40,7 @@ public class PictureController {
     //             .orElse(ResponseEntity.notFound().build());
     // }
 
-    @Operation(summary = "Отримати зображення продукту за ID", description = "Повертає зображення продукту у вигляді байтового масиву")
+    @Operation(summary = "Отримати зображення продукту за ID", description = "Повертає DTO з інформацією про зображення продукту")
     @GetMapping("/{id}")
     public ResponseEntity<PictureDto> getRawPicture(@PathVariable Long id) {
         return ResponseEntity.ok(pictureService.getPicture(id).orElseThrow(() -> new RuntimeException("Couldnt get picture with id : " + id.toString())));

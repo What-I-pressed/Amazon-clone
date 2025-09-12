@@ -29,6 +29,7 @@ public class CartController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Operation(summary = "Отримати товари з кошика користувача", description = "Повертає всі товари, які користувач додав у кошик")
     @GetMapping("")
     public ResponseEntity<List<CartItemResponseDto>> getCartItemsByUser(@RequestParam String token) {
         List<CartItem> items = cartService.getCartItemsByUserId(jwtUtil.extractUserId(token));

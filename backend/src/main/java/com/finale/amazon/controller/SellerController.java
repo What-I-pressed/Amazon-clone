@@ -38,7 +38,7 @@ public class SellerController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @Operation(summary = "Отримати профіль продавця")
+    @Operation(summary = "Отримати профіль продавця", description = "Повертає профіль поточного користувача, якщо він має роль SELLER")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Профіль успішно отримано"),
             @ApiResponse(responseCode = "404", description = "Продавця не знайдено"),
@@ -57,7 +57,7 @@ public class SellerController {
         return ResponseEntity.ok(new UserDto(seller));
     }
 
-    @Operation(summary = "Отримати статистику продавця")
+   @Operation(summary = "Отримати статистику продавця", description = "Повертає статистику продажів і продуктів поточного продавця")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Статистика успішно отримана"),
             @ApiResponse(responseCode = "404", description = "Продавця не знайдено")
@@ -71,7 +71,7 @@ public class SellerController {
         return ResponseEntity.ok(sellerService.getSellerStats(seller));
     }
 
-    @Operation(summary = "Отримати продукти продавця з фільтрацією та сортуванням")
+    @Operation(summary = "Отримати продукти продавця", description = "Повертає список продуктів поточного продавця з можливістю фільтрації та сортування")
     @GetMapping("/profile/products")
     public ResponseEntity<List<ProductDto>> getSellerProducts(
             Authentication authentication,
@@ -91,7 +91,7 @@ public class SellerController {
         return ResponseEntity.ok(products);
     }
 
-    @Operation(summary = "Отримати відгуки продавця")
+    @Operation(summary = "Отримати відгуки продавця", description = "Повертає всі відгуки для поточного продавця")
     @GetMapping("/profile/reviews")
     public ResponseEntity<List<ReviewDto>> getSellersReviews(Authentication authentication) {
         String email = authentication.getName();
@@ -105,7 +105,7 @@ public class SellerController {
         );
     }
 
-    @Operation(summary = "Оновити профіль продавця")
+    @Operation(summary = "Оновити профіль продавця", description = "Оновлює дані профілю продавця")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Профіль успішно оновлено"),
             @ApiResponse(responseCode = "404", description = "Продавця не знайдено"),
