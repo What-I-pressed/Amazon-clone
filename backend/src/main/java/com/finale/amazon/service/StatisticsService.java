@@ -1,7 +1,6 @@
 package com.finale.amazon.service;
 
 import com.finale.amazon.dto.ProductStatisticsDto;
-import com.finale.amazon.entity.Product;
 import com.finale.amazon.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
