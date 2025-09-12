@@ -1,60 +1,101 @@
-// src/components/Login/LoginForm.tsx
-import React, { useState, useContext } from "react";
-import { login } from "../../services/authService";
-import { AuthContext } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+// src/components/Auth/LoginForm.tsx
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
 const LoginForm: React.FC = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    emailOrPhone: "",
+    password: "",
+  });
 
-  const auth = useContext(AuthContext);
-  if (!auth) throw new Error("LoginForm must be used within AuthProvider");
-  const { loginUser } = auth;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
-  const navigate = useNavigate();
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const res = await login(email, password);
-      const token = res.data.token;
-      await loginUser(token);
-      navigate("/"); 
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Login failed");
-    }
+    console.log("Login data:", formData);
   };
 
   return (
-    <div className="max-w-md mx-auto mt-20 p-6 bg-gray-100 rounded-md shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-center">Sign In</h2>
-      {error && <p className="text-red-500 mb-2">{error}</p>}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full p-2 border border-gray-300 rounded"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full p-2 border border-gray-300 rounded"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition"
-        >
-          Sign In
-        </button>
-      </form>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="bg-white shadow-md rounded-xl w-full max-w-4xl flex overflow-hidden border border-gray-200">
+        {/* Left side with form */}
+        <div className="w-full md:w-1/2 p-8">
+          <h2 className="text-2xl font-bold mb-2">Login</h2>
+          <p className="text-gray-600 mb-6">
+            Do not have an account?{" "}
+            <Link to="/signup" className="text-green-600 hover:underline">
+              Create a new one
+            </Link>
+          </p>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Email or Phone */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Enter Your Email Or Phone
+              </label>
+              <input
+                type="text"
+                name="emailOrPhone"
+                value={formData.emailOrPhone}
+                onChange={handleChange}
+                placeholder="your@email.com"
+                className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-800"
+                required
+              />
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Enter Your Password
+              </label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="********"
+                className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-800"
+                required
+              />
+            </div>
+
+            {/* Button */}
+            <button
+              type="submit"
+              className="w-full bg-gray-800 text-white py-2 rounded-lg hover:bg-black transition"
+            >
+              Login
+            </button>
+
+            {/* Forgot password */}
+            <div className="text-center mt-4">
+              <Link
+                to="/forgot-password"
+                className="text-green-600 hover:underline text-sm"
+              >
+                Forgot Your Password?
+              </Link>
+            </div>
+          </form>
+        </div>
+
+        {/* Right side with image */}
+        <div className="hidden md:flex md:w-1/2">
+          <img
+            src="/images/auth-side.jpg"
+            alt="Team"
+            className="object-cover w-full h-full"
+          />
+        </div>
+      </div>
     </div>
   );
 };
