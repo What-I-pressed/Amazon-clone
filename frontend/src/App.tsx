@@ -8,6 +8,7 @@ import AppLayout from "./layout/AppLayout";
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
 import LoginForm from "./components/Login/LoginForm";
+import RegisterForm from "./components/Register/RegisterForm";
 
 // Other
 import NotFound from "./pages/OtherPage/NotFound";
@@ -48,7 +49,7 @@ export default function App() {
       <ScrollToTop />
       <Routes>
 
-        {/* Магазин (з лейаутом) */}
+        {/* з лейаутом */}
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/catalog" element={<CatalogPage />} />
@@ -62,6 +63,8 @@ export default function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/chat" element={<ChatPage />} />
+        <Route path="/login" element={<LoginForm />} />
+        <Route path="/register" element={<RegisterForm />} />
         </Route>
 
         {/* Адмінка (з лейаутом) */}
@@ -81,12 +84,7 @@ export default function App() {
           <Route path="line-chart" element={<LineChart />} />
           <Route path="bar-chart" element={<BarChart />} />
         </Route>
-
-        {/* Auth (без лейауту) */}
-        <Route path="/signin" element={<SignIn />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/login" element={<LoginForm />} />
-
+        
         {/* Інші */}
         <Route path="*" element={<NotFound />} />
 
