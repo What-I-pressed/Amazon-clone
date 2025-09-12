@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
 import Logo from "../components/ui/avatar/logo.svg";
 import { AuthContext } from "../context/AuthContext";
+import { fetchSellerProfile } from "../api/seller";
+import type { Seller } from "../types/seller";
 
 const Navbar: React.FC = () => {
   const [languageDropdown, setLanguageDropdown] = useState(false);
@@ -14,6 +16,24 @@ const Navbar: React.FC = () => {
   const auth = useContext(AuthContext);
   if (!auth) throw new Error("Navbar must be used within AuthProvider");
   const { user, logoutUser } = auth;
+
+  const [seller, setSeller] = useState<Seller | null>(null);
+
+  useEffect(() => {
+    const loadSeller = async () => {
+      if (!user) {
+        setSeller(null);
+        return;
+      }
+      try {
+        const profile = await fetchSellerProfile();
+        setSeller(profile);
+      } catch (e) {
+        setSeller(null);
+      }
+    };
+    loadSeller();
+  }, [user]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -151,7 +171,14 @@ const Navbar: React.FC = () => {
               className="cursor-pointer text-center text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
               onClick={() => setAccountDropdown(prev => !prev)}
             >
-              <div>{user ? `Hello, ${user.username || user.email}` : "Hello, sign in"}</div>
+              <div className="flex items-center justify-center gap-2">
+                {seller?.avatar ? (
+                  <img src={seller.avatar} alt="avatar" className="w-6 h-6 rounded-full object-cover" />
+                ) : null}
+                <span>
+                  {user ? `Hello, ${seller?.username || user.username || user.email}` : "Hello, sign in"}
+                </span>
+              </div>
               <div className="flex items-center justify-center gap-1">
                 <span>Account</span>
                 <span className="material-icons" style={{ lineHeight: 1 }}>arrow_drop_down</span>
@@ -167,11 +194,18 @@ const Navbar: React.FC = () => {
               <div className="py-1">
                 {user ? (
                   <>
-                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/profile"}>
-                      Profile
+                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/seller"}>
+                      Seller Profile
                     </button>
-                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/settings"}>
-                      Settings
+                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/seller/dashboard"}>
+                      Seller Dashboard
+                    </button>
+                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/seller/edit"}>
+                      Edit Seller
+                    </button>
+                    <div className="h-px bg-[#6a6a6a] my-1" />
+                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/profile"}>
+                      Account Profile
                     </button>
                     <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={logoutUser}>
                       Logout

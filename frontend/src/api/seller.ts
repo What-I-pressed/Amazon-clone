@@ -3,7 +3,7 @@ import type { Seller } from "../types/seller";
 import type { SellerStats } from "../types/sellerstats";
 import type { Product } from "../types/product";
 
-const API_BASE = "/api/seller";
+const API_BASE = "http://localhost:8080/api/seller";
 
 // helper для заголовків
 function getAuthHeaders() {
@@ -62,7 +62,7 @@ export async function fetchSellerStats(): Promise<SellerStats> {
 
 export async function fetchSellerProducts(): Promise<Product[]> {
   try {
-    const res = await fetch(`${API_BASE}/products`, {
+    const res = await fetch(`${API_BASE}/profile/products`, {
       method: "GET",
       headers: getAuthHeaders(),
     });
