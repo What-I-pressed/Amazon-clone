@@ -13,8 +13,6 @@ import org.springframework.stereotype.Repository;
 public interface PictureRepository extends JpaRepository<Picture, Long> {
     List<Picture> findPictureByProductId(Long productId);
 
-    @Query("SELECT pic FROM Picture pic WHERE pic.product.id = :productId AND pic.name LIKE '1.%'")
+    @Query("SELECT pic FROM Picture pic WHERE pic.product.id = :productId AND pic.pictureType.name = 'PRIMARY'")
     List<Picture> findMainPicture(@Param("productId")Long productId);
-
-    List<Picture> findByProductInAndNameLike(List<Long> ids, String string);
 } 

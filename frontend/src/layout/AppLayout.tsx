@@ -1,5 +1,6 @@
 import React from "react";
 import { SidebarProvider } from "../context/SidebarContext";
+import { AuthProvider } from "../context/AuthContext";
 import { Outlet } from "react-router";
 import AppHeader from "./AppHeader";
 import AppFooter from "./AppFooter";
@@ -26,7 +27,9 @@ const LayoutContent: React.FC = () => {
 const AppLayout: React.FC = () => {
   return (
     <SidebarProvider>
-      <LayoutContent />
+      <AuthProvider>
+        <LayoutContent />
+      </AuthProvider>
     </SidebarProvider>
   );
 };

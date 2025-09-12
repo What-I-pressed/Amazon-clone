@@ -12,17 +12,13 @@ import com.finale.amazon.entity.OrderItem;
 public class OrderItemDto {
     private Long id;
     private Long productId;
-    private String productName;
-    private int quantity;
-    private double unitPrice;
+    private Long quantity;
     private double totalPrice;
     
     public OrderItemDto(OrderItem orderItem) {
         this.id = orderItem.getId();
         this.productId = orderItem.getProduct().getId();
-        this.productName = orderItem.getProduct().getName();
         this.quantity = orderItem.getQuantity();
-        this.unitPrice = orderItem.getUnitPrice();
         this.totalPrice = orderItem.getTotalPrice();
     }
 } 

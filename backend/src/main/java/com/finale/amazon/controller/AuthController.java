@@ -1,6 +1,9 @@
 package com.finale.amazon.controller;
 
 import java.util.Optional;
+import java.util.Map;
+import java.util.HashMap;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +21,7 @@ import com.finale.amazon.entity.User;
 import com.finale.amazon.security.JwtUtil;
 import com.finale.amazon.service.UserService;
 
-import io.swagger.v3.oas.annotations.Operation;
+
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -102,30 +105,27 @@ public class AuthController {
 
     @Operation(summary = "Увійти в акаунт та отримати JWT")
     @PostMapping("/login")
-    public ResponseEntity<String> login(@Valid @RequestBody UserLoginRequestDto user,
-                                        @RequestParam(defaultValue = "normal") String tokenType) {
+    public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody UserLoginRequestDto user) {
         try {
             User u = userService.authenticateUser(user.getEmail(), user.getPassword())
                     .orElseThrow(() -> new RuntimeException("Invalid email or password"));
-
-            String token;
-            switch (tokenType.toLowerCase()) {
-                case "short":
-                    token = jwtUtil.generateShortToken(u);
-                    break;
-                case "long":
-                    token = jwtUtil.generateLongToken(u);
-                    break;
-                default:
-                    token = jwtUtil.generateToken(u);
-                    break;
-            }
-
-            return ResponseEntity.ok(token);
+    
+            String token = jwtUtil.generateToken(u);
+    
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("email", u.getEmail());
+            response.put("username", u.getUsername());
+            response.put("role", u.getRole().getName());
+    
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(400).body("Error logging in: " + e.getMessage());
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(400).body(error);
         }
     }
+    
 
     @Operation(summary = "Зареєструвати користувача з роллю CUSTOMER")
     @PostMapping("/register/user")
@@ -218,7 +218,6 @@ public class AuthController {
             System.out.println("=== TOKEN DEBUG ===");
             System.out.println("Token: " + token);
             System.out.println("Subject (email): " + jwtUtil.extractSubject(token));
-            System.out.println("Username claim: " + jwtUtil.extractUsername(token));
             System.out.println("User ID: " + jwtUtil.extractUserId(token));
             System.out.println("==================");
 

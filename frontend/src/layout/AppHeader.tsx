@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import Logo from "../components/ui/avatar/logo.svg";
+import { AuthContext } from "../context/AuthContext";
 
 const Navbar: React.FC = () => {
   const [languageDropdown, setLanguageDropdown] = useState(false);
@@ -9,6 +10,10 @@ const Navbar: React.FC = () => {
   const languageRef = useRef<HTMLDivElement>(null);
   const categoryRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
+
+  const auth = useContext(AuthContext);
+  if (!auth) throw new Error("Navbar must be used within AuthProvider");
+  const { user, logoutUser } = auth;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -22,13 +27,12 @@ const Navbar: React.FC = () => {
         setAccountDropdown(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleLogoClick = () => {
-    window.location.href = '/';
+    window.location.href = "/";
   };
 
   return (
@@ -45,27 +49,18 @@ const Navbar: React.FC = () => {
 
         {/* Search bar */}
         <div className="flex-grow">
-          <div
-            className="flex rounded-md overflow-hidden max-w-md mx-auto h-10 relative"
-            style={{ backgroundColor: "#A2A2A2" }}
-          >
+          <div className="flex rounded-md overflow-hidden max-w-md mx-auto h-10 relative" style={{ backgroundColor: "#A2A2A2" }}>
             {/* Category dropdown */}
             <div className="relative" ref={categoryRef}>
               <button
                 type="button"
                 className="px-3 flex items-center h-full bg-[#757575] text-white text-sm select-none transition-colors duration-300 ease-in-out hover:bg-[#343434] focus:outline-none"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setCategoryDropdown((prev) => !prev);
-                }}
+                onClick={(e) => { e.preventDefault(); setCategoryDropdown(prev => !prev); }}
               >
                 <span>All</span>
-                <span className="material-icons ml-1" style={{ lineHeight: 1 }}>
-                  arrow_drop_down
-                </span>
+                <span className="material-icons ml-1" style={{ lineHeight: 1 }}>arrow_drop_down</span>
               </button>
 
-              {/* Dropdown menu */}
               <div
                 className={`absolute top-full left-0 mt-1 w-48 rounded-md shadow-lg z-50 overflow-hidden transition-all duration-300 ease-out transform ${
                   categoryDropdown ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
@@ -83,14 +78,11 @@ const Navbar: React.FC = () => {
                     "Health & Beauty",
                     "Toys & Games",
                     "Automotive",
-                  ].map((cat) => (
+                  ].map(cat => (
                     <button
                       key={cat}
                       className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-[#343434] transition-colors duration-200 ease-out focus:outline-none"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setCategoryDropdown(false);
-                      }}
+                      onClick={(e) => { e.preventDefault(); setCategoryDropdown(false); }}
                     >
                       {cat}
                     </button>
@@ -125,18 +117,14 @@ const Navbar: React.FC = () => {
           <div className="relative" ref={languageRef}>
             <div
               className="flex items-center cursor-pointer text-base transition-colors duration-300 ease-in-out hover:text-gray-300 group"
-              onClick={() => setLanguageDropdown((prev) => !prev)}
+              onClick={() => setLanguageDropdown(prev => !prev)}
             >
               <span className="group-hover:text-gray-300 transition-colors duration-300 ease-in-out">EN</span>
-              <span
-                className="material-icons group-hover:text-gray-300 transition-colors duration-300 ease-in-out"
-                style={{ lineHeight: 1, marginLeft: -2, color: "#b0b0b0" }}
-              >
+              <span className="material-icons group-hover:text-gray-300 transition-colors duration-300 ease-in-out" style={{ lineHeight: 1, marginLeft: -2, color: "#b0b0b0" }}>
                 arrow_drop_down
               </span>
             </div>
 
-            {/* Language Dropdown Menu */}
             <div
               className={`absolute top-full right-0 mt-1 w-20 rounded-md shadow-lg z-50 overflow-hidden transition-all duration-300 ease-out transform ${
                 languageDropdown ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
@@ -144,7 +132,7 @@ const Navbar: React.FC = () => {
               style={{ backgroundColor: "#757575" }}
             >
               <div className="py-1">
-                {["EN", "UA"].map((lang) => (
+                {["EN", "UA"].map(lang => (
                   <button
                     key={lang}
                     className="block w-full text-center px-3 py-2 text-sm text-white hover:bg-[#343434] transition-colors duration-200 ease-out focus:outline-none"
@@ -157,27 +145,19 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* Returns & Orders */}
-          <div className="cursor-pointer text-center text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]">
-            <div>Returns &amp; Orders</div>
-          </div>
-
           {/* Account dropdown */}
           <div className="relative" ref={accountRef}>
             <div
               className="cursor-pointer text-center text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
-              onClick={() => setAccountDropdown((prev) => !prev)}
+              onClick={() => setAccountDropdown(prev => !prev)}
             >
-              <div>Hello, sign in</div>
+              <div>{user ? `Hello, ${user.username || user.email}` : "Hello, sign in"}</div>
               <div className="flex items-center justify-center gap-1">
                 <span>Account</span>
-                <span className="material-icons" style={{ lineHeight: 1 }}>
-                  arrow_drop_down
-                </span>
+                <span className="material-icons" style={{ lineHeight: 1 }}>arrow_drop_down</span>
               </div>
             </div>
 
-            {/* Account Dropdown Menu */}
             <div
               className={`absolute top-full right-0 mt-1 w-32 rounded-md shadow-lg z-50 overflow-hidden transition-all duration-300 ease-out transform ${
                 accountDropdown ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
@@ -185,15 +165,28 @@ const Navbar: React.FC = () => {
               style={{ backgroundColor: "#757575" }}
             >
               <div className="py-1">
-                {["Sign In", "Sign Up"].map((action) => (
-                  <button
-                    key={action}
-                    className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434] transition-colors duration-200 ease-out focus:outline-none"
-                    onClick={() => setAccountDropdown(false)}
-                  >
-                    {action}
-                  </button>
-                ))}
+                {user ? (
+                  <>
+                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/profile"}>
+                      Profile
+                    </button>
+                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/settings"}>
+                      Settings
+                    </button>
+                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={logoutUser}>
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/login"}>
+                      Sign In
+                    </button>
+                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/register"}>
+                      Sign Up
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>

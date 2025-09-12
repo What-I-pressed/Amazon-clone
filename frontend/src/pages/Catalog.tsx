@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ProductCard from "./ProductCard";
+import ProductCard from './ProductCard';
 
 const recommended = [
   { id: 1, name: "Смартфон X", category: "Гаджети", price: 12000, image: "/images/phone.jpg" },

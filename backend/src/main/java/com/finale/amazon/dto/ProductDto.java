@@ -30,7 +30,6 @@ public class ProductDto {
     private Long subcategoryId;
     private String characteristicType;
 
-    
     private String sellerName;
     private Long sellerId;
     

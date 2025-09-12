@@ -21,7 +21,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const [liked, setLiked] = useState(false);
 
-  // размеры под карусель и грид
   const cardWidth = variant === 'carousel' ? 'w-72' : 'w-80';
   const imageHeight = variant === 'carousel' ? 'h-56' : 'h-64';
 

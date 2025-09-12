@@ -35,7 +35,8 @@ public class SecurityConfig {
                         "/",
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
-                        "/api/**")
+                        "/api/**",
+                        "/uploads/**")
                 .permitAll()
                 .anyRequest().authenticated()
                 .and()
@@ -59,4 +60,6 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+    
 }

@@ -31,12 +31,16 @@ public class JwtUtil {
         return extractClaim(token, Claims::getSubject);
     }
 
-    public String extractUsername(String token) {
-        return extractClaim(token, claims -> claims.get("username", String.class));
+    public String extractRole(String token) {
+        return extractClaim(token, claims -> claims.get("role", String.class));
     }
 
     public Long extractUserId(String token) {
         return extractClaim(token, claims -> claims.get("userId", Long.class));
+    }
+
+    public boolean isSameUser(String token, Long userId){
+        return extractUserId(token) == userId;
     }
 
     private Date extractExpiration(String token) {
@@ -58,21 +62,21 @@ public class JwtUtil {
 
     public String generateToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("username", user.getUsername());
+        claims.put("role", user.getRole().getName());
         claims.put("userId", user.getId());
         return createToken(claims, user.getEmail(), expiration);
     }
 
     public String generateShortToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("username", user.getUsername());
+        claims.put("role", user.getRole().getName());
         claims.put("userId", user.getId());
         return createToken(claims, user.getEmail(), shortExpiration);
     }
 
     public String generateLongToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("username", user.getUsername());
+        claims.put("role", user.getRole().getName());
         claims.put("userId", user.getId());
         return createToken(claims, user.getEmail(), longExpiration);
     }

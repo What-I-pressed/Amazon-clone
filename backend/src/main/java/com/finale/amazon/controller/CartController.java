@@ -1,7 +1,9 @@
 package com.finale.amazon.controller;
 
 import com.finale.amazon.dto.CartItemDto;
+import com.finale.amazon.dto.CartItemResponseDto;
 import com.finale.amazon.entity.CartItem;
+import com.finale.amazon.security.JwtUtil;
 import com.finale.amazon.service.CartService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,37 +26,30 @@ public class CartController {
     @Autowired
     private CartService cartService;
 
-    @Operation(summary = "Отримати всі товари у кошику користувача за email")
-    @GetMapping("/user/{email}")
-    public ResponseEntity<List<CartItemDto>> getCartItemsByUser(
-            @Parameter(description = "Email користувача") @PathVariable String email) {
+    @Autowired
+    private JwtUtil jwtUtil;
 
-        List<CartItem> items = cartService.getCartItemsByUserEmail(email);
-        List<CartItemDto> dtos = items.stream()
-                                     .map(CartItemDto::new)
+    @GetMapping("")
+    public ResponseEntity<List<CartItemResponseDto>> getCartItemsByUser(@RequestParam String token) {
+        List<CartItem> items = cartService.getCartItemsByUserId(jwtUtil.extractUserId(token));
+        List<CartItemResponseDto> dtos = items.stream()
+                                     .map(CartItemResponseDto::new)
                                      .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
     }
 
     @Operation(summary = "Додати товар до кошика або оновити кількість")
     @PostMapping("/add")
-    public ResponseEntity<CartItemDto> addCartItem(
-            @Parameter(description = "Email користувача") @RequestParam String email,
-            @Parameter(description = "ID продукту") @RequestParam Long productId,
-            @Parameter(description = "Кількість товару") @RequestParam int quantity) {
-
-        CartItem item = cartService.addOrUpdateCartItem(email, productId, quantity);
-        return ResponseEntity.ok(new CartItemDto(item));
+    public ResponseEntity<?> addCartItem(@RequestParam String token, @RequestBody CartItemDto cartItemDto) {
+        cartService.Add(jwtUtil.extractUserId(token), cartItemDto);
+        return ResponseEntity.ok("Successfully added to cart");
     }
 
     @Operation(summary = "Видалити конкретний товар з кошика користувача")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCartItem(
-            @Parameter(description = "ID товару у кошику") @PathVariable Long id,
-            @Parameter(description = "Email користувача") @RequestParam String email) {
-
+    public ResponseEntity<?> deleteCartItem(@RequestParam String token, @PathVariable Long id ) {
         try {
-            cartService.removeCartItem(email, id);
+            cartService.removeCartItem(jwtUtil.extractUserId(token), id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -63,10 +58,8 @@ public class CartController {
 
     @Operation(summary = "Очистити кошик користувача")
     @DeleteMapping("/clear")
-    public ResponseEntity<Void> clearCart(
-            @Parameter(description = "Email користувача") @RequestParam String email) {
-
-        cartService.clearCart(email);
+    public ResponseEntity<Void> clearCart(@RequestParam String token) {
+        cartService.clearCart(jwtUtil.extractUserId(token));
         return ResponseEntity.noContent().build();
     }
 }
