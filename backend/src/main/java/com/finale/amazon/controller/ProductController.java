@@ -54,7 +54,6 @@ public class ProductController {
         chars.remove("page");
         chars.remove("size");
         chars.remove("sort");
-
         Page<ProductDto> productsPage = productService.getProductsPage(
                 PageRequest.of(page, size), name, categoryId, lowerPriceBound, upperPriceBound, chars);
         return ResponseEntity.ok(productsPage);
@@ -70,7 +69,7 @@ public class ProductController {
         return ResponseEntity.ok(new ProductDto(product));
     }
 
-    @Operation(summary = "Отримати продукт за ID", description = "Повертає продукт за його унікальним ID")
+@Operation(summary = "Отримати продукт за ID", description = "Повертає продукт за його унікальним ID")
     @GetMapping("/{id}")
     public ResponseEntity<ProductDto> getProduct(
             @Parameter(description = "ID продукту") @PathVariable Long id) {

@@ -40,7 +40,14 @@ const CatalogPage: React.FC = () => {
       <h1 className="text-2xl font-bold mb-6">Каталог товарів</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
+          <ProductCard
+            key={product.id}
+            id={product.id}
+            imageUrl={product.image}
+            title={product.name}
+            price={`$${product.price}`}
+            variant="grid"
+          />
         ))}
       </div>
     </div>

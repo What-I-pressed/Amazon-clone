@@ -45,7 +45,7 @@ public class Order {
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime shipmentDate;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = jakarta.persistence.FetchType.LAZY)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<OrderItem> orderItems;
 

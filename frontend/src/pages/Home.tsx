@@ -247,6 +247,7 @@ const HomePage: React.FC = () => {
 
   const featuredProducts = [
     {
+      id: 101,
       imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Double Bed & Side Tables',
       oldPrice: '$230.00',
@@ -254,6 +255,7 @@ const HomePage: React.FC = () => {
       discountPercent: '-13%',
     },
     {
+      id: 102,
       imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Modern Sofa Set',
       oldPrice: '$230.00',
@@ -261,6 +263,7 @@ const HomePage: React.FC = () => {
       discountPercent: '-13%',
     },
     {
+      id: 103,
       imageUrl: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Smart Home Device',
       oldPrice: '$230.00',
@@ -268,6 +271,7 @@ const HomePage: React.FC = () => {
       discountPercent: '-13%',
     },
     {
+      id: 104,
       imageUrl: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Garden Tools Set',
       oldPrice: '$230.00',
@@ -278,6 +282,7 @@ const HomePage: React.FC = () => {
 
   const popularProducts = [
     {
+      id: 201,
       imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Double Bed & Side Tables',
       oldPrice: '$230.00',
@@ -285,6 +290,7 @@ const HomePage: React.FC = () => {
       discountPercent: '-13%',
     },
     {
+      id: 202,
       imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Modern Sofa Set',
       oldPrice: '$450.00',
@@ -292,6 +298,7 @@ const HomePage: React.FC = () => {
       discountPercent: '-20%',
     },
     {
+      id: 203,
       imageUrl: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Dining Table Set',
       oldPrice: '$320.00',
@@ -299,6 +306,7 @@ const HomePage: React.FC = () => {
       discountPercent: '-15%',
     },
     {
+      id: 204,
       imageUrl: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Office Chair',
       oldPrice: '$180.00',
@@ -306,6 +314,7 @@ const HomePage: React.FC = () => {
       discountPercent: '-10%',
     },
     {
+      id: 205,
       imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Coffee Table',
       oldPrice: '$200.00',
@@ -313,6 +322,7 @@ const HomePage: React.FC = () => {
       discountPercent: '-25%',
     },
     {
+      id: 206,
       imageUrl: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Bookshelf',
       oldPrice: '$280.00',
