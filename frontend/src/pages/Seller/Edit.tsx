@@ -463,7 +463,6 @@ const SellerEditProfile = () => {
                       className={inputNormal}
                     >
                       <option value="uk">Українська</option>
-                      <option value="ru">Русский</option>
                       <option value="en">English</option>
                     </select>
                   </div>
