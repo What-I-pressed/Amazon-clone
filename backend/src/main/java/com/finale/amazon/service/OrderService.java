@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.finale.amazon.dto.OrderCreationDto;
 import com.finale.amazon.dto.OrderItemCreationDto;
+import com.finale.amazon.dto.OrderDto;
 import com.finale.amazon.entity.Order;
 import com.finale.amazon.entity.OrderItem;
 import com.finale.amazon.entity.OrderStatus;
@@ -176,7 +177,6 @@ public class OrderService {
         }
         return orderRepository.save(order);
     }
-
     public Order updateOrderStatus(Long orderId, String newStatusName) {
         Optional<Order> optionalOrder = orderRepository.findById(orderId);
         if (optionalOrder.isEmpty()) {
@@ -197,6 +197,35 @@ public class OrderService {
 
         OrderStatus newStatus = optionalStatus.get();
         order.setOrderStatus(newStatus);
+        return orderRepository.save(order);
+    }
+    public Order updateOrder(Long orderId, OrderDto orderDto) {
+        Optional<Order> optionalOrder = orderRepository.findById(orderId);
+        if (optionalOrder.isEmpty()) {
+            throw new RuntimeException("Order not found");
+        }
+
+        Order order = optionalOrder.get();
+        String currentStatus = order.getOrderStatus().getName();
+
+        if (currentStatus.equals("CANCELLED") || currentStatus.equals("DELIVERED")) {
+            throw new RuntimeException("Cannot edit a completed or cancelled order.");
+        }
+
+        if (orderDto.getShipmentDate() != null) {
+            order.setShipmentDate(orderDto.getShipmentDate());
+        }
+        if (orderDto.getArrivalDate() != null) {
+            order.setArrivalDate(orderDto.getArrivalDate());
+        }
+        if (orderDto.getTotalPrice() != 0) {
+            order.setPrice(orderDto.getTotalPrice());
+        }
+        if (orderDto.getOrderStatus() != null) {
+            Optional<OrderStatus> optionalStatus = orderStatusRepository.findByName(orderDto.getOrderStatus());
+            optionalStatus.ifPresent(order::setOrderStatus);
+        }
+
         return orderRepository.save(order);
     }
 
