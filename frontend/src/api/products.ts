@@ -4,11 +4,12 @@ const API_BASE = "/api/products";
 
 export async function fetchProducts(): Promise<Product[]> {
     try {
-        const res = await fetch(API_BASE);
+        const res = await fetch(`${API_BASE}/page/0?size=100`);
         if (!res.ok) {
             throw new Error("Не вдалося отримати список товарів");
         }
-        return res.json();
+        const pageData = await res.json();
+        return pageData.content || [];
     } catch (error) {
         console.error("[API] Помилка fetchProducts:", error);
         throw error;

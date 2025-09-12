@@ -5,10 +5,8 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import AppLayout from "./layout/AppLayout";
 
 // Auth
-import SignIn from "./pages/AuthPages/SignIn";
-import SignUp from "./pages/AuthPages/SignUp";
 import LoginForm from "./components/Login/LoginForm";
-import RegisterForm from "./components/Register/RegisterForm";
+import RegistrationForm from "./components/Register/RegistrationForm";
 
 // Other
 import NotFound from "./pages/OtherPage/NotFound";
@@ -64,7 +62,7 @@ export default function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/chat" element={<ChatPage />} />
         <Route path="/login" element={<LoginForm />} />
-        <Route path="/register" element={<RegisterForm />} />
+        <Route path="/register" element={<RegistrationForm />} />
         </Route>
 
         {/* Адмінка (з лейаутом) */}

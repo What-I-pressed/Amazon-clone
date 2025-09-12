@@ -14,18 +14,20 @@ export default function App() {
       try {
         const sellerData = await fetchSellerProfile();
         setSeller(sellerData);
-
-        const productsData = await fetchSellerProducts();
-        setProducts(productsData);
+  
+        const productsPage = await fetchSellerProducts(sellerData.id);
+        setProducts(productsPage.content || []); 
       } catch (err) {
         console.error("Loading error:", err);
       } finally {
         setLoading(false);
       }
     };
-
+  
     loadData();
   }, []);
+  
+  
 
   if (loading) {
     return <div className="p-6 text-center">Loading...</div>;
@@ -59,7 +61,7 @@ export default function App() {
             />
           )}
           <div className="flex-1">
-            <h1 className="text-2xl font-semibold">{seller.name}</h1>
+            <h1 className="text-2xl font-semibold">{seller.username}</h1>
             {seller.description && (
               <p className="text-sm text-gray-500">{seller.description}</p>
             )}
@@ -136,7 +138,17 @@ export default function App() {
             {/* Product Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  imageUrl={
+                    product.pictures && product.pictures.length > 0 
+                      ? `http://localhost:8080/${product.pictures[0].url}`
+                      : "/images/product/placeholder.jpg"
+                  }
+                  title={product.name}
+                  price={`$${product.price.toFixed(2)}`}
+                />
               ))}
             </div>
           </main>

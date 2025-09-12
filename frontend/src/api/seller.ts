@@ -2,8 +2,9 @@
 import type { Seller } from "../types/seller";
 import type { SellerStats } from "../types/sellerstats";
 import type { Product } from "../types/product";
+import type { PageResponse} from "../types/pageresponse";
 
-const API_BASE = "/api/seller";
+const API_BASE = "http://localhost:8080/api/seller";
 
 // helper для заголовків
 function getAuthHeaders() {
@@ -60,12 +61,20 @@ export async function fetchSellerStats(): Promise<SellerStats> {
   }
 }
 
-export async function fetchSellerProducts(): Promise<Product[]> {
+export async function fetchSellerProducts(
+  sellerId: number,
+  page = 0,
+  size = 24
+): Promise<PageResponse<Product>> {
   try {
-    const res = await fetch(`${API_BASE}/products`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
+    const res = await fetch(
+      `${API_BASE}/profile/products/${page}?sellerId=${sellerId}&size=${size}`,
+      {
+        method: "GET",
+        headers: getAuthHeaders(),
+      }
+    );
+
     if (!res.ok) throw new Error("Не вдалося отримати товари продавця");
     return res.json();
   } catch (e) {
