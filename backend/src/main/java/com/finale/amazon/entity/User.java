@@ -50,6 +50,9 @@ public class User {
     @Column(length = 512, nullable = false, unique = true)
     private String email;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    private Picture picture;
+
     @Column(nullable = false)
     private String password;
 

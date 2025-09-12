@@ -19,6 +19,7 @@ public class UserDto {
     private String roleName;
     private LocalDateTime createdAt;
     private boolean blocked = false;
+    private String url;
 
     public UserDto(User user){
         this.id = user.getId();
@@ -28,5 +29,6 @@ public class UserDto {
         this.roleName = user.getRole() != null ? user.getRole().getName() : null;
         this.createdAt = user.getCreatedAt();
         this.blocked = user.isBlocked();
+        url = "uploads/pictures/" + (user.getPicture() == null ?  "unathorized.jpg" : user.getPicture().getPath());
     }
 }  
