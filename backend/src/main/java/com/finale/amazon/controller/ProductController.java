@@ -2,6 +2,7 @@ package com.finale.amazon.controller;
 
 import com.finale.amazon.dto.ProductCreationDto;
 import com.finale.amazon.dto.ProductDto;
+import com.finale.amazon.dto.ProductFilterDto;
 import com.finale.amazon.entity.Product;
 import com.finale.amazon.service.ProductService;
 
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -27,25 +29,12 @@ public class ProductController {
     private ProductService productService;
 
     // Отримати сторінку продуктів (нумерація з 0)
-    @GetMapping("page/{page}")
+    @PostMapping("page/{page}")
     public ResponseEntity<Page<ProductDto>> getProductsPage(@PathVariable int page,
             @RequestParam(defaultValue = "24") int size,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) Double lowerPriceBound,
-            @RequestParam(required = false) Double upperPriceBound,
-            @Parameter(description = "Map of characteristics, e.g. ?color=red&size=XL")
-            @RequestParam(required = false) Map<String, String> characteristics) {
-        Map<String, String> chars = new HashMap<>(characteristics != null ? characteristics : Map.of());
-        chars.remove("name");
-        chars.remove("categoryId");
-        chars.remove("lowerPriceBound");
-        chars.remove("upperPriceBound");
-        chars.remove("page");
-        chars.remove("size");
-        chars.remove("sort");
+            @RequestBody(required = false) ProductFilterDto productFilterDto) {
         Page<ProductDto> productsPage = productService.getProductsPage(
-                PageRequest.of(page, size), name, categoryId, lowerPriceBound, upperPriceBound, chars);
+                PageRequest.of(page, size), productFilterDto.getName(), productFilterDto.getCategoryId(), productFilterDto.getLowerPriceBound(), productFilterDto.getUpperPriceBound(),productFilterDto.getSellerIds(), productFilterDto.getCharacteristics());
         return ResponseEntity.ok(productsPage);
     }
 

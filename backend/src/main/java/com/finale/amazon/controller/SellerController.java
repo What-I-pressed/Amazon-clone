@@ -61,30 +61,6 @@ public class SellerController {
         return ResponseEntity.ok(sellerService.getSellerStats(seller));
     }
 
-    @GetMapping("/profile/products/{page}")
-    public ResponseEntity<Page<ProductDto>> getSellerProducts(@PathVariable int page,
-            @RequestParam(defaultValue = "24") int size,
-            @RequestParam(required = true) Long sellerId,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) Double lowerPriceBound,
-            @RequestParam(required = false) Double upperPriceBound,
-            @Parameter(description = "Map of characteristics, e.g. ?color=red&size=XL")
-            @RequestParam(required = false) Map<String, String> characteristics) {
-        Map<String, String> chars = new HashMap<>(characteristics != null ? characteristics : Map.of());
-        chars.remove("name");
-        chars.remove("categoryId");
-        chars.remove("lowerPriceBound");
-        chars.remove("upperPriceBound");
-        chars.remove("page");
-        chars.remove("size");
-        chars.remove("sort");
-        chars.remove("sellerId");
-        Page<ProductDto> productsPage = productService.getProductsPage(
-                PageRequest.of(page, size), name, categoryId, lowerPriceBound, upperPriceBound, chars);
-        return ResponseEntity.ok(productsPage);
-    }
-
     @GetMapping("/profile/reviews")
     public ResponseEntity<List<ReviewDto>> getSellersReviews(Authentication authentication) {
         String email = authentication.getName();

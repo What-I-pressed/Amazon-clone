@@ -17,8 +17,8 @@ public class CharacteristicController {
     @Autowired
     private CharacteristicService characteristicService;
 
-    @GetMapping("/")
-    public ResponseEntity<?> getCharacteristicList(@RequestParam Long subcategoryId){
+    @GetMapping("/custom")
+    public ResponseEntity<?> getCustomCharacteristicList(@RequestParam Long subcategoryId){
         return ResponseEntity.ok(characteristicService.belongsToSubcategory(subcategoryId));
     }
 
