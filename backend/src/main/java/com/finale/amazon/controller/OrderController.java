@@ -89,7 +89,7 @@ public class OrderController {
     @PutMapping("/status/process")
     public ResponseEntity<?> ProccesOrder(@RequestParam String token,@RequestParam Long orderId){
         if(jwtUtil.isTokenExpired(token)) return ResponseEntity.status(403).body("Token is expired");
-        if(jwtUtil.extractRole(token) != "ADMIN") return ResponseEntity.status(403).body("You are not authorized to change order status!");
+        if (!"ADMIN".equals(jwtUtil.extractRole(token))) return ResponseEntity.status(403).body("You are not authorized to change order status!");
         return ResponseEntity.ok(new OrderDto(orderService.updateOrderStatus(orderId, "PROCESSING")));
     }
 
@@ -156,17 +156,20 @@ public class OrderController {
         return ResponseEntity.ok(new OrderDto(orderService.updateOrderStatus(orderId, "CONFIRMED")));
     }
 
-
     @Operation(summary = "Редагувати замовлення", description = "Оновлює дані замовлення за його ID")
     @PutMapping("/{id}")
     public ResponseEntity<?> updateOrder(@RequestParam String token,@PathVariable Long id,@RequestBody OrderDto orderDto) {
+
         if (jwtUtil.isTokenExpired(token)) {
             return ResponseEntity.status(400).body("Token is expired");
         }
+
+        String role = jwtUtil.extractRole(token);
+        if (!"ADMIN".equals(role) && !"SELLER".equals(role)) {
+            return ResponseEntity.status(403).body("You are not authorized to edit this order!");
+        }
+
         Order updatedOrder = orderService.updateOrder(id, orderDto);
         return ResponseEntity.ok(new OrderDto(updatedOrder));
     }
-
-
-
 }
