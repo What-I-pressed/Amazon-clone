@@ -5,7 +5,6 @@ import com.finale.amazon.entity.CartItem;
 import com.finale.amazon.entity.Product;
 import com.finale.amazon.entity.User;
 import com.finale.amazon.repository.CartItemRepository;
-import com.finale.amazon.repository.PictureRepository;
 import com.finale.amazon.repository.ProductRepository;
 import com.finale.amazon.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +26,6 @@ public class CartItemService {
     @Autowired
     private ProductRepository productRepository;
 
-    @Autowired
-    private PictureRepository pictureRepository;
 
     private void Authorize(Long userId, Long cartItemUserId){
         if(userId != cartItemUserId) throw new RuntimeException("Unauthorized");

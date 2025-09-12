@@ -2,7 +2,6 @@ package com.finale.amazon.controller;
 
 import com.finale.amazon.dto.OrderCreationDto;
 import com.finale.amazon.dto.OrderDto;
-import com.finale.amazon.dto.OrderStatusRequestDto;
 import com.finale.amazon.entity.Order;
 import com.finale.amazon.entity.User;
 import com.finale.amazon.security.JwtUtil;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @RestController

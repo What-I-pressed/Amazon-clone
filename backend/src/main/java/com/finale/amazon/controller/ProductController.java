@@ -44,11 +44,12 @@ public class ProductController {
         chars.remove("page");
         chars.remove("size");
         chars.remove("sort");
-
         Page<ProductDto> productsPage = productService.getProductsPage(
                 PageRequest.of(page, size), name, categoryId, lowerPriceBound, upperPriceBound, chars);
         return ResponseEntity.ok(productsPage);
     }
+
+
 
     @PostMapping("/create/{sellerId}")
     public ResponseEntity<ProductDto> createProduct(@PathVariable Long sellerId,
@@ -56,6 +57,7 @@ public class ProductController {
         Product product = productService.createProduct(productCreationDto, sellerId);
         return ResponseEntity.ok(new ProductDto(product));
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductDto> getProduct(@PathVariable Long id) {

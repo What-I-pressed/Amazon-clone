@@ -5,17 +5,24 @@ import com.finale.amazon.dto.ReviewDto;
 import com.finale.amazon.dto.SellerStatsDto;
 import com.finale.amazon.dto.UserDto;
 import com.finale.amazon.entity.User;
-import com.finale.amazon.security.JwtUtil;
+import com.finale.amazon.service.ProductService;
 import com.finale.amazon.service.SellerService;
 import com.finale.amazon.service.UserService;
+
+import io.swagger.v3.oas.annotations.Parameter;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/seller")
@@ -29,7 +36,8 @@ public class SellerController {
     private SellerService sellerService;
 
     @Autowired
-    private JwtUtil jwtUtil;
+    private ProductService productService;
+
 
     @GetMapping("/profile")
     public ResponseEntity<UserDto> getSellerProfile(Authentication authentication) {
@@ -53,23 +61,28 @@ public class SellerController {
         return ResponseEntity.ok(sellerService.getSellerStats(seller));
     }
 
-    @GetMapping("/profile/products")
-    public ResponseEntity<List<ProductDto>> getSellerProducts(
-            Authentication authentication,
+    @GetMapping("/profile/products/{page}")
+    public ResponseEntity<Page<ProductDto>> getSellerProducts(@PathVariable int page,
+            @RequestParam(defaultValue = "24") int size,
+            @RequestParam(required = true) Long sellerId,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false, defaultValue = "id") String sortBy,
-            @RequestParam(required = false, defaultValue = "asc") String direction
-    ) {
-        String email = authentication.getName();
-        User seller = userService.getUserByEmail(email)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Seller not found"));
-
-        List<ProductDto> products = sellerService.getFilteredSellerProducts(
-                seller.getId(), name, categoryId, sortBy, direction
-        );
-
-        return ResponseEntity.ok(products);
+            @RequestParam(required = false) Double lowerPriceBound,
+            @RequestParam(required = false) Double upperPriceBound,
+            @Parameter(description = "Map of characteristics, e.g. ?color=red&size=XL")
+            @RequestParam(required = false) Map<String, String> characteristics) {
+        Map<String, String> chars = new HashMap<>(characteristics != null ? characteristics : Map.of());
+        chars.remove("name");
+        chars.remove("categoryId");
+        chars.remove("lowerPriceBound");
+        chars.remove("upperPriceBound");
+        chars.remove("page");
+        chars.remove("size");
+        chars.remove("sort");
+        chars.remove("sellerId");
+        Page<ProductDto> productsPage = productService.getProductsPage(
+                PageRequest.of(page, size), name, categoryId, lowerPriceBound, upperPriceBound, chars);
+        return ResponseEntity.ok(productsPage);
     }
 
     @GetMapping("/profile/reviews")
