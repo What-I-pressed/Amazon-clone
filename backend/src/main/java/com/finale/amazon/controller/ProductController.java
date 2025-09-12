@@ -11,13 +11,10 @@ import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -30,11 +27,10 @@ public class ProductController {
 
     // Отримати сторінку продуктів (нумерація з 0)
     @PostMapping("page/{page}")
-    public ResponseEntity<Page<ProductDto>> getProductsPage(@PathVariable int page,
-            @RequestParam(defaultValue = "24") int size,
+    public ResponseEntity<Page<ProductDto>> getProductsPage(Pageable pageable,
             @RequestBody(required = false) ProductFilterDto productFilterDto) {
         Page<ProductDto> productsPage = productService.getProductsPage(
-                PageRequest.of(page, size), productFilterDto.getName(), productFilterDto.getCategoryId(), productFilterDto.getLowerPriceBound(), productFilterDto.getUpperPriceBound(),productFilterDto.getSellerIds(), productFilterDto.getCharacteristics());
+                pageable, productFilterDto.getName(), productFilterDto.getCategoryId(), productFilterDto.getLowerPriceBound(), productFilterDto.getUpperPriceBound(),productFilterDto.getSellerIds(), productFilterDto.getCharacteristics());
         return ResponseEntity.ok(productsPage);
     }
 
