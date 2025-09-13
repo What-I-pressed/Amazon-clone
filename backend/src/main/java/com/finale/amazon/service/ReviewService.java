@@ -9,10 +9,13 @@ import com.finale.amazon.repository.ProductRepository;
 import com.finale.amazon.dto.ReviewCreationDto;
 import com.finale.amazon.dto.ReviewDto;
 import com.finale.amazon.dto.ReviewReplyDto;
+import com.finale.amazon.dto.ReviewUpdateDto;
 import com.finale.amazon.entity.Product;
 import com.finale.amazon.entity.Review;
 import com.finale.amazon.entity.User;
 
+import java.util.stream.Collectors;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -73,4 +76,30 @@ public class ReviewService {
     public Optional<Review> getReviewById(Long id) {
             return reviewRepository.findById(id);
     }
+
+    public List<ReviewDto> getAllReviewsByProduct(Long productId) {
+    List<Review> reviews = reviewRepository.findByProductId(productId);
+    return reviews.stream()
+                  .map(ReviewDto::new)
+                  .collect(Collectors.toList());
+}
+    
+    public Review updateReview(User user, Long reviewId, ReviewUpdateDto dto) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Review not found"));
+
+        if (review.getUser().getId() != user.getId()) {
+            throw new RuntimeException("You are not authorized to edit this review");
+        }
+        if (dto.getDescription() != null) {
+            review.setDescription(dto.getDescription());
+        }
+
+        if (dto.getStars() != null) {
+            review.setStars(dto.getStars());
+        }
+
+        return reviewRepository.save(review);
+    }
+
 }

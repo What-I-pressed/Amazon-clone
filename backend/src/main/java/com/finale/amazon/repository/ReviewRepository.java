@@ -11,4 +11,6 @@ import com.finale.amazon.entity.Review;
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     Optional<List<Review>> findByProduct_seller_Username(String seller);
+    List<Review> findByProductId(Long productId);
+
 } 
