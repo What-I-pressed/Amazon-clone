@@ -2,6 +2,7 @@ package com.finale.amazon.controller;
 
 import com.finale.amazon.dto.ProductCreationDto;
 import com.finale.amazon.dto.ProductDto;
+import com.finale.amazon.dto.ProductFilterDto;
 import com.finale.amazon.entity.Product;
 import com.finale.amazon.service.ProductService;
 
@@ -14,12 +15,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -32,30 +31,11 @@ public class ProductController {
     private ProductService productService;
 
     // Отримати сторінку продуктів (нумерація з 0)
-    @Operation(summary = "Отримати сторінку продуктів", description = "Повертає сторінку продуктів з можливістю фільтрації та сортування")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Сторінка продуктів успішно отримана")
-    })
-    @GetMapping("page/{page}")
-    public ResponseEntity<Page<ProductDto>> getProductsPage(
-            @Parameter(description = "Номер сторінки (нумерація з 0)") @PathVariable int page,
-            @Parameter(description = "Розмір сторінки") @RequestParam(defaultValue = "24") int size,
-            @Parameter(description = "Фільтр по назві продукту") @RequestParam(required = false) String name,
-            @Parameter(description = "Фільтр по ID категорії") @RequestParam(required = false) Long categoryId,
-            @Parameter(description = "Мінімальна ціна") @RequestParam(required = false) Double lowerPriceBound,
-            @Parameter(description = "Максимальна ціна") @RequestParam(required = false) Double upperPriceBound,
-            @Parameter(description = "Map of characteristics, e.g. ?color=red&size=XL") @RequestParam(required = false) Map<String, String> characteristics) {
-
-        Map<String, String> chars = new HashMap<>(characteristics != null ? characteristics : Map.of());
-        chars.remove("name");
-        chars.remove("categoryId");
-        chars.remove("lowerPriceBound");
-        chars.remove("upperPriceBound");
-        chars.remove("page");
-        chars.remove("size");
-        chars.remove("sort");
+    @PostMapping("page/{page}")
+    public ResponseEntity<Page<ProductDto>> getProductsPage(Pageable pageable,
+            @RequestBody(required = false) ProductFilterDto productFilterDto) {
         Page<ProductDto> productsPage = productService.getProductsPage(
-                PageRequest.of(page, size), name, categoryId, lowerPriceBound, upperPriceBound, chars);
+                pageable, productFilterDto.getName(), productFilterDto.getCategoryId(), productFilterDto.getLowerPriceBound(), productFilterDto.getUpperPriceBound(),productFilterDto.getSellerIds(), productFilterDto.getCharacteristics());
         return ResponseEntity.ok(productsPage);
     }
 
