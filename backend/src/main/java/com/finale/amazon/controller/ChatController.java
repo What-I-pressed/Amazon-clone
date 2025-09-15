@@ -6,6 +6,7 @@ import com.finale.amazon.dto.SendMessageRequest;
 import com.finale.amazon.service.ChatService;
 import com.finale.amazon.security.JwtUtil;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,13 +26,31 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 @Tag(name = "Chat Controller", description = "Контролер для роботи з чатами")
 public class ChatController {
 
-    private final ChatService chatService;
-    private final JwtUtil jwtUtil;
+    @Autowired
+    private ChatService chatService;
+    @Autowired
+    private JwtUtil jwtUtil;
 
-    public ChatController(ChatService chatService, JwtUtil jwtUtil) {
-        this.chatService = chatService;
-        this.jwtUtil = jwtUtil;
+    @Operation(summary = "Позначити повідомлення прочитаним", description = "Оновлює статус повідомлення на 'прочитане'")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Повідомлення позначене як прочитане"),
+            @ApiResponse(responseCode = "400", description = "Токен протермінований або некоректний"),
+            @ApiResponse(responseCode = "403", description = "Користувач не має доступу до цього повідомлення"),
+            @ApiResponse(responseCode = "404", description = "Повідомлення не знайдено")
+    })
+    @PutMapping("/read/{messageId}")
+    public ResponseEntity<MessageDto> markMessageAsRead(
+            @RequestParam String token,
+            @PathVariable Long messageId) {
+
+        if (jwtUtil.isTokenExpired(token))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token expired");
+
+        Long userId = jwtUtil.extractUserId(token);
+        MessageDto updatedMessage = chatService.markMessageAsRead(messageId, userId);
+        return ResponseEntity.ok(updatedMessage);
     }
+
 
     @Operation(summary = "Відправити повідомлення", description = "Створює нове повідомлення від поточного користувача до іншого користувача")
     @ApiResponses(value = {

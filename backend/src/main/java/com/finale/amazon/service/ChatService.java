@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.finale.amazon.dto.MessageDto;
 import com.finale.amazon.entity.Message;
@@ -22,6 +24,21 @@ public class ChatService {
     private MessageRepository messageRepository;
     @Autowired
     private UserRepository userRepository;
+
+    @Transactional
+    public MessageDto markMessageAsRead(Long messageId, Long userId) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found"));
+
+        if (message.getReceiver().getId() != userId) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to mark this message as read");
+        }
+
+
+        message.setRead(true);
+        messageRepository.save(message);
+        return new MessageDto(message);
+    }
 
     @Transactional
     public MessageDto sendMessage(Long senderId, Long receiverId, String content) {
