@@ -1,10 +1,13 @@
 package com.finale.amazon.service;
 
 import com.finale.amazon.dto.CartItemDto;
+import com.finale.amazon.dto.MessageDto;
 import com.finale.amazon.entity.CartItem;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -29,4 +32,5 @@ public class CartService {
     public void clearCart(Long userId) {
         cartItemService.deleteAllItemsByUserId(userId);
     }
+
 }
