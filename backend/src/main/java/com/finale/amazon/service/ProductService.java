@@ -1,7 +1,6 @@
 package com.finale.amazon.service;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import java.util.Optional;
@@ -45,10 +44,13 @@ public class ProductService {
     @Autowired
     private PictureRepository pictureRepository;
 
+    @Autowired
+    private SlugService slugService;
+
     private Specification<Product> getSpec(String name, Long categoryId, Double lowerBound,
-            Double upperBound,List<Long> sellersIds ,Map<String, String> characteristics) {
-        Map<String, String> filtered = characteristics != null ? characteristics.entrySet().stream().filter(entry -> entry.getValue() != null)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)) : null;
+            Double upperBound, Map<String, String> characteristics) {
+        Map<String, String> filtered = characteristics.entrySet().stream().filter(entry -> entry.getValue() != null)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         System.out.println("Name : " + name);
 
         Specification<Product> spec = Specification.where(null);
@@ -63,23 +65,18 @@ public class ProductService {
             spec = spec.and(ProductSpecification.priceBetween(lowerBound, upperBound));
         }
 
-        
-
-        Specification<Product> charSpec = characteristics != null && filtered != null? filtered.entrySet().stream()
+        Specification<Product> charSpec = filtered.entrySet().stream()
                 .map(entry -> ProductSpecification.matchCharacteristic(entry.getKey(), entry.getValue()))
-                .reduce(Specification.where(null), Specification::and) : null;
-
-        Specification<Product> sellerSpec = sellersIds != null ? sellersIds.stream().map(entry -> ProductSpecification.sellerIs(entry)).reduce(Specification.where(null), Specification::or) : null;
+                .reduce(Specification.where(null), Specification::and);
 
         spec = spec.and(charSpec);
-        spec = spec.and(sellerSpec);
         return spec;
     }
 
     @Transactional(readOnly = true)
     public Page<ProductDto> getProductsPage(Pageable pageable, String name, Long categoryId, Double lowerBound,
-            Double upperBound, List<Long>sellersId, Map<String, String> characteristics) {
-        Specification<Product> spec = getSpec(name, categoryId, lowerBound, upperBound, sellersId,characteristics);
+            Double upperBound, Map<String, String> characteristics) {
+        Specification<Product> spec = getSpec(name, categoryId, lowerBound, upperBound, characteristics);
 
         Page<Product> page = productRepository.findAll(spec, pageable);
         page.getContent().stream().forEach(prod -> prod.setPictures(pictureRepository.findMainPicture(prod.getId())));
@@ -89,7 +86,23 @@ public class ProductService {
     public Product createProduct(ProductCreationDto dto) {
         Product product = new Product();
         fillProductFromDto(product, dto);
-        return productRepository.save(product);
+        // First save to get ID
+        Product saved = productRepository.save(product);
+        // Generate SEO slug using name and ID
+        String slug = slugService.generateSeoSlug(saved.getName(), saved.getId());
+        saved.setSlug(slug);
+        return productRepository.save(saved);
+    }
+
+    public Page<ProductDto> getProductsBySeller(Pageable pageable, String name, Long categoryId, Double lowerBound,
+            Double upperBound, Map<String, String> characteristics, Long sellerId) {
+        Specification<Product> spec = getSpec(name, categoryId, lowerBound, upperBound, characteristics);
+
+        spec = spec.and(ProductSpecification.sellerIs(sellerId));
+
+        Page<Product> page = productRepository.findAll(spec, pageable);
+        page.getContent().stream().forEach(prod -> prod.setPictures(pictureRepository.findMainPicture(prod.getId())));
+        return page.map(ProductDto::new);
     }
 
     public void changeQuantitySold(Product product, Long add) {
@@ -101,7 +114,10 @@ public class ProductService {
         Product product = new Product();
         fillProductFromDto(product, dto);
         userRepository.findById(sellerId).ifPresent(product::setSeller);
-        return productRepository.save(product);
+        Product saved = productRepository.save(product);
+        String slug = slugService.generateSeoSlug(saved.getName(), saved.getId());
+        saved.setSlug(slug);
+        return productRepository.save(saved);
     }
 
     public Product updateProduct(Long id, ProductCreationDto dto) {
@@ -110,8 +126,15 @@ public class ProductService {
             throw new RuntimeException("Product not found");
         }
         Product product = optionalProduct.get();
+        String oldName = product.getName();
         fillProductFromDto(product, dto);
-        return productRepository.save(product);
+        Product saved = productRepository.save(product);
+        if (dto.getName() != null && !dto.getName().equals(oldName)) {
+            String slug = slugService.generateSeoSlug(saved.getName(), saved.getId());
+            saved.setSlug(slug);
+            saved = productRepository.save(saved);
+        }
+        return saved;
     }
 
     public void deleteProduct(Long id) {
@@ -121,6 +144,11 @@ public class ProductService {
     @Transactional(readOnly = true)
     public Optional<Product> getProductById(Long productId) {
         return productRepository.findByIdWithPictures(productId);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Product> getProductBySlug(String slug) {
+        return productRepository.findBySlugWithPictures(slug);
     }
 
     public Product findProductById(Long id) {

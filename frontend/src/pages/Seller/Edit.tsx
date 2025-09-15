@@ -22,8 +22,8 @@ const SellerEditProfile = () => {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [autoReply, setAutoReply] = useState(true);
-  const [language, setLanguage] = useState("uk");
-  const [timezone, setTimezone] = useState("Europe/Kiev");
+  const [language, setLanguage] = useState("ua");
+  const [timezone, setTimezone] = useState("Europe/Kyiv");
 
   // Address states
   const [shippingAddress, setShippingAddress] = useState("");
@@ -609,20 +609,20 @@ const SellerEditProfile = () => {
               </div>
 
               {/* Danger Zone */}
-              <div className="pb-8">
-                <h2 className="text-lg font-semibold text-red-600 mb-6">
+              <div className="pb-8 gap-4">
+                <h2 className="text-lg font-semibold text-red-600 mb-6 gap-4">
                   Небезпечна зона
                 </h2>
-                <div className="space-y-4">
+                <div className="space-y-4 gap-4">
                   <button
                     onClick={() => alert("Акаунт деактивовано")}
-                    className="px-12 py-3 bg-red-600 text-white font-medium rounded-full hover:bg-red-700 transition-colors"
+                    className="px-12 py-3 gap-4 bg-red-600 text-white font-medium rounded-full hover:bg-red-700 transition-colors"
                   >
                     Деактивувати акаунт
                   </button>
                   <button
                     onClick={() => alert("Акаунт видалено")}
-                    className="px-12 py-3 bg-red-700 text-white font-medium rounded-full hover:bg-red-800 transition-colors"
+                    className="px-12 py-3 gap-4 bg-red-700 text-white font-medium rounded-full hover:bg-red-800 transition-colors"
                   >
                     Видалити акаунт
                   </button>

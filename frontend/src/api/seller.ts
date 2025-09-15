@@ -82,3 +82,45 @@ export async function fetchSellerProducts(
     throw e;
   }
 }
+
+// Public seller endpoints (no authentication required)
+export async function fetchPublicSellerProfile(sellerId: number): Promise<Seller> {
+  try {
+    const res = await fetch(`${API_BASE}/public/${sellerId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) throw new Error("Не вдалося отримати профіль продавця");
+    return res.json();
+  } catch (e) {
+    console.error("[API] fetchPublicSellerProfile:", e);
+    throw e;
+  }
+}
+
+export async function fetchPublicSellerProducts(
+  sellerId: number,
+  page = 0,
+  size = 24
+): Promise<PageResponse<Product>> {
+  try {
+    const res = await fetch(
+      `${API_BASE}/public/${sellerId}/products/${page}?size=${size}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!res.ok) throw new Error("Не вдалося отримати товари продавця");
+    return res.json();
+  } catch (e) {
+    console.error("[API] fetchPublicSellerProducts:", e);
+    throw e;
+  }
+}

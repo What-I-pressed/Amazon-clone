@@ -2,7 +2,6 @@ package com.finale.amazon.controller;
 
 import com.finale.amazon.dto.ProductCreationDto;
 import com.finale.amazon.dto.ProductDto;
-import com.finale.amazon.dto.ProductFilterDto;
 import com.finale.amazon.entity.Product;
 import com.finale.amazon.service.ProductService;
 
@@ -15,10 +14,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -31,11 +32,30 @@ public class ProductController {
     private ProductService productService;
 
     // Отримати сторінку продуктів (нумерація з 0)
-    @PostMapping("page/{page}")
-    public ResponseEntity<Page<ProductDto>> getProductsPage(Pageable pageable,
-            @RequestBody(required = false) ProductFilterDto productFilterDto) {
+    @Operation(summary = "Отримати сторінку продуктів", description = "Повертає сторінку продуктів з можливістю фільтрації та сортування")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Сторінка продуктів успішно отримана")
+    })
+    @GetMapping("page/{page}")
+    public ResponseEntity<Page<ProductDto>> getProductsPage(
+            @Parameter(description = "Номер сторінки (нумерація з 0)") @PathVariable int page,
+            @Parameter(description = "Розмір сторінки") @RequestParam(defaultValue = "24") int size,
+            @Parameter(description = "Фільтр по назві продукту") @RequestParam(required = false) String name,
+            @Parameter(description = "Фільтр по ID категорії") @RequestParam(required = false) Long categoryId,
+            @Parameter(description = "Мінімальна ціна") @RequestParam(required = false) Double lowerPriceBound,
+            @Parameter(description = "Максимальна ціна") @RequestParam(required = false) Double upperPriceBound,
+            @Parameter(description = "Map of characteristics, e.g. ?color=red&size=XL") @RequestParam(required = false) Map<String, String> characteristics) {
+
+        Map<String, String> chars = new HashMap<>(characteristics != null ? characteristics : Map.of());
+        chars.remove("name");
+        chars.remove("categoryId");
+        chars.remove("lowerPriceBound");
+        chars.remove("upperPriceBound");
+        chars.remove("page");
+        chars.remove("size");
+        chars.remove("sort");
         Page<ProductDto> productsPage = productService.getProductsPage(
-                pageable, productFilterDto.getName(), productFilterDto.getCategoryId(), productFilterDto.getLowerPriceBound(), productFilterDto.getUpperPriceBound(),productFilterDto.getSellerIds(), productFilterDto.getCharacteristics());
+                PageRequest.of(page, size), name, categoryId, lowerPriceBound, upperPriceBound, chars);
         return ResponseEntity.ok(productsPage);
     }
 
@@ -50,7 +70,7 @@ public class ProductController {
     }
 
 @Operation(summary = "Отримати продукт за ID", description = "Повертає продукт за його унікальним ID")
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ResponseEntity<ProductDto> getProduct(
             @Parameter(description = "ID продукту") @PathVariable Long id) {
 
@@ -59,8 +79,17 @@ public class ProductController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Отримати продукт за slug", description = "Повертає продукт за його slug")
+    @GetMapping("/{slug:[a-zA-Z0-9-]+}")
+    public ResponseEntity<ProductDto> getProductBySlug(
+            @Parameter(description = "Slug продукту") @PathVariable String slug) {
+        Optional<Product> productOpt = productService.getProductBySlug(slug);
+        return productOpt.map(product -> ResponseEntity.ok(new ProductDto(product)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @Operation(summary = "Оновити продукт", description = "Оновлює існуючий продукт за його ID")
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     public ResponseEntity<ProductDto> updateProduct(
             @Parameter(description = "ID продукту") @PathVariable Long id,
             @Parameter(description = "DTO продукту для оновлення") @RequestBody ProductCreationDto productCreationDto) {
@@ -74,7 +103,7 @@ public class ProductController {
     }
 
     @Operation(summary = "Видалити продукт", description = "Видаляє продукт за його ID")
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     public ResponseEntity<Void> deleteProduct(
             @Parameter(description = "ID продукту") @PathVariable Long id) {
 

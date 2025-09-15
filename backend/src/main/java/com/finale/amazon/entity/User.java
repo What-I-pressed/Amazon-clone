@@ -50,11 +50,12 @@ public class User {
     @Column(length = 512, nullable = false, unique = true)
     private String email;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    private Picture picture;
-
     @Column(nullable = false)
     private String password;
+
+    // Unique public slug for sellers (null for non-seller users)
+    @Column(length = 8, unique = true)
+    private String slug;
 
     @Column(columnDefinition = "DATE")
     private LocalDateTime createdAt;
@@ -72,3 +73,4 @@ public class User {
     private List<Favourite> favourites;
 
 }
+

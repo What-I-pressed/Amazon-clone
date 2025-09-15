@@ -13,22 +13,22 @@ import com.finale.amazon.entity.User;
 @NoArgsConstructor
 public class UserDto {
     private Long id;
+    private String slug;
     private String username;
     private String description;
     private String email;
     private String roleName;
     private LocalDateTime createdAt;
     private boolean blocked = false;
-    private String url;
 
     public UserDto(User user){
         this.id = user.getId();
+        this.slug = user.getSlug();
         this.username = user.getUsername();
         this.description = user.getDescription();
         this.email = user.getEmail();
         this.roleName = user.getRole() != null ? user.getRole().getName() : null;
         this.createdAt = user.getCreatedAt();
         this.blocked = user.isBlocked();
-        url = "uploads/pictures/" + (user.getPicture() == null ?  "unathorized.jpg" : user.getPicture().getPath());
     }
-}  
+}

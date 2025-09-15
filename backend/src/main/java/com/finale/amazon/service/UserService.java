@@ -4,9 +4,7 @@ import com.finale.amazon.entity.User;
 import com.finale.amazon.entity.VerificationToken;
 import com.finale.amazon.dto.UserRequestDto;
 import com.finale.amazon.dto.UserDto;
-import com.finale.amazon.entity.Picture;
 import com.finale.amazon.entity.Role;
-import com.finale.amazon.repository.PictureRepository;
 import com.finale.amazon.repository.RoleRepository;
 import com.finale.amazon.repository.TokenRepository;
 import com.finale.amazon.repository.UserRepository;
@@ -14,12 +12,8 @@ import com.finale.amazon.security.JwtUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
@@ -43,10 +37,8 @@ public class UserService {
     private JwtUtil jwtUtil;
 
     @Autowired
-    private PictureRepository pictureRepository;
-
-    private final String dirPath = "uploads/pictures/";
-
+    private SlugService slugService;
+    
     private String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -54,8 +46,7 @@ public class UserService {
             StringBuilder hexString = new StringBuilder();
             for (byte b : hash) {
                 String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1)
-                    hexString.append('0');
+                if (hex.length() == 1) hexString.append('0');
                 hexString.append(hex);
             }
             return hexString.toString();
@@ -74,27 +65,30 @@ public class UserService {
         return token;
     }
 
+    
     private boolean verifyPassword(String password, String hashedPassword) {
-
+        
         return hashPassword(password).equals(hashedPassword);
     }
 
     // private void cp(String password, String email){
-    // User user = userRepository.findByEmail(email).orElseThrow(() -> new
-    // RuntimeException("User not found"));
-    // user.setPassword(hashPassword(password));
+    //     User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+    //     user.setPassword(hashPassword(password));
 
-    // userRepository.save(user);
+    //     userRepository.save(user);
     // }
 
+    
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
+    
     public User getUserById(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
     }
 
+    
     public Optional<User> getUserByEmail(String email) {
         try {
             User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
@@ -107,8 +101,25 @@ public class UserService {
         }
     }
 
-    public User createUser(UserRequestDto userRequestDto) {
+    public Optional<User> getUserBySlug(String slug) {
         try {
+            Optional<User> userOpt = userRepository.findBySlug(slug);
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                if (user.isBlocked()) {
+                    throw new RuntimeException("User is blocked");
+                }
+                return Optional.of(user);
+            }
+            return Optional.empty();
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
+    
+    public User createUser(UserRequestDto userRequestDto) {
+        try{
 
             User user = new User();
             user.setUsername(userRequestDto.getUsername());
@@ -116,26 +127,48 @@ public class UserService {
             user.setPassword(userRequestDto.getPassword());
             user.setDescription(userRequestDto.getDescription());
             user.setBlocked(false);
-
-            Role role = roleRepository.findByName(userRequestDto.getRoleName())
-                    .orElseThrow(() -> new RuntimeException("Role not found"));
+    
+            Role role = roleRepository.findByName(userRequestDto.getRoleName()).orElseThrow(() -> new RuntimeException("Role not found"));
             user.setRole(role);
             user.setCreatedAt(LocalDateTime.now());
-
+            
             if (user.getPassword() != null && !user.getPassword().isEmpty()) {
                 user.setPassword(hashPassword(user.getPassword()));
-            } else
-                throw new RuntimeException("Password is required");
+            }
+            else throw new RuntimeException("Password is required");
+            // Generate slug for sellers
+            if (role != null && "SELLER".equalsIgnoreCase(role.getName())) {
+                user.setSlug(generateUniqueSellerSlug());
+            }
 
             return userRepository.save(user);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new RuntimeException(e.getMessage());
         }
     }
 
+    private String generateUniqueSellerSlug() {
+        // Try until unique, bounded attempts
+        for (int i = 0; i < 10; i++) {
+            String slug = slugService.generateRandomSlug(7);
+            if (!userRepository.existsBySlug(slug)) {
+                return slug;
+            }
+        }
+        // Fallback in unlikely case of collisions
+        while (true) {
+            String slug = slugService.generateRandomSlug(8);
+            if (!userRepository.existsBySlug(slug)) {
+                return slug;
+            }
+        }
+    }
+
+    
     public User updateUser(Long id, User userDetails) {
         Optional<User> optionalUser = userRepository.findById(id);
-
+        
         if (optionalUser.isPresent()) {
             User existingUser = optionalUser.get();
             if (userDetails.getUsername() != null) {
@@ -154,13 +187,14 @@ public class UserService {
                 existingUser.setRole(userDetails.getRole());
             }
             existingUser.setBlocked(userDetails.isBlocked());
-
+            
             return userRepository.save(existingUser);
         }
-
+        
         throw new RuntimeException("User not found with id: " + id);
     }
 
+    
     public void deleteUser(Long id) {
         if (userRepository.existsById(id)) {
             userRepository.deleteById(id);
@@ -169,10 +203,11 @@ public class UserService {
         }
     }
 
+    
     public Optional<User> authenticateUser(String email, String password) {
         Optional<User> user = getUserByEmail(email);
-        // cp(password, email);
-        if (!user.get().isEmailVerified()) {
+        //cp(password, email);
+        if( !user.get().isEmailVerified()){
             throw new RuntimeException("User email is unverified");
         }
 
@@ -182,91 +217,85 @@ public class UserService {
             }
             return user;
         }
-
+        
         return Optional.empty();
     }
 
-    public String authenticateToken(String token) {
-
-        if (jwtUtil.isTokenExpired(token))
-            return "Token expired";
+        public String authenticateToken(String token) {
+        
+        if(jwtUtil.isTokenExpired(token)) return "Token expired";
 
         Optional<User> user = getUserByEmail(jwtUtil.extractSubject(token));
 
-        if (!user.get().isEmailVerified()) {
+
+        if( !user.get().isEmailVerified()){
             return "Email is unverified";
         }
 
+        
         if (user.get().isBlocked()) {
             return "User is blocked";
         }
         return null;
     }
 
+   
     public List<User> getUsersByRole(String roleName) {
         return userRepository.findByRoleName(roleName);
     }
 
+    
     public List<User> findUser(String role, String email, String password) {
         return userRepository.findUser(role, email, password);
     }
 
+    
     public boolean userExistsByEmail(String email) {
         return getUserByEmail(email).isPresent();
     }
 
+    
     public boolean changePassword(Long userId, String oldPassword, String newPassword) {
         Optional<User> optionalUser = userRepository.findById(userId);
-
+        
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-
+            
             if (verifyPassword(oldPassword, user.getPassword())) {
-
+                
                 user.setPassword(hashPassword(newPassword));
                 userRepository.save(user);
                 return true;
             }
         }
-
+        
         return false;
     }
 
-    public User updateUserProfile(Long userId, String name, String description) throws IOException  {
+    
+    public User updateUserProfile(Long userId, String name, String description, String email) {
         Optional<User> optionalUser = userRepository.findById(userId);
-
+        
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-
+            
             if (name != null) {
                 user.setUsername(name);
             }
             if (description != null) {
                 user.setDescription(description);
             }
-            return userRepository.save(user);
-        }
-        throw new RuntimeException("User not found with id: " + userId);
-    }
-
-    public User updateUserProfile(Long userId, MultipartFile file) throws IOException  {
-        Optional<User> optionalUser = userRepository.findById(userId);
-
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
-
-            
-            if (file != null) {
-                Picture picture = new Picture();
-                Files.createDirectories(Paths.get(dirPath));
-                String path = UUID.randomUUID().toString() + ".jpg";
-                Files.write(Paths.get(dirPath + path), file.getBytes());
-                picture.setPath(path);
-                picture.setName(file.getOriginalFilename());
-                user.setPicture(picture);
+            if (email != null && !email.equals(user.getEmail())) {
+                if (userExistsByEmail(email)) {
+                    throw new RuntimeException("Email already exists: " + email);
+                }
+                user.setEmail(email);
+                user.setEmailVerified(false);
             }
+            
             return userRepository.save(user);
         }
+        
         throw new RuntimeException("User not found with id: " + userId);
     }
 
@@ -276,32 +305,32 @@ public class UserService {
 
     public boolean hasRole(Long userId, String roleName) {
         Optional<User> user = userRepository.findById(userId);
-        return user.isPresent() &&
-                user.get().getRole() != null &&
-                roleName.equals(user.get().getRole().getName());
+        return user.isPresent() && 
+               user.get().getRole() != null && 
+               roleName.equals(user.get().getRole().getName());
     }
 
     public User blockUser(Long userId) {
         Optional<User> optionalUser = userRepository.findById(userId);
-
+        
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
             user.setBlocked(true);
             return userRepository.save(user);
         }
-
+        
         throw new RuntimeException("User not found with id: " + userId);
     }
 
     public User unblockUser(Long userId) {
         Optional<User> optionalUser = userRepository.findById(userId);
-
+        
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
             user.setBlocked(false);
             return userRepository.save(user);
         }
-
+        
         throw new RuntimeException("User not found with id: " + userId);
     }
 
@@ -336,7 +365,7 @@ public class UserService {
             seller.setEmail(updateRequest.getEmail());
             seller.setEmailVerified(false);
         }
-
+        
         return userRepository.save(seller);
     }
 }

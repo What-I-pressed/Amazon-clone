@@ -8,7 +8,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.finale.amazon.entity.Order;
-import com.finale.amazon.entity.Review;
 import com.finale.amazon.entity.User;
 
 @Repository
@@ -29,8 +28,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByOrderStatus_NameIn(List<String> statusNames);
 
     List<Order> findByUser(User user);
-    
+
     List<Order> findByOrderStatus_NameInAndUserId(List<String> statusNames, Long userId);
-
-
 }

@@ -2,7 +2,6 @@ package com.finale.amazon.controller;
 
 import com.finale.amazon.dto.ReviewCreationDto;
 import com.finale.amazon.dto.ReviewReplyDto;
-import com.finale.amazon.dto.ReviewUpdateDto;
 import com.finale.amazon.dto.ReviewDto;
 import com.finale.amazon.entity.Product;
 import com.finale.amazon.entity.Review;
@@ -22,7 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/reviews")
@@ -113,6 +111,7 @@ public class ReviewController {
         }
     }
 
+
     @Operation(summary = "Видалити відгук", description = "Видаляє відгук або відповідь на відгук. Доступно тільки автору, SELLER або ADMIN")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteReview(
@@ -155,39 +154,4 @@ public class ReviewController {
         return reviewOpt.map(review -> ResponseEntity.ok(new ReviewDto(review)))
                         .orElseGet(() -> ResponseEntity.notFound().build());
     }
-
-    @Operation(summary = "Отримати всі відгуки продукту", description = "Повертає список всіх головних відгуків продукту разом із відповідями на них")
-    @GetMapping("/product/{productId}")
-    public ResponseEntity<?> getAllReviewsByProduct(@RequestParam String token,@PathVariable Long productId) {
-        if (jwtUtil.isTokenExpired(token)) {
-            return ResponseEntity.status(400).body("Token is expired");
-        }
-        List<ReviewDto> reviews = reviewService.getAllReviewsByProduct(productId);
-        return ResponseEntity.ok(reviews);
-    }
-
-    @Operation(summary = "Редагувати відгук", description = "Дозволяє автору змінити опис та рейтинг свого відгуку")
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateReview(
-            @RequestParam String token,
-            @PathVariable Long id,
-            @RequestBody ReviewUpdateDto dto
-    ) {
-        if (jwtUtil.isTokenExpired(token)) {
-            return ResponseEntity.status(400).body("Token is expired");
-        }
-
-        User user = userService.getUserById(jwtUtil.extractUserId(token));
-        if (user == null) {
-            return ResponseEntity.status(403).body("User not found");
-        }
-
-        try {
-            Review updated = reviewService.updateReview(user, id, dto);
-            return ResponseEntity.ok(new ReviewDto(updated));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(403).body(e.getMessage());
-        }
-    }
-
 }

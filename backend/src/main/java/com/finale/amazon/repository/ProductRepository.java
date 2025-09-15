@@ -41,9 +41,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     List<Product> findByseller(User seller);
     
     List<Product> findByNameContainingIgnoreCase(String name);
-
-    @Query("SELECT DISTINCT p.seller FROM Product p WHERE p.subcategory.id = :subcategoryId")
-    List<User> findSellersBySubcategoryId(@Param("subcategoryId") Long subcategoryId);
     
     List<Product> findByDiscountLaunchDateBeforeAndDiscountExpirationDateAfter(LocalDateTime start, LocalDateTime end);
     
@@ -53,6 +50,9 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     @Query("SELECT p FROM Product p LEFT JOIN FETCH p.pictures WHERE p.id = :id")
     Optional<Product> findByIdWithPictures(@Param("id") Long id);
+    
+    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.pictures WHERE p.slug = :slug")
+    Optional<Product> findBySlugWithPictures(@Param("slug") String slug);
     
     @Query("SELECT p FROM Product p WHERE p.price BETWEEN :minPrice AND :maxPrice")
     List<Product> findByPriceRange(@Param("minPrice") double minPrice, @Param("maxPrice") double maxPrice);
@@ -65,5 +65,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
        "AND (:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))) " +
        "AND (:categoryId IS NULL OR p.category.id = :categoryId)")
     List<Product> findFilteredProducts(@Param("sellerId") Long sellerId, @Param("name") String name, @Param("categoryId") Long categoryId, Sort sort);
+
+    Optional<Product> findBySlug(String slug);
+    boolean existsBySlug(String slug);
 
 }

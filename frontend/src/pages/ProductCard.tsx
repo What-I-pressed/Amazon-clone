@@ -11,6 +11,7 @@ type ProductCardProps = {
   oldPrice?: string; 
   discountPercent?: string; 
   variant?: ProductCardVariant;
+  className?: string;
 };
 
 const ProductCard: React.FC<ProductCardProps> = ({
@@ -21,14 +22,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
   oldPrice,
   discountPercent,
   variant = 'grid',
+  className = "",
 }) => {
   const [liked, setLiked] = useState(false);
 
   const cardWidth = variant === 'carousel' ? 'w-72' : 'w-80';
-  const imageHeight = variant === 'carousel' ? 'h-56' : 'h-64';
+  const imageHeight = variant === 'carousel' ? 'h-56' : 'h-80';
 
   return (
-    <div className={`${cardWidth} rounded-2xl overflow-hidden border border-gray-200 bg-white`}>
+    <div
+      className={`${cardWidth} h-full flex flex-col overflow-hidden  bg-white ${className}`}
+    >
       {/* Image + Discount */}
       <div className={`relative ${imageHeight} group overflow-hidden`}>
         {id ? (
@@ -36,14 +40,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
             <img 
               src={imageUrl}
               alt={title}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer rounded-3xl"
             />
           </Link>
         ) : (
           <img 
             src={imageUrl}
             alt={title}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 rounded-3xl"
           />
         )}
         {discountPercent ? (
@@ -54,24 +58,26 @@ const ProductCard: React.FC<ProductCardProps> = ({
       </div>
 
       {/* Info */}
-      <div className="p-4 space-y-2">
+      <div className="p-4 flex flex-col flex-1">
         {id ? (
           <Link to={`/product/${id}`} className="block">
-            <h3 className="text-base font-medium text-gray-800 hover:underline cursor-pointer">{title}</h3>
+            <h3 className="text-base font-medium text-gray-700 hover:underline cursor-pointer line-clamp-2">
+              {title}
+            </h3>
           </Link>
         ) : (
-          <h3 className="text-base font-medium text-gray-800">{title}</h3>
+          <h3 className="text-base font-medium text-gray-800 line-clamp-2">{title}</h3>
         )}
 
-        <div className="flex items-center gap-2">
-          <span className="text-xl font-semibold text-black">{price}</span>
+        <div className="flex items-center gap-2 mt-2">
+          <span className="font-semibold text-black">{price}</span>
           {oldPrice ? (
             <span className="text-gray-400 line-through text-sm">{oldPrice}</span>
           ) : null}
         </div>
 
         {/* Button + Wishlist */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4 mt-auto pt-2">
           <button className="flex-1 bg-[#282828] text-white rounded-xl py-3 font-medium hover:opacity-90 transition">
             Add to cart
           </button>

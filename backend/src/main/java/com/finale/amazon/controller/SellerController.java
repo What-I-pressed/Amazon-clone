@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -65,6 +64,43 @@ public class SellerController {
         return ResponseEntity.ok(new UserDto(seller));
     }
 
+    @Operation(summary = "Отримати публічний профіль продавця", description = "Повертає публічний профіль продавця за ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Профіль успішно отримано"),
+            @ApiResponse(responseCode = "404", description = "Продавця не знайдено"),
+            @ApiResponse(responseCode = "400", description = "Користувач не є продавцем")
+    })
+    @GetMapping("/public/{sellerId}")
+    public ResponseEntity<UserDto> getPublicSellerProfile(
+            @Parameter(description = "ID продавця") @PathVariable Long sellerId) {
+        User seller = userService.getUserById(sellerId);
+
+        if (!"SELLER".equalsIgnoreCase(seller.getRole().getName())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not a seller");
+        }
+
+        return ResponseEntity.ok(new UserDto(seller));
+    }
+
+    @Operation(summary = "Отримати публічний профіль продавця за slug", description = "Повертає публічний профіль продавця за унікальним slug")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Профіль успішно отримано"),
+            @ApiResponse(responseCode = "404", description = "Продавця не знайдено"),
+            @ApiResponse(responseCode = "400", description = "Користувач не є продавцем")
+    })
+    @GetMapping("/{slug:[a-zA-Z0-9]{6,8}}")
+    public ResponseEntity<UserDto> getPublicSellerProfileBySlug(
+            @Parameter(description = "Slug продавця") @PathVariable String slug) {
+        User seller = userService.getUserBySlug(slug)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Seller not found"));
+
+        if (seller.getRole() == null || !"SELLER".equalsIgnoreCase(seller.getRole().getName())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not a seller");
+        }
+
+        return ResponseEntity.ok(new UserDto(seller));
+    }
+
    @Operation(summary = "Отримати статистику продавця", description = "Повертає статистику продажів і продуктів поточного продавця")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Статистика успішно отримана"),
@@ -78,6 +114,47 @@ public class SellerController {
 
         return ResponseEntity.ok(sellerService.getSellerStats(seller));
     }
+
+        @Operation(summary = "Отримати продукти продавця", description = "Повертає список продуктів поточного продавця з можливістю фільтрації та сортування")
+        @GetMapping("/profile/products/{page}")
+        public ResponseEntity<Page<ProductDto>> getSellerProducts(
+                @PathVariable int page,
+                @RequestParam(defaultValue = "24") int size,
+                @RequestParam(required = true) Long sellerId,
+                @RequestParam(required = false) String name,
+                @RequestParam(required = false) Long categoryId,
+                @RequestParam(required = false) Double lowerPriceBound,
+                @RequestParam(required = false) Double upperPriceBound,
+                @Parameter(description = "Map of characteristics, e.g. ?color=red&size=XL")
+                @RequestParam(required = false) Map<String, String> characteristics) {
+
+                Map<String, String> chars = new HashMap<>(characteristics != null ? characteristics : Map.of());
+                chars.remove("name");
+                chars.remove("categoryId");
+                chars.remove("lowerPriceBound");
+                chars.remove("upperPriceBound");
+                chars.remove("page");
+                chars.remove("size");
+                chars.remove("sort");
+                chars.remove("sellerId");
+
+                Page<ProductDto> productsPage = productService.getProductsPage(
+                        PageRequest.of(page, size), name, categoryId, lowerPriceBound, upperPriceBound, chars);
+                return ResponseEntity.ok(productsPage);
+        }
+
+        @Operation(summary = "Отримати публічні продукти продавця", description = "Повертає сторінку продуктів продавця за ID")
+        @GetMapping("/public/{sellerId}/products/{page}")
+        public ResponseEntity<Page<ProductDto>> getPublicSellerProducts(
+                @Parameter(description = "ID продавця") @PathVariable Long sellerId,
+                @Parameter(description = "Номер сторінки") @PathVariable int page,
+                @Parameter(description = "Розмір сторінки") @RequestParam(defaultValue = "24") int size
+        ) {
+                Page<ProductDto> productsPage = productService.getProductsBySeller(
+                        PageRequest.of(page, size), null, null, null, null, new HashMap<>(), sellerId
+                );
+                return ResponseEntity.ok(productsPage);
+        }
 
     @Operation(summary = "Отримати відгуки продавця", description = "Повертає всі відгуки для поточного продавця")
     @GetMapping("/profile/reviews")

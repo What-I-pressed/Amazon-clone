@@ -51,6 +51,10 @@ public class Product {
     @Column(nullable = false)
     private long quantitySold;
 
+    // SEO-friendly slug, unique per product
+    @Column(length = 600, unique = true)
+    private String slug;
+
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
@@ -68,7 +72,7 @@ public class Product {
     @Basic(fetch = FetchType.LAZY)
     private List<CharacteristicValue> characteristics;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "seller_id", referencedColumnName = "id")
     private User seller;
 
@@ -90,3 +94,4 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<Favourite> favourites;
 }
+

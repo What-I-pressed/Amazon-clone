@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProductDto {
     private Long id;
+    private String slug;
     private String name;
     private String description;
     private double price;
@@ -40,6 +41,7 @@ public class ProductDto {
     
     public ProductDto(com.finale.amazon.entity.Product product) {
         this.id = product.getId();
+        this.slug = product.getSlug();
         this.name = product.getName();
         this.description = product.getDescription();
         this.price = product.getPrice();
