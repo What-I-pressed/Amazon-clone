@@ -128,7 +128,14 @@ const CatalogPage: React.FC = () => {
         <section>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                id={product.id}
+                imageUrl={product.image}
+                title={product.name}
+                price={`$${product.price}`}
+                variant="grid"
+              />
             ))}
           </div>
 
@@ -201,3 +208,4 @@ const CatalogPage: React.FC = () => {
 };
 
 export default CatalogPage;
+

@@ -1,24 +1,30 @@
 // src/components/Auth/LoginForm.tsx
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useContext } from "react";
+import { login } from "../../services/authService";
+import { AuthContext } from "../../context/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
 
 const LoginForm: React.FC = () => {
-  const [formData, setFormData] = useState({
-    emailOrPhone: "",
-    password: "",
-  });
+  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  const auth = useContext(AuthContext);
+  if (!auth) throw new Error("LoginForm must be used within AuthProvider");
+  const { loginUser } = auth;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login data:", formData);
+    try {
+      const res = await login(emailOrPhone, password);
+      const token = res.data.token;
+      await loginUser(token);
+      navigate("/");
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Login failed");
+    }
   };
 
   return (
@@ -28,11 +34,18 @@ const LoginForm: React.FC = () => {
         <div className="w-full md:w-1/2 p-8">
           <h2 className="text-2xl font-bold mb-2">Login</h2>
           <p className="text-gray-600 mb-6">
-            Do not have an account?{" "}
-            <Link to="/signup" className="text-green-600 hover:underline">
-              Create a new one
+            Don&apos;t have an account?{" "}
+            <Link to="/register" className="text-green-600 hover:underline">
+              Register here
             </Link>
           </p>
+
+          {/* Error */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email or Phone */}
@@ -42,9 +55,8 @@ const LoginForm: React.FC = () => {
               </label>
               <input
                 type="text"
-                name="emailOrPhone"
-                value={formData.emailOrPhone}
-                onChange={handleChange}
+                value={emailOrPhone}
+                onChange={(e) => setEmailOrPhone(e.target.value)}
                 placeholder="your@email.com"
                 className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-800"
                 required
@@ -58,9 +70,8 @@ const LoginForm: React.FC = () => {
               </label>
               <input
                 type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="********"
                 className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-800"
                 required
@@ -101,3 +112,4 @@ const LoginForm: React.FC = () => {
 };
 
 export default LoginForm;
+
