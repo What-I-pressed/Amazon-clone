@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { X, Minus, Plus, Search, Info } from 'lucide-react';
+import { PlusIcon, InfoIcon, CloseIcon, AngleDownIcon } from '../icons';
 
-const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
+const CartItem = ({ item, onUpdateQuantity, onRemove }: { item: any; onUpdateQuantity: (id: number, quantity: number) => void; onRemove: (id: number) => void }) => {
   return (
     <tr className="border-b border-gray-200">
       <td className="py-6 px-6">
@@ -10,7 +10,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
             onClick={() => onRemove(item.id)}
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <X size={18} />
+            <CloseIcon className="w-4 h-4" />
           </button>
           <img 
             src={item.image} 
@@ -27,14 +27,14 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }) => {
             onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
             className="w-8 h-8 border border-gray-300 rounded-md flex items-center justify-center hover:bg-gray-50 transition-colors"
           >
-            <Minus size={14} />
+            <AngleDownIcon className="w-3 h-3" />
           </button>
           <span className="w-8 text-center text-base font-medium">{item.quantity}</span>
           <button 
             onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
             className="w-8 h-8 border border-gray-300 rounded-md flex items-center justify-center hover:bg-gray-50 transition-colors"
           >
-            <Plus size={14} />
+            <PlusIcon className="w-3 h-3" />
           </button>
         </div>
       </td>
@@ -53,6 +53,14 @@ const ProductCard = ({
   salePrice, 
   onAddToCart,
   onInfo 
+}: {
+  image: string;
+  discount: number | null;
+  title: string;
+  originalPrice: string | null;
+  salePrice: string;
+  onAddToCart: () => void;
+  onInfo: () => void;
 }) => {
   return (
     <div className="flex-shrink-0 w-56 bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
@@ -98,13 +106,13 @@ const ProductCard = ({
             onClick={onInfo}
             className="w-8 h-8 bg-gray-100 border border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
           >
-            <Info size={14} className="text-gray-600" />
+            <InfoIcon className="w-3 h-3 text-gray-600" />
           </button>
           <button 
             onClick={onAddToCart}
             className="w-8 h-8 bg-gray-100 border border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
           >
-            <Plus size={14} className="text-gray-600" />
+            <PlusIcon className="w-3 h-3 text-gray-600" />
           </button>
         </div>
       </div>
@@ -179,7 +187,7 @@ const ShoppingCartPage = () => {
     }
   ];
 
-  const updateQuantity = (id, newQuantity) => {
+  const updateQuantity = (id: number, newQuantity: number) => {
     if (newQuantity < 1) return;
     setCartItems(items =>
       items.map(item =>
@@ -188,16 +196,16 @@ const ShoppingCartPage = () => {
     );
   };
 
-  const removeItem = (id) => {
+  const removeItem = (id: number) => {
     setCartItems(items => items.filter(item => item.id !== id));
   };
 
-  const addToCart = (productId) => {
+  const addToCart = (productId: number) => {
     console.log(`Added product ${productId} to cart`);
     // Add your cart logic here
   };
 
-  const handleInfo = (productId) => {
+  const handleInfo = (productId: number) => {
     console.log(`Show info for product ${productId}`);
     // Add your info/details logic here
   };
@@ -224,7 +232,10 @@ const ShoppingCartPage = () => {
                   placeholder="Nexora Search"
                   className="bg-gray-500 text-white placeholder-gray-300 px-4 py-2 pr-10 rounded text-sm w-80 border-0 outline-none"
                 />
-                <Search size={18} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300" />
+                <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
+                </svg>
               </div>
             </div>
           </div>

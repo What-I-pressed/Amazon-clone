@@ -17,6 +17,7 @@ public class ProductSpecification {
 
     public static Specification<Product> sellerIs(Long sellerId) {
         return (root, query, cb) -> {
+
             if(sellerId == null ) return null
             Join<Product, User> seller = root.join("seller", JoinType.LEFT);
                     return cb.equal(seller.get("id"), sellerId);
