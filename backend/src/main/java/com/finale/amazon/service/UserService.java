@@ -45,6 +45,9 @@ public class UserService {
     @Autowired
     private PictureRepository pictureRepository;
 
+    @Autowired
+    private SlugService slugService;
+
     private final String dirPath = "uploads/pictures/";
 
     private String hashPassword(String password) {
@@ -94,6 +97,7 @@ public class UserService {
     public User getUserById(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
     }
+    
 
     public Optional<User> getUserByEmail(String email) {
         try {
@@ -104,6 +108,39 @@ public class UserService {
             return Optional.of(user);
         } catch (Exception e) {
             return Optional.empty();
+        }
+    }
+
+    public Optional<User> getUserBySlug(String slug) {
+        try {
+            Optional<User> userOpt = userRepository.findBySlug(slug);
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                if (user.isBlocked()) {
+                    throw new RuntimeException("User is blocked");
+                }
+                return Optional.of(user);
+            }
+            return Optional.empty();
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
+    private String generateUniqueSellerSlug() {
+        // Try until unique, bounded attempts
+        for (int i = 0; i < 10; i++) {
+            String slug = slugService.generateRandomSlug(7);
+            if (!userRepository.existsBySlug(slug)) {
+                return slug;
+            }
+        }
+        // Fallback in unlikely case of collisions
+        while (true) {
+            String slug = slugService.generateRandomSlug(8);
+            if (!userRepository.existsBySlug(slug)) {
+                return slug;
+            }
         }
     }
 
@@ -126,6 +163,10 @@ public class UserService {
                 user.setPassword(hashPassword(user.getPassword()));
             } else
                 throw new RuntimeException("Password is required");
+
+            if (role != null && "SELLER".equalsIgnoreCase(role.getName())) {
+                user.setSlug(generateUniqueSellerSlug());
+            }
 
             return userRepository.save(user);
         } catch (Exception e) {
@@ -150,8 +191,13 @@ public class UserService {
             if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
                 existingUser.setPassword(hashPassword(userDetails.getPassword()));
             }
+            
             if (userDetails.getRole() != null) {
                 existingUser.setRole(userDetails.getRole());
+            }
+
+            if (userDetails.getRole() != null && "SELLER".equalsIgnoreCase(userDetails.getRole().getName())) {
+                existingUser.setSlug(generateUniqueSellerSlug());
             }
             existingUser.setBlocked(userDetails.isBlocked());
 

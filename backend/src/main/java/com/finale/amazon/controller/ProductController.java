@@ -35,7 +35,9 @@ public class ProductController {
     public ResponseEntity<Page<ProductDto>> getProductsPage(Pageable pageable,
             @RequestBody(required = false) ProductFilterDto productFilterDto) {
         Page<ProductDto> productsPage = productService.getProductsPage(
-                pageable, productFilterDto.getName(), productFilterDto.getCategoryId(), productFilterDto.getLowerPriceBound(), productFilterDto.getUpperPriceBound(),productFilterDto.getSellerIds(), productFilterDto.getCharacteristics());
+                pageable, productFilterDto.getName(), productFilterDto.getCategoryId(),
+                productFilterDto.getLowerPriceBound(), productFilterDto.getUpperPriceBound(),
+                productFilterDto.getSellerIds(), productFilterDto.getCharacteristics());
         return ResponseEntity.ok(productsPage);
     }
 
@@ -49,8 +51,17 @@ public class ProductController {
         return ResponseEntity.ok(new ProductDto(product));
     }
 
-@Operation(summary = "Отримати продукт за ID", description = "Повертає продукт за його унікальним ID")
-    @GetMapping("/{id}")
+    @Operation(summary = "Отримати продукт за slug", description = "Повертає продукт за його slug")
+    @GetMapping("/{slug:[a-zA-Z0-9-]+}")
+    public ResponseEntity<ProductDto> getProductBySlug(
+            @Parameter(description = "Slug продукту") @PathVariable String slug) {
+        Optional<Product> productOpt = productService.getProductBySlug(slug);
+        return productOpt.map(product -> ResponseEntity.ok(new ProductDto(product)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "Отримати продукт за ID", description = "Повертає продукт за його унікальним ID")
+    @GetMapping("/id/{id}")
     public ResponseEntity<ProductDto> getProduct(
             @Parameter(description = "ID продукту") @PathVariable Long id) {
 
@@ -60,7 +71,7 @@ public class ProductController {
     }
 
     @Operation(summary = "Оновити продукт", description = "Оновлює існуючий продукт за його ID")
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<ProductDto> updateProduct(
             @Parameter(description = "ID продукту") @PathVariable Long id,
             @Parameter(description = "DTO продукту для оновлення") @RequestBody ProductCreationDto productCreationDto) {
@@ -74,7 +85,7 @@ public class ProductController {
     }
 
     @Operation(summary = "Видалити продукт", description = "Видаляє продукт за його ID")
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteProduct(
             @Parameter(description = "ID продукту") @PathVariable Long id) {
 

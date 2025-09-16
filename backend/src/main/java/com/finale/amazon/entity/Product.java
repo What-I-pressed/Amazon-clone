@@ -68,6 +68,9 @@ public class Product {
     @Basic(fetch = FetchType.LAZY)
     private List<CharacteristicValue> characteristics;
 
+    @Column(length = 600, unique = true)
+    private String slug;
+
     @ManyToOne
     @JoinColumn(name = "seller_id", referencedColumnName = "id")
     private User seller;

@@ -71,4 +71,7 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Favourite> favourites;
 
+    @Column(length = 256, unique = true)
+    private String slug;
+
 }
