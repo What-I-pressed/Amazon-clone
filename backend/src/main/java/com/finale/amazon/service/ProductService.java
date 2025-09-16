@@ -44,6 +44,13 @@ public class ProductService {
     private UserRepository userRepository;
     @Autowired
     private PictureRepository pictureRepository;
+    @Autowired
+    private SlugService slugService;
+
+    @Transactional(readOnly = true)
+    public Optional<Product> getProductBySlug(String slug) {
+        return productRepository.findBySlugWithPictures(slug);
+    }
 
     private Specification<Product> getSpec(String name, Long categoryId, Double lowerBound,
             Double upperBound,List<Long> sellersIds ,Map<String, String> characteristics) {
@@ -101,6 +108,10 @@ public class ProductService {
         Product product = new Product();
         fillProductFromDto(product, dto);
         userRepository.findById(sellerId).ifPresent(product::setSeller);
+        Product saved = productRepository.save(product);
+        // Generate SEO slug using name and ID
+        String slug = slugService.generateSeoSlug(saved.getName(), saved.getId());
+        saved.setSlug(slug);
         return productRepository.save(product);
     }
 
@@ -109,8 +120,16 @@ public class ProductService {
         if (optionalProduct.isEmpty()) {
             throw new RuntimeException("Product not found");
         }
+        
         Product product = optionalProduct.get();
+        String oldName = product.getName();
         fillProductFromDto(product, dto);
+        Product saved = productRepository.save(product);
+        if (dto.getName() != null && !dto.getName().equals(oldName)) {
+            String slug = slugService.generateSeoSlug(saved.getName(), saved.getId());
+            saved.setSlug(slug);
+            saved = productRepository.save(saved);
+        }
         return productRepository.save(product);
     }
 
@@ -121,6 +140,12 @@ public class ProductService {
     @Transactional(readOnly = true)
     public Optional<Product> getProductById(Long productId) {
         return productRepository.findByIdWithPictures(productId);
+    }
+
+    public void genSlug(Long productId){
+        Product p = productRepository.findById(productId).get();
+        p.setSlug(slugService.generateSeoSlug(p.getName(), p.getId()));
+        productRepository.save(p);
     }
 
     public Product findProductById(Long id) {

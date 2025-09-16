@@ -49,6 +49,9 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     
     List<Product> findByQuantityInStockGreaterThan(Long quantity);
     
+    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.pictures WHERE p.slug = :slug")
+    Optional<Product> findBySlugWithPictures(@Param("slug") String slug);
+    
     long countByCategory(Category category);
 
     @Query("SELECT p FROM Product p LEFT JOIN FETCH p.pictures WHERE p.id = :id")

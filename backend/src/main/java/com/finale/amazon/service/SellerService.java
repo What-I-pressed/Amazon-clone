@@ -88,7 +88,6 @@ public class SellerService {
                     throw new IllegalArgumentException("User is not a seller");
                 }
             
-                // Валідація username
                 if (updateRequest.getUsername() != null && !updateRequest.getUsername().isBlank()) {
                     if (updateRequest.getUsername().length() < 3 || updateRequest.getUsername().length() > 50) {
                         throw new IllegalArgumentException("Username must be 3-50 characters");
@@ -96,7 +95,6 @@ public class SellerService {
                     seller.setUsername(updateRequest.getUsername());
                 }
             
-                // Валідація description
                 if (updateRequest.getDescription() != null) {
                     if (updateRequest.getDescription().length() > 500) {
                         throw new IllegalArgumentException("Description max 500 characters");
@@ -104,7 +102,6 @@ public class SellerService {
                     seller.setDescription(updateRequest.getDescription());
                 }
             
-                // Валідація email
                 if (updateRequest.getEmail() != null && !updateRequest.getEmail().isBlank()) {
                     if (!updateRequest.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
                         throw new IllegalArgumentException("Invalid email format");
