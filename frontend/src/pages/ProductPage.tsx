@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { Heart, Star, ChevronRight, Users, RotateCcw, Minus, Plus, ShoppingCart, ArrowRight, Package, Truck } from 'lucide-react';
+import { useState } from 'react';
+import { PlusIcon, ArrowRightIcon, ChevronLeftIcon, GroupIcon, AngleDownIcon } from '../icons';
 
-const CombinedProductPage = () => {
+const ProductPage = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [activeTab, setActiveTab] = useState("reviews");
   const [userRating, setUserRating] = useState(0);
-  const [cartItems, setCartItems] = useState({});
+  const [cartItems, setCartItems] = useState<Record<number, number>>({});
   const [email, setEmail] = useState('nexora@email.com');
 
   const productImages = [
@@ -58,7 +58,7 @@ const CombinedProductPage = () => {
     setQuantity(quantity + 1);
   };
 
-  const handleAddToCart = (productId) => {
+  const handleAddToCart = (productId: number) => {
     setCartItems(prev => ({
       ...prev,
       [productId]: (prev[productId] || 0) + 1
@@ -70,7 +70,7 @@ const CombinedProductPage = () => {
   };
 
   const StarRating = ({ rating = 4, total = 5, interactive = false, size = "w-4 h-4" }) => {
-    const handleClick = (index) => {
+    const handleClick = (index: number) => {
       if (interactive) {
         setUserRating(index + 1);
       }
@@ -79,13 +79,18 @@ const CombinedProductPage = () => {
     return (
       <div className="flex items-center gap-1">
         {[...Array(total)].map((_, i) => (
-          <Star
+          <svg
             key={i}
             className={`${size} ${interactive ? 'cursor-pointer' : ''} ${
               i < (interactive ? userRating : rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
             }`}
             onClick={() => handleClick(i)}
-          />
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118L10 13.347l-2.987 2.134c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L3.38 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
         ))}
       </div>
     );
@@ -203,7 +208,7 @@ const CombinedProductPage = () => {
                   <textarea
                     placeholder="Write your review..."
                     className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring focus:ring-gray-200"
-                    rows="3"
+                    rows={3}
                   ></textarea>
                 </div>
                 <div className="flex items-center justify-between">
@@ -319,7 +324,7 @@ const CombinedProductPage = () => {
                     className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
                     aria-label={`Add ${product.name} to cart`}
                   >
-                    <Plus size={16} className="text-gray-700" strokeWidth={2.5} />
+                    <PlusIcon className="w-4 h-4 text-gray-700" />
                   </button>
                 </div>
                 
@@ -371,7 +376,7 @@ const CombinedProductPage = () => {
                     onClick={handleSubscribe}
                     className="ml-3 bg-gray-700 hover:bg-gray-600 transition-colors rounded-full p-3"
                   >
-                    <ChevronRight className="w-6 h-6 text-white transform rotate-90" />
+                    <ChevronLeftIcon className="w-6 h-6 text-white transform rotate-90" />
                   </button>
                 </div>
               </div>
@@ -449,7 +454,7 @@ const CombinedProductPage = () => {
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1 text-gray-500 mb-12">
           <span>Product Listing</span>
-          <ChevronRight className="w-5 h-5" />
+          <ChevronLeftIcon className="w-5 h-5" />
           <span className="text-gray-700 font-medium">Dummy Product Page</span>
         </nav>
 
@@ -498,11 +503,20 @@ const CombinedProductPage = () => {
                 onClick={() => setIsWishlisted(!isWishlisted)}
                 className="p-2 hover:bg-gray-50 rounded-full transition-colors"
               >
-                <Heart
+                <svg
                   className={`w-8 h-8 ${
                     isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-400 hover:text-red-400'
                   }`}
-                />
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
               </button>
             </div>
 
@@ -536,7 +550,7 @@ const CombinedProductPage = () => {
                     </div>
                   </div>
                   <button className="text-gray-700 hover:text-gray-900 flex items-center gap-2 text-sm font-medium">
-                    See all reviews <ArrowRight className="w-4 h-4" />
+                    See all reviews <ArrowRightIcon className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -563,20 +577,20 @@ const CombinedProductPage = () => {
                     onClick={decreaseQuantity}
                     className="p-2 hover:bg-gray-50 rounded-full transition-colors"
                   >
-                    <Minus className="w-5 h-5 text-gray-600" />
+                    <AngleDownIcon className="w-5 h-5 text-gray-600" />
                   </button>
                   <span className="mx-6 text-lg font-medium min-w-[20px] text-center">{quantity}</span>
                   <button
                     onClick={increaseQuantity}
                     className="p-2 hover:bg-gray-50 rounded-full transition-colors"
                   >
-                    <Plus className="w-5 h-5 text-gray-600" />
+                    <PlusIcon className="w-5 h-5 text-gray-600" />
                   </button>
                 </div>
 
                 {/* Add to Cart */}
                 <button className="flex-1 bg-green-600 hover:bg-green-700 text-white py-4 px-8 rounded-full font-medium text-lg flex items-center justify-center gap-3 transition-colors">
-                  Add to Cart <ArrowRight className="w-5 h-5" />
+                  Add to Cart <ArrowRightIcon className="w-5 h-5" />
                 </button>
               </div>
 
@@ -589,13 +603,16 @@ const CombinedProductPage = () => {
             {/* Shipping Info */}
             <div className="space-y-4 pt-4">
               <div className="flex items-start gap-5">
-                <Users className="w-7 h-7 text-gray-500 mt-0.5" />
+                <GroupIcon className="w-7 h-7 text-gray-500 mt-0.5" />
                 <div>
                   <p className="text-gray-800 font-medium">Free worldwide shipping on all orders over $100</p>
                 </div>
               </div>
               <div className="flex items-start gap-5">
-                <RotateCcw className="w-7 h-7 text-gray-500 mt-0.5" />
+                <svg className="w-7 h-7 text-gray-500 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="1 4 1 10 7 10"></polyline>
+                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                </svg>
                 <div>
                   <p className="text-gray-800 font-medium">Delivers in: 3-7 Working Days Shipping & Return</p>
                 </div>
@@ -619,4 +636,4 @@ const CombinedProductPage = () => {
   );
 };
 
-export default CombinedProductPage;
+export default ProductPage;
