@@ -128,14 +128,12 @@ public class UserService {
     }
 
     private String generateUniqueSellerSlug() {
-        // Try until unique, bounded attempts
         for (int i = 0; i < 10; i++) {
             String slug = slugService.generateRandomSlug(7);
             if (!userRepository.existsBySlug(slug)) {
                 return slug;
             }
         }
-        // Fallback in unlikely case of collisions
         while (true) {
             String slug = slugService.generateRandomSlug(8);
             if (!userRepository.existsBySlug(slug)) {
