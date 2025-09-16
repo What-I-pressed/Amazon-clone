@@ -88,7 +88,7 @@ public class SellerController {
             @ApiResponse(responseCode = "404", description = "Продавця не знайдено"),
             @ApiResponse(responseCode = "400", description = "Користувач не є продавцем")
     })
-    @GetMapping("/{slug:[a-zA-Z0-9]{6,8}}")
+    @GetMapping("/{slug:[a-zA-Z0-9]{4,8}}")
     public ResponseEntity<UserDto> getPublicSellerProfileBySlug(
             @Parameter(description = "Slug продавця") @PathVariable String slug) {
         User seller = userService.getUserBySlug(slug)

@@ -83,6 +83,12 @@ public class ProductService {
         return page.map(ProductDto::new);
     }
 
+    public void genSlug(Long productId){
+        Product p = productRepository.findById(productId).get();
+        p.setSlug(slugService.generateSeoSlug(p.getName(), p.getId()));
+        productRepository.save(p);
+    }
+
     public Product createProduct(ProductCreationDto dto) {
         Product product = new Product();
         fillProductFromDto(product, dto);

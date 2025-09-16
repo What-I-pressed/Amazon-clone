@@ -70,7 +70,7 @@ public class ProductController {
     }
 
 @Operation(summary = "Отримати продукт за ID", description = "Повертає продукт за його унікальним ID")
-    @GetMapping("/{id:\\d+}")
+    @GetMapping("/id/{id:\\d+}")
     public ResponseEntity<ProductDto> getProduct(
             @Parameter(description = "ID продукту") @PathVariable Long id) {
 
@@ -89,7 +89,7 @@ public class ProductController {
     }
 
     @Operation(summary = "Оновити продукт", description = "Оновлює існуючий продукт за його ID")
-    @PutMapping("/{id:\\d+}")
+    @PutMapping("/update/{id:\\d+}")
     public ResponseEntity<ProductDto> updateProduct(
             @Parameter(description = "ID продукту") @PathVariable Long id,
             @Parameter(description = "DTO продукту для оновлення") @RequestBody ProductCreationDto productCreationDto) {
@@ -102,8 +102,14 @@ public class ProductController {
         return ResponseEntity.ok(new ProductDto(updatedProduct));
     }
 
+    @PostMapping("/slug/generate/{id:\\d+}")
+    public ResponseEntity<?> genSlug(@PathVariable Long id){
+        productService.genSlug(id);
+        return ResponseEntity.ok("Slug generated");
+    }
+
     @Operation(summary = "Видалити продукт", description = "Видаляє продукт за його ID")
-    @DeleteMapping("/{id:\\d+}")
+    @DeleteMapping("/delete/{id:\\d+}")
     public ResponseEntity<Void> deleteProduct(
             @Parameter(description = "ID продукту") @PathVariable Long id) {
 
