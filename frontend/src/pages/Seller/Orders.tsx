@@ -94,6 +94,7 @@ const SellerOrdersPage: React.FC = () => {
               className="bg-white rounded-xl border p-5 cursor-pointer shadow-sm hover:shadow-md transition-shadow"
               onClick={() => openDetails(order)}
               role="button"
+              
               tabIndex={0}
             >
               <div className="flex justify-between items-center">
