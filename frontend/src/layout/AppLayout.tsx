@@ -7,7 +7,7 @@ import AppFooter from "./AppFooter";
 
 const LayoutContent: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-[#ffffff]">
       <AppHeader />
 
       <main

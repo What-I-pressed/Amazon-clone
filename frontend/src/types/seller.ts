@@ -8,8 +8,9 @@ export type Seller = {
   roleName?: string;
   createdAt?: string;
   blocked?: boolean;
-  avatar?: string;
+  url?: string;       // avatar
   banner?: string;
+  slug: string;       // добавляем slug
   rating?: number;
   stats?: SellerStats;
 };
