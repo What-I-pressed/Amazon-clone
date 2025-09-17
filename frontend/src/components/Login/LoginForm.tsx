@@ -27,7 +27,7 @@
     };
 
     return (
-      <div className="min-h-screen w-full flex items-start justify-center bg-gray-50 pt-50">
+      <div className="min-h-screen w-full flex items-start justify-center bg-white pt-50">
         <div className="flex w-2/3 h-[70%] bg-white rounded-lg overflow-hidden transition-transform duration-1000 hover:scale-[1.01] border border-gray-300">
           {/* Left Panel - Image */}
           <div className="w-1/2 hidden md:block">

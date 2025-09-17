@@ -67,7 +67,7 @@ export default function CategoryDropdown({ onSelect }: CategoryDropdownProps) {
           onMouseLeave={() => setActiveCategory(null)}
         >
           {/* Main Categories Panel */}
-          <div className="w-48 border-r border-gray-600">
+          <div className="w-48 border-r border-[#343434]">
             <button
               className="w-full text-left px-3 py-2 hover:bg-[#343434] text-white text-sm block font-bold"
               onClick={() => handleSelect("All")}
@@ -99,7 +99,7 @@ export default function CategoryDropdown({ onSelect }: CategoryDropdownProps) {
                 </button>
               ))
             ) : (
-              <div className="p-3 text-xs text-gray-300">Hover over a category to see subcategories.</div>
+              <div className="p-3 text-xs text-[#aaaaaa]">Hover over a category to see subcategories.</div>
             )}
           </div>
         </div>

@@ -208,7 +208,7 @@ export const SellerStats: React.FC<SellerStatsProps> = ({
         <div className="relative">
           <button
             onClick={toggleDropdown}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
           >
             {getFilterLabel(timeFilter)}
             <ChevronDownIcon className="w-4 h-4" />
