@@ -21,7 +21,7 @@ export const ReviewReply: React.FC<ReviewReplyProps> = ({
   };
 
   return (
-    <div className="ml-4 md:ml-6 lg:ml-8 mt-3 pl-4 border-l-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-r-lg">
+    <div className="ml-4 md:ml-6 lg:ml-8 mt-3 pl-4 border-l-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 rounded-r-lg">
       {/* Reply Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2">
         <div className="flex items-center gap-2">

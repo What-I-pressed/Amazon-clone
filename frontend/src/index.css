@@ -187,7 +187,7 @@ layer(base);
     cursor: pointer;
   }
   body {
-    @apply relative font-normal font-poppins z-1 bg-gray-50;
+    @apply relative font-normal font-poppins z-1 bg-white text-black;  
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -415,7 +415,7 @@ layer(base);
 }
 
 .jvectormap-container {
-  @apply !bg-gray-50 dark:!bg-gray-900;
+  @apply !bg-white dark:!bg-gray-900;
 }
 .jvectormap-region.jvectormap-element {
   @apply !fill-gray-300 hover:!fill-brand-500 dark:!fill-gray-700 dark:hover:!fill-brand-500;
@@ -552,7 +552,7 @@ span.flatpickr-weekday,
 .flatpickr-day:focus,
 .flatpickr-day.prevMonthDay:focus,
 .flatpickr-day.nextMonthDay:focus {
-  @apply !border-gray-50 !bg-gray-50 dark:!border-0 dark:!border-white/5 dark:!bg-white/5;
+  @apply !border-gray-50 !bg-white dark:!border-0 dark:!border-white/5 dark:!bg-white/5;
 }
 .flatpickr-day.selected,
 .flatpickr-day.startRange,
@@ -622,7 +622,7 @@ span.flatpickr-weekday,
   @apply gap-2;
 }
 .fc-button-group .fc-button {
-  @apply flex h-10 w-10 items-center justify-center !rounded-lg border border-gray-200 bg-transparent hover:border-gray-200 hover:bg-gray-50 focus:shadow-none active:!border-gray-200 active:!bg-transparent active:!shadow-none dark:border-gray-800 dark:hover:border-gray-800 dark:hover:bg-gray-900 dark:active:border-gray-800!;
+  @apply flex h-10 w-10 items-center justify-center !rounded-lg border border-gray-200 bg-transparent hover:border-gray-200 hover:bg-white focus:shadow-none active:!border-gray-200 active:!bg-transparent active:!shadow-none dark:border-gray-800 dark:hover:border-gray-800 dark:hover:bg-gray-900 dark:active:border-gray-800!;
 }
 
 .fc-button-group .fc-button.fc-prev-button:before {
@@ -660,7 +660,7 @@ span.flatpickr-weekday,
   @apply text-gray-900 bg-white dark:bg-gray-800 dark:text-white;
 }
 .fc-theme-standard th {
-  @apply !border-x-0 border-t !border-gray-200 bg-gray-50 !text-left dark:!border-gray-800 dark:bg-gray-900;
+  @apply !border-x-0 border-t !border-gray-200 bg-white !text-left dark:!border-gray-800 dark:bg-gray-900;
 }
 .fc-theme-standard td,
 .fc-theme-standard .fc-scrollgrid {
