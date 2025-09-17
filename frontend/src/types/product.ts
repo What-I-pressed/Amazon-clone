@@ -17,5 +17,6 @@ export type Product = {
   sold: number;
   rating?: number;       // optional
   slug: string;          // добавляем slug для посилань
-  sellerSlug: string;   
+  sellerSlug: string;
+  reviewCount?: number;  // add reviewCount as optional
 };

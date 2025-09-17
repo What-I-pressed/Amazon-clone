@@ -83,7 +83,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           </button>
           <button
             onClick={() => setLiked(!liked)}
-            className="w-10 h-10 rounded-full border bg-gray-300 border-gray-200 flex items-center justify-center hover:bg-gray-500 transition"
+            className="w-10 h-10 rounded-full bg-[#E8E8E8] flex items-center justify-center hover:bg-gray-500 transition"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
