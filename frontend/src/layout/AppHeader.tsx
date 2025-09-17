@@ -171,7 +171,7 @@ const Navbar: React.FC = () => {
             onClick={() => navigate("/favourites")}
             title="Go to favourites"
           >
-            Favourites
+            Favorites
           </div>
 
           {/* Orders */}

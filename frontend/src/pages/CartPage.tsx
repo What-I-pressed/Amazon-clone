@@ -106,7 +106,7 @@ const CartPage: React.FC = () => {
             {items.map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-xl border shadow-sm hover:shadow-md transition-shadow"
+                className="bg-white rounded-xl border-gray-300 border hover:shadow-md transition-shadow"
                 style={{
                   display: "flex",
                   gap: 20,
@@ -212,7 +212,7 @@ const CartPage: React.FC = () => {
             ))}
           </div>
 
-          <div className="bg-white border rounded-xl mt-4 sticky bottom-4 p-4 shadow-sm">
+          <div className="bg-white border rounded-xl mt-4 sticky bottom-4 p-4 border-gray-300 border">
             <div className="flex items-center justify-between">
               <div className="text-lg font-semibold">Загальна сума: {total.toFixed(2)} грн</div>
               <div className="flex gap-3">
