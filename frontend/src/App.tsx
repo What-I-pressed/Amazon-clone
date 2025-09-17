@@ -44,6 +44,8 @@ import SellerProfile from "./pages/Seller/Profile";
 import SellerDashboard from "./pages/Seller/Dashboard";
 import SellerEditProfile from "./pages/Seller/Edit";
 import SellerOrdersPage from "./pages/Seller/Orders";
+import CreateProductPage from "./pages/Seller/CreateProduct";
+import UploadProductPictures from "./pages/Seller/UploadProductPictures";
 
 export default function App() {
   return (
@@ -61,6 +63,8 @@ export default function App() {
             <Route path="dashboard" element={<SellerDashboard />} /> 
             <Route path="edit" element={<SellerEditProfile />} /> 
             <Route path="orders" element={<SellerOrdersPage />} />
+            <Route path="products/create" element={<CreateProductPage />} />
+            <Route path="products/:id/pictures" element={<UploadProductPictures />} />
           </Route>
 
           <Route path="/cart" element={<CartPage />} />

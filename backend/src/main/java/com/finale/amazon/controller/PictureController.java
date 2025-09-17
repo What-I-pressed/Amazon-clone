@@ -17,6 +17,11 @@ import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/pictures")
+@CrossOrigin(
+    origins = {"http://localhost:5173"},
+    allowedHeaders = {"*"},
+    methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS}
+)
 @RequiredArgsConstructor
 @Tag(name = "Pictures Controller", description = "Контролер для роботи з зображеннями продуктів")
 public class PictureController {
