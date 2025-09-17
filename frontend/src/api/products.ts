@@ -16,13 +16,31 @@ export async function fetchProducts(): Promise<Product[]> {
     }
 }
 
+export async function fetchProductBySlug(slug: string): Promise<Product> {
+    if (!slug) {
+        throw new Error("Slug товару не може бути пустим");
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/${encodeURIComponent(slug)}`);
+        if (!res.ok) {
+            throw new Error(`Не вдалося отримати товар з slug: ${slug}`);
+        }
+        return res.json();
+    } catch (error) {
+        console.error(`[API] Помилка fetchProductBySlug (slug: ${slug}):`, error);
+        throw error;
+    }
+}
+
+// Keep ID-based function for admin/private operations
 export async function fetchProductById(id: string): Promise<Product> {
     if (!id) {
         throw new Error("Ідентифікатор товару не може бути пустим");
     }
 
     try {
-        const res = await fetch(`${API_BASE}/${id}`);
+        const res = await fetch(`${API_BASE}/id/${id}`);
         if (!res.ok) {
             throw new Error(`Не вдалося отримати товар з id: ${id}`);
         }
@@ -66,7 +84,7 @@ export async function updateProduct(id: string, data: Partial<Product>): Promise
 
     try {
         const res = await fetch(`${API_BASE}/${id}`, {
-            method: "PUT",
+            method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
         });
@@ -101,24 +119,33 @@ export async function deleteProduct(id: string): Promise<void> {
     }
 }
 
-export async function fetchSellerProducts(
-    vendorId: string,
-    page = 0,
-    size = 12
-  ): Promise<Product[]> {
-    if (!vendorId) {
-      throw new Error("Ідентифікатор продавця не може бути пустим");
-    }
-  
+export const fetchSellerProducts = async (slug: string, token: string) => {
     try {
-      const res = await fetch(`${API_BASE}/vendor/${vendorId}?page=${page}&size=${size}`);
-      if (!res.ok) {
-        throw new Error(`Не вдалося отримати товари продавця з id: ${vendorId}`);
+      const response = await fetch(`http://localhost:8080/api/sellers/${slug}/products`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+  
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error("Доступ заборонено");
+        } else if (response.status === 404) {
+          throw new Error("Продавець не знайдений");
+        } else {
+          throw new Error(`Помилка: ${response.status}`);
+        }
       }
-      return res.json();
-    } catch (error) {
-      console.error(`[API] Помилка fetchSellerProducts (vendorId: ${vendorId}):`, error);
-      throw error;
+  
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      console.error("Помилка при fetchSellerProducts:", err);
+      throw err;
     }
-  }
+  };
+  
+
   

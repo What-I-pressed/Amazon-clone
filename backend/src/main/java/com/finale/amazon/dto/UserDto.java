@@ -20,10 +20,11 @@ public class UserDto {
     private String roleName;
     private LocalDateTime createdAt;
     private boolean blocked = false;
+    private String url;
 
     public UserDto(User user){
         this.id = user.getId();
-        this.slug = user.getSlug();
+        slug = user.getSlug();
         this.username = user.getUsername();
         this.description = user.getDescription();
         this.email = user.getEmail();

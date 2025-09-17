@@ -72,7 +72,7 @@ public class Product {
     @Basic(fetch = FetchType.LAZY)
     private List<CharacteristicValue> characteristics;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne
     @JoinColumn(name = "seller_id", referencedColumnName = "id")
     private User seller;
 

@@ -38,6 +38,7 @@ import ChatPage from "./pages/ChatPage";
 
 // Seller
 import SellerProfile from "./pages/Seller/Profile";
+import SellerProfileWrapper from "./components/seller/SellerProfileWrapper";
 import SellerDashboard from "./pages/Seller/Dashboard";
 import SellerEditProfile from "./pages/Seller/Edit";
 
@@ -51,10 +52,10 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/catalog" element={<CatalogPage />} />
-          <Route path="/product/:id" element={<ProductPage />} />
-          <Route path="/seller/:id" element={<SellerProfile />} />
+          <Route path="/product/:slug" element={<ProductPage />} />
+          <Route path="/sellers/:slug" element={<SellerProfile />} />
           <Route path="seller">
-              <Route index element={<SellerProfile />} /> 
+              <Route index element={<SellerProfileWrapper />} /> 
               <Route path="dashboard" element={<SellerDashboard />} /> 
               <Route path="edit" element={<SellerEditProfile />} /> 
             </Route>

@@ -1,8 +1,8 @@
 package com.finale.amazon.service;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -18,6 +18,7 @@ import com.finale.amazon.repository.CharacteristicTypeRepository;
 import com.finale.amazon.repository.UserRepository;
 import com.finale.amazon.specification.ProductSpecification;
 import com.finale.amazon.repository.PictureRepository;
+import com.finale.amazon.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,9 +44,19 @@ public class ProductService {
     private UserRepository userRepository;
     @Autowired
     private PictureRepository pictureRepository;
-
     @Autowired
     private SlugService slugService;
+
+    @Transactional(readOnly = true)
+    public Optional<Product> getProductBySlug(String slug) {
+        return productRepository.findBySlugWithPictures(slug);
+    }
+
+    @Transactional(readOnly = true)
+    public Product findBySlug(String slug) {
+        return productRepository.findBySlugWithPictures(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "slug", slug));
+    }
 
     private Specification<Product> getSpec(String name, Long categoryId, Double lowerBound,
             Double upperBound, Map<String, String> characteristics) {
@@ -115,6 +126,7 @@ public class ProductService {
         fillProductFromDto(product, dto);
         userRepository.findById(sellerId).ifPresent(product::setSeller);
         Product saved = productRepository.save(product);
+        // Generate SEO slug using name and ID
         String slug = slugService.generateSeoSlug(saved.getName(), saved.getId());
         saved.setSlug(slug);
         return productRepository.save(saved);
@@ -125,6 +137,7 @@ public class ProductService {
         if (optionalProduct.isEmpty()) {
             throw new RuntimeException("Product not found");
         }
+        
         Product product = optionalProduct.get();
         String oldName = product.getName();
         fillProductFromDto(product, dto);
@@ -146,9 +159,10 @@ public class ProductService {
         return productRepository.findByIdWithPictures(productId);
     }
 
-    @Transactional(readOnly = true)
-    public Optional<Product> getProductBySlug(String slug) {
-        return productRepository.findBySlugWithPictures(slug);
+    public void genSlug(Long productId){
+        Product p = productRepository.findById(productId).get();
+        p.setSlug(slugService.generateSeoSlug(p.getName(), p.getId()));
+        productRepository.save(p);
     }
 
     public Product findProductById(Long id) {
@@ -158,6 +172,23 @@ public class ProductService {
     @Transactional(readOnly = true)
     public Page<Product> getProductsByVendor(Long vendorId, Pageable pageable) {
         return productRepository.findBySeller(vendorId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Product> getProductsByVendorSlug(String sellerSlug, Pageable pageable) {
+        return userRepository.findBySlug(sellerSlug)
+                .map(user -> productRepository.findBySeller(user.getId(), pageable))
+                .orElse(Page.empty(pageable));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductDto> searchProductsByName(String query) {
+        if (query == null || query.isBlank()) {
+            return List.of();
+        }
+        List<Product> products = productRepository.findByNameContainingIgnoreCase(query.trim());
+        products.forEach(p -> p.setPictures(pictureRepository.findMainPicture(p.getId())));
+        return products.stream().map(ProductDto::new).toList();
     }
 
     private void fillProductFromDto(Product product, ProductCreationDto dto) {

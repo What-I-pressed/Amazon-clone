@@ -18,6 +18,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -69,8 +71,16 @@ public class ProductController {
         return ResponseEntity.ok(new ProductDto(product));
     }
 
-@Operation(summary = "Отримати продукт за ID", description = "Повертає продукт за його унікальним ID")
-    @GetMapping("/{id:\\d+}")
+    @Operation(summary = "Отримати продукт за slug", description = "Повертає продукт за його slug")
+    @GetMapping("/{slug}")
+    public ResponseEntity<ProductDto> getProductBySlug(
+            @Parameter(description = "Slug продукту") @PathVariable String slug) {
+        Product product = productService.findBySlug(slug);
+        return ResponseEntity.ok(new ProductDto(product));
+    }
+
+    @Operation(summary = "Отримати продукт за ID", description = "Повертає продукт за його унікальним ID")
+    @GetMapping("/id/{id}")
     public ResponseEntity<ProductDto> getProduct(
             @Parameter(description = "ID продукту") @PathVariable Long id) {
 
@@ -79,17 +89,9 @@ public class ProductController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Отримати продукт за slug", description = "Повертає продукт за його slug")
-    @GetMapping("/{slug:[a-zA-Z0-9-]+}")
-    public ResponseEntity<ProductDto> getProductBySlug(
-            @Parameter(description = "Slug продукту") @PathVariable String slug) {
-        Optional<Product> productOpt = productService.getProductBySlug(slug);
-        return productOpt.map(product -> ResponseEntity.ok(new ProductDto(product)))
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
 
-    @Operation(summary = "Оновити продукт", description = "Оновлює існуючий продукт за його ID")
-    @PutMapping("/{id:\\d+}")
+    @Operation(summary = "Оновити продукт", description = "Оновлює існуючий продукт за його ID (приватна операція)")
+    @PatchMapping("/{id}")
     public ResponseEntity<ProductDto> updateProduct(
             @Parameter(description = "ID продукту") @PathVariable Long id,
             @Parameter(description = "DTO продукту для оновлення") @RequestBody ProductCreationDto productCreationDto) {
@@ -102,8 +104,8 @@ public class ProductController {
         return ResponseEntity.ok(new ProductDto(updatedProduct));
     }
 
-    @Operation(summary = "Видалити продукт", description = "Видаляє продукт за його ID")
-    @DeleteMapping("/{id:\\d+}")
+    @Operation(summary = "Видалити продукт", description = "Видаляє продукт за його ID (приватна операція)")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(
             @Parameter(description = "ID продукту") @PathVariable Long id) {
 
@@ -126,4 +128,20 @@ public class ProductController {
         return ResponseEntity.ok(productsPage.map(ProductDto::new));
     }
 
+    @Operation(summary = "Отримати продукти продавця за slug (публічний ендпоінт)")
+    @GetMapping("/public/vendor/{sellerSlug}")
+    public ResponseEntity<Page<ProductDto>> getPublicProductsByVendorSlug(
+            @PathVariable String sellerSlug,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size) {
+
+        Page<Product> productsPage = productService.getProductsByVendorSlug(sellerSlug, PageRequest.of(page, size));
+        return ResponseEntity.ok(productsPage.map(ProductDto::new));
+    }
+
+    @Operation(summary = "Пошук продуктів за назвою")
+    @GetMapping("/search")
+    public ResponseEntity<List<ProductDto>> searchProducts(@RequestParam("q") String q) {
+        return ResponseEntity.ok(productService.searchProductsByName(q));
+    }
 }

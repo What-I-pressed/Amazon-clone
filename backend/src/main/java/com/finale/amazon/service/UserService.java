@@ -9,6 +9,8 @@ import com.finale.amazon.repository.RoleRepository;
 import com.finale.amazon.repository.TokenRepository;
 import com.finale.amazon.repository.UserRepository;
 import com.finale.amazon.security.JwtUtil;
+import com.finale.amazon.exception.ResourceNotFoundException;
+import com.finale.amazon.repository.PictureRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,8 +39,13 @@ public class UserService {
     private JwtUtil jwtUtil;
 
     @Autowired
+    private PictureRepository pictureRepository;
+
+    @Autowired
     private SlugService slugService;
-    
+
+    private final String dirPath = "uploads/pictures/";
+
     private String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -87,8 +94,8 @@ public class UserService {
     public User getUserById(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
     }
-
     
+
     public Optional<User> getUserByEmail(String email) {
         try {
             User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
@@ -117,35 +124,19 @@ public class UserService {
         }
     }
 
-    
-    public User createUser(UserRequestDto userRequestDto) {
-        try{
-
-            User user = new User();
-            user.setUsername(userRequestDto.getUsername());
-            user.setEmail(userRequestDto.getEmail());
-            user.setPassword(userRequestDto.getPassword());
-            user.setDescription(userRequestDto.getDescription());
-            user.setBlocked(false);
-    
-            Role role = roleRepository.findByName(userRequestDto.getRoleName()).orElseThrow(() -> new RuntimeException("Role not found"));
-            user.setRole(role);
-            user.setCreatedAt(LocalDateTime.now());
-            
-            if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-                user.setPassword(hashPassword(user.getPassword()));
-            }
-            else throw new RuntimeException("Password is required");
-            // Generate slug for sellers
-            if (role != null && "SELLER".equalsIgnoreCase(role.getName())) {
-                user.setSlug(generateUniqueSellerSlug());
-            }
-
-            return userRepository.save(user);
+    public User findSellerBySlug(String slug) {
+        User user = userRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Seller", "slug", slug));
+        
+        if (user.isBlocked()) {
+            throw new RuntimeException("User is blocked");
         }
-        catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
+        
+        if (user.getRole() == null || !"SELLER".equalsIgnoreCase(user.getRole().getName())) {
+            throw new ResourceNotFoundException("Seller", "slug", slug);
         }
+        
+        return user;
     }
 
     private String generateUniqueSellerSlug() {
@@ -162,6 +153,36 @@ public class UserService {
             if (!userRepository.existsBySlug(slug)) {
                 return slug;
             }
+        }
+    }
+
+    public User createUser(UserRequestDto userRequestDto) {
+        try{
+
+            User user = new User();
+            user.setUsername(userRequestDto.getUsername());
+            user.setEmail(userRequestDto.getEmail());
+            user.setPassword(userRequestDto.getPassword());
+            user.setDescription(userRequestDto.getDescription());
+            user.setBlocked(false);
+    
+            Role role = roleRepository.findByName(userRequestDto.getRoleName()).orElseThrow(() -> new RuntimeException("Role not found"));
+            user.setRole(role);
+            user.setCreatedAt(LocalDateTime.now());
+            
+            if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+                user.setPassword(hashPassword(user.getPassword()));
+            } else
+                throw new RuntimeException("Password is required");
+
+            if (role != null && "SELLER".equalsIgnoreCase(role.getName())) {
+                user.setSlug(generateUniqueSellerSlug());
+            }
+
+            return userRepository.save(user);
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
     }
 
@@ -183,8 +204,13 @@ public class UserService {
             if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
                 existingUser.setPassword(hashPassword(userDetails.getPassword()));
             }
+            
             if (userDetails.getRole() != null) {
                 existingUser.setRole(userDetails.getRole());
+            }
+
+            if (userDetails.getRole() != null && "SELLER".equalsIgnoreCase(userDetails.getRole().getName())) {
+                existingUser.setSlug(generateUniqueSellerSlug());
             }
             existingUser.setBlocked(userDetails.isBlocked());
             
@@ -368,4 +394,10 @@ public class UserService {
         
         return userRepository.save(seller);
     }
+
+    public User findUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
 }

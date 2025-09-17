@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import ReviewCard from "../../components/seller/ReviewCard";
 import ReviewReply from "../../components/seller/ReviewReply";
-import { fetchSellerProfile } from "../../api/seller";
+import { fetchPublicSellerProfileBySlug } from "../../api/seller";
 import type { Seller } from "../../types/seller";
 
 interface Review {
@@ -21,7 +21,7 @@ interface Review {
 }
 
 const SellerReviews: React.FC = () => {
-  const { id: sellerId } = useParams<{ id: string }>();
+  const { slug: sellerSlug } = useParams<{ slug: string }>();
   const [seller, setSeller] = useState<Seller | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -79,8 +79,8 @@ const SellerReviews: React.FC = () => {
   ];
 
   useEffect(() => {
-    if (!sellerId) {
-      setError("Ідентифікатор продавця не вказано");
+    if (!sellerSlug) {
+      setError("Slug продавця не вказано");
       setLoading(false);
       return;
     }
@@ -88,7 +88,8 @@ const SellerReviews: React.FC = () => {
     async function loadSeller() {
       try {
         setLoading(true);
-        const data = await fetchSellerProfile(sellerId);
+        // Use public seller profile endpoint for slug-based access
+        const data = await fetchPublicSellerProfileBySlug(sellerSlug!);
         setSeller(data);
         setReviews(mockReviews);
       } catch (e) {
@@ -99,7 +100,7 @@ const SellerReviews: React.FC = () => {
     }
 
     loadSeller();
-  }, [sellerId]);
+  }, [sellerSlug]);
 
   const filteredReviews = reviews.filter(review => {
     switch (filter) {

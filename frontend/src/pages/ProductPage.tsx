@@ -1,66 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import type { Product } from "../types/product";
-import { fetchProductById } from "../api/products";
+import { fetchProductBySlug } from "../api/products";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, X } from "lucide-react";
-
-const buttonBase =
-  "bg-[#42A275] text-white font-semibold px-6 py-4 rounded-full flex items-center justify-center gap-3 transition-all duration-300 hover:brightness-110 active:scale-95";
-
-const secondaryButton =
-  "w-full py-4 border border-black rounded-full font-semibold text-black hover:bg-gray-100 transition-all duration-300 active:scale-95";
-
-const TabsReviews: React.FC<{
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-  product: Product;
-}> = ({ activeTab, setActiveTab, product }) => {
-  return (
-    <div className="max-w-6xl mx-auto px-4 mt-12">
-      <div className="flex gap-6 border-b relative">
-        {["description", "reviews"].map((tab) => (
-          <button
-            key={tab}
-            className={`pb-3 text-lg font-semibold relative ${
-              activeTab === tab
-                ? "text-black"
-                : "text-gray-500 hover:text-black transition"
-            }`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab === "description" ? "Description" : "Reviews"}
-            {activeTab === tab && (
-              <motion.div
-                layoutId="tab-underline"
-                className="absolute left-0 right-0 -bottom-0.5 h-[2px] bg-black"
-              />
-            )}
-          </button>
-        ))}
-      </div>
-      <div className="mt-6">
-        {activeTab === "description" ? (
-          <p className="text-gray-700">{product.description}</p>
-        ) : (
-          <div>
-            <p className="text-gray-700">User reviews will appear here.</p>
-            <form className="mt-4 flex flex-col gap-3">
-              <textarea
-                placeholder="Write your review..."
-                className="border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#42A275] transition"
-              />
-              <button className={buttonBase}>Submit</button>
-            </form>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
+import Heart from "lucide-react";
 
 const ProductPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -76,13 +22,13 @@ const ProductPage: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    if (!id) {
-      setError("Відсутній ідентифікатор товару");
+    if (!slug) {
+      setError("Відсутній slug товару");
       setLoading(false);
       return;
     }
 
-    fetchProductById(id)
+    fetchProductBySlug(slug)
       .then((data) => {
         if (!isMounted) return;
         setProduct(data);
@@ -102,7 +48,7 @@ const ProductPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [id]);
+  }, [slug]);
 
   const images: string[] = useMemo(() => {
     if (product?.pictures && product.pictures.length > 0) {

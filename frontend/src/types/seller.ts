@@ -2,6 +2,7 @@ import type { SellerStats } from "./sellerstats";
 
 export type Seller = {
   id: number;
+  slug: string;
   username: string;
   email: string;
   description?: string;

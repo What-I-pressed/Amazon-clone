@@ -46,13 +46,13 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     
     List<Product> findByQuantityInStockGreaterThan(Long quantity);
     
+    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.pictures WHERE p.slug = :slug")
+    Optional<Product> findBySlugWithPictures(@Param("slug") String slug);
+    
     long countByCategory(Category category);
 
     @Query("SELECT p FROM Product p LEFT JOIN FETCH p.pictures WHERE p.id = :id")
     Optional<Product> findByIdWithPictures(@Param("id") Long id);
-    
-    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.pictures WHERE p.slug = :slug")
-    Optional<Product> findBySlugWithPictures(@Param("slug") String slug);
     
     @Query("SELECT p FROM Product p WHERE p.price BETWEEN :minPrice AND :maxPrice")
     List<Product> findByPriceRange(@Param("minPrice") double minPrice, @Param("maxPrice") double maxPrice);

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Product } from "../../types/product";
 import type { Seller } from "../../types/seller";
-import { fetchSellerProfile, fetchSellerProducts, updateSellerProfile, fetchSellerStats } from "../../api/seller";
+import { fetchSellerProfile, fetchPublicSellerProductsBySlug, updateSellerProfile, fetchSellerStats } from "../../api/seller";
 
 const SellerEditProfile = () => {
   const [seller, setSeller] = useState<Seller | null>(null);
@@ -48,10 +48,19 @@ const SellerEditProfile = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [profile, prods] = await Promise.all([
-          fetchSellerProfile(),
-          fetchSellerProducts().catch(() => [] as Product[]),
-        ]);
+        const profile = await fetchSellerProfile();
+        
+        // Fetch products using seller's slug if available
+        let prods: Product[] = [];
+        if (profile.slug) {
+          try {
+            const page = await fetchPublicSellerProductsBySlug(profile.slug, 0, 24);
+            prods = page?.content || [];
+          } catch (error) {
+            console.warn("Failed to fetch seller products:", error);
+            prods = [];
+          }
+        }
 
         // Optionally fetch stats separately if not included in profile
         let stats = profile.stats;
@@ -507,7 +516,7 @@ const SellerEditProfile = () => {
                   >
                     <div className="aspect-w-16 aspect-h-9 bg-gray-200 rounded-lg overflow-hidden">
                       <img
-                        src={product.images[0]}
+                        src={product.pictures?.[0]?.url ? `http://localhost:8080/${product.pictures[0].url}` : "/images/product/placeholder.jpg"}
                         alt={product.name}
                         className="object-cover w-full h-full"
                       />

@@ -5,6 +5,7 @@ type ProductCardVariant = 'grid' | 'carousel';
 
 type ProductCardProps = {
   id?: string | number;
+  slug?: string;
   imageUrl: string;
   title: string;
   price: string; 
@@ -16,6 +17,7 @@ type ProductCardProps = {
 
 const ProductCard: React.FC<ProductCardProps> = ({
   id,
+  slug,
   imageUrl,
   title,
   price,
@@ -35,8 +37,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
     >
       {/* Image + Discount */}
       <div className={`relative ${imageHeight} group overflow-hidden`}>
-        {id ? (
-          <Link to={`/product/${id}`} className="block w-full h-full">
+        {slug ? (
+          <Link to={`/product/${slug}`} className="block w-full h-full">
             <img 
               src={imageUrl}
               alt={title}
@@ -58,12 +60,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
       </div>
 
       {/* Info */}
-      <div className="p-4 flex flex-col flex-1">
-        {id ? (
-          <Link to={`/product/${id}`} className="block">
-            <h3 className="text-base font-medium text-gray-700 hover:underline cursor-pointer line-clamp-2">
-              {title}
-            </h3>
+      <div className="p-4 space-y-2">
+        {slug ? (
+          <Link to={`/product/${slug}`} className="block">
+            <h3 className="text-base font-medium text-gray-800 hover:underline cursor-pointer">{title}</h3>
           </Link>
         ) : (
           <h3 className="text-base font-medium text-gray-800 line-clamp-2">{title}</h3>
