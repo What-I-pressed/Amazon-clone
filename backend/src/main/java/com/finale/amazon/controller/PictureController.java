@@ -45,4 +45,21 @@ public class PictureController {
     public ResponseEntity<PictureDto> getRawPicture(@PathVariable Long id) {
         return ResponseEntity.ok(pictureService.getPicture(id).orElseThrow(() -> new RuntimeException("Couldnt get picture with id : " + id.toString())));
     }
+
+     @Operation(summary = "Замінити зображення продукту", description = "Заміна існуючого зображення новим файлом")
+    @PutMapping(value = "/{id}/replace", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> replacePicture(
+            @Parameter(description = "ID зображення для заміни") @PathVariable Long id,
+            @Parameter(description = "Новий файл зображення") @RequestPart("file") MultipartFile file) throws IOException {
+        pictureService.replacePicture(id, file);
+        return ResponseEntity.ok("Picture was successfully replaced");
+    }
+
+    @Operation(summary = "Видалити зображення продукту", description = "Видаляє зображення за ID і файл з диску")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deletePicture(
+            @Parameter(description = "ID зображення для видалення") @PathVariable Long id) throws IOException {
+        pictureService.deletePicture(id);
+        return ResponseEntity.ok("Picture was successfully deleted");
+    }
 }
