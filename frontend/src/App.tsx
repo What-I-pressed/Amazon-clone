@@ -36,6 +36,8 @@ import CheckoutPage from "./pages/CheckoutPage";
 import ProfilePage from "./pages/ProfilePage";
 import ChatPage from "./pages/ChatPage";
 import SearchResults from "./pages/SearchResults";
+import FavouritesPage from "./pages/FavouritesPage";
+import OrdersPage from "./pages/OrdersPage";
 
 // Seller
 import SellerProfile from "./pages/Seller/Profile";
@@ -60,6 +62,8 @@ export default function App() {
           </Route>
 
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/favourites" element={<FavouritesPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/chat" element={<ChatPage />} />

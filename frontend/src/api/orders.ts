@@ -1,6 +1,33 @@
 import type { Order } from "../types/order";
+import api from "./axios";
+import { getToken } from "../utilites/auth";
 
 const API_BASE = "/api/orders";
+
+// Create order using backend OrderController
+export interface OrderItemCreationDto {
+  productId: number;
+  quantity: number;
+}
+
+// Get all orders for the current user
+export async function fetchUserOrders(): Promise<any[]> {
+  const token = getToken();
+  const res = await api.get(`/orders/all`, { params: { token } });
+  // Controller returns 204 No Content for empty -> axios throws? We'll normalize to []
+  // But axios resolves 204 with empty data, so fallback
+  return Array.isArray(res.data) ? res.data : [];
+}
+
+export interface OrderCreationDto {
+  orderItems: OrderItemCreationDto[];
+}
+
+export async function createOrder(payload: OrderCreationDto): Promise<any> {
+  const token = getToken();
+  const res = await api.put(`/orders/create`, payload, { params: { token } });
+  return res.data;
+}
 
 export async function fetchOrders(): Promise<Order[]> {
     try {
