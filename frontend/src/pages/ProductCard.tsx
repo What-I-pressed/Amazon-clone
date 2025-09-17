@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { addFavourite, deleteFavourite } from "../api/favourites";
 
 type ProductCardVariant = 'grid' | 'carousel';
 
@@ -27,6 +28,30 @@ const ProductCard: React.FC<ProductCardProps> = ({
   className = "",
 }) => {
   const [liked, setLiked] = useState(false);
+  const [favouriteId, setFavouriteId] = useState<number | null>(null);
+  const [loadingFav, setLoadingFav] = useState(false);
+
+  const toggleFavourite = async () => {
+    if (!id) return; // cannot favourite without product id
+    try {
+      setLoadingFav(true);
+      if (!liked) {
+        const createdId = await addFavourite(Number(id));
+        setFavouriteId(createdId);
+        setLiked(true);
+      } else {
+        if (favouriteId != null) {
+          await deleteFavourite(favouriteId);
+        }
+        setFavouriteId(null);
+        setLiked(false);
+      }
+    } catch (e) {
+      // optional: show toast
+    } finally {
+      setLoadingFav(false);
+    }
+  };
 
   const cardWidth = variant === 'carousel' ? 'w-72' : 'w-80';
   const imageHeight = variant === 'carousel' ? 'h-56' : 'h-80';
@@ -82,8 +107,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
             Add to cart
           </button>
           <button
-            onClick={() => setLiked(!liked)}
-            className="w-10 h-10 rounded-full border bg-gray-300 border-gray-200 flex items-center justify-center hover:bg-gray-500 transition"
+            onClick={toggleFavourite}
+            disabled={loadingFav || !id}
+            className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
+            title={liked ? "Remove from favourites" : "Add to favourites"}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
