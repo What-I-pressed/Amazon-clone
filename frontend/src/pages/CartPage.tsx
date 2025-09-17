@@ -1,187 +1,239 @@
-import React, { useState } from "react";
-
-interface CartItem {
-  id: number;
-  name: string;
-  price: number;
-  qty: number;
-}
-
-interface OrderData {
-  items: CartItem[];
-  address: string;
-  contact: string;
-  paymentMethod: string;
-}
-
-interface FormErrors {
-  address?: string;
-  contact?: string;
-  paymentMethod?: string;
-}
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { fetchCart, addToCart, removeFromCart, clearCart, type CartItemResponseDto } from "../api/cart";
 
 const CartPage: React.FC = () => {
-  const [cart, setCart] = useState<CartItem[]>([
-    { id: 1, name: "Товар 1", price: 500, qty: 2 },
-    { id: 2, name: "Товар 2", price: 300, qty: 1 },
-    { id: 3, name: "Товар 3", price: 150, qty: 3 },
-  ]);
+  const [items, setItems] = useState<CartItemResponseDto[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  const [address, setAddress] = useState("");
-  const [contact, setContact] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("");
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [isCheckout, setIsCheckout] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const total = useMemo(() => {
+    return items.reduce((sum, it) => sum + (it.product?.price || 0) * it.quantity, 0);
+  }, [items]);
 
-  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-
-  
-  const handleQtyChange = (id: number, qty: number) => {
-    setCart((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, qty } : item))
-    );
-  };
-
-  
-  const handleRemove = (id: number) => {
-    setCart((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  // валідація 
-  const validate = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!address.trim()) newErrors.address = "Адреса обов'язкова";
-    if (!contact.trim()) {
-      newErrors.contact = "Контакт обов'язковий";
-    } else if (
-      !/^\+?\d{10,15}$/.test(contact) &&
-      !/^[\w.-]+@[\w.-]+\.[A-Za-z]{2,}$/.test(contact)
-    ) {
-      newErrors.contact = "Введіть коректний email або номер телефону";
-    }
-    if (!paymentMethod.trim())
-      newErrors.paymentMethod = "Виберіть спосіб оплати";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  
-  const handleCheckout = () => {
-    if (!validate()) return;
-
-    setLoading(true);
-
-    const order: OrderData = { items: cart, address, contact, paymentMethod };
-    // тут можна викликати бекенд
-    setTimeout(() => {
-      console.log("Замовлення:", order);
-      alert("Замовлення успішно надіслано!");
-      setCart([]); 
-      setAddress("");
-      setContact("");
-      setPaymentMethod("");
-      setIsCheckout(false);
+  const load = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await fetchCart();
+      setItems(data);
+    } catch (e: any) {
+      setError(e?.response?.data?.message || e?.message || "Не вдалося завантажити кошик");
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
+  };
+
+  // Commit a typed quantity for a specific cart line
+  const commitQuantity = (productId: number, desired: number, current: number) => {
+    const next = Math.max(1, desired | 0);
+    const delta = next - current;
+    if (delta !== 0) {
+      changeQuantityDelta(productId, delta, current);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  // Local edit buffer for quantities, so users can type a number and commit on Enter/blur
+  const [pendingQty, setPendingQty] = useState<Record<number, number>>({});
+
+  const changeQuantityDelta = async (productId: number, delta: number, currentQty?: number) => {
+    // If an explicit current quantity is provided, validate not going below 1
+    if (typeof currentQty === 'number' && currentQty + delta < 1) return;
+    if (delta === 0) return;
+    try {
+      setLoading(true);
+      // Backend expects delta for /cart/add (increments by quantity)
+      await addToCart({ productId, quantity: delta });
+      // Reload to reflect server state
+      await load();
+      window.dispatchEvent(new CustomEvent('cart:updated'));
+    } catch (e: any) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      setError(e?.response?.data?.message || e?.message || "Не вдалося оновити кількість");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const removeItem = async (cartItemId: number) => {
+    try {
+      setLoading(true);
+      await removeFromCart(cartItemId);
+      setItems((prev) => prev.filter((i) => i.id !== cartItemId));
+      window.dispatchEvent(new CustomEvent('cart:updated'));
+    } catch (e: any) {
+      setError(e?.response?.data?.message || e?.message || "Не вдалося видалити товар");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearAll = async () => {
+    try {
+      setLoading(true);
+      await clearCart();
+      setItems([]);
+      window.dispatchEvent(new CustomEvent('cart:updated'));
+    } catch (e: any) {
+      setError(e?.response?.data?.message || e?.message || "Не вдалося очистити кошик");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div style={{ maxWidth: "600px", margin: "0 auto", padding: "20px" }}>
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: 20 }}>
       <h1>Кошик</h1>
 
-      {cart.length === 0 ? (
-        <p>Ваш кошик порожній</p>
+      {loading && <p>Завантаження...</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      {items.length === 0 && !loading ? (
+        <div className="bg-white border rounded-2xl p-10 text-center">
+          <div className="text-lg font-semibold mb-1">Ваш кошик порожній</div>
+          <div className="text-gray-600 mb-4">Додайте товари до кошика, щоб продовжити оформлення</div>
+          <a href="/catalog" className="inline-block px-5 py-2 rounded-full bg-gray-900 text-white hover:bg-gray-800">Перейти в каталог</a>
+        </div>
       ) : (
         <div>
-          {cart.map((item) => (
-            <div
-              key={item.id}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "10px",
-                borderBottom: "1px solid #ccc",
-                paddingBottom: "10px",
-              }}
-            >
-              <div>
-                <p>{item.name}</p>
-                <p>{item.price} грн</p>
-              </div>
-              <div>
-                <input
-                  type="number"
-                  min={1}
-                  value={item.qty}
-                  onChange={(e) =>
-                    handleQtyChange(item.id, parseInt(e.target.value))
-                  }
-                  style={{ width: "60px" }}
-                />
-                <button
-                  onClick={() => handleRemove(item.id)}
-                  style={{ marginLeft: "10px" }}
-                >
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="bg-white rounded-xl border shadow-sm hover:shadow-md transition-shadow"
+                style={{
+                  display: "flex",
+                  gap: 20,
+                  alignItems: "center",
+                  padding: 16,
+                  cursor: item.product?.slug ? "pointer" : "default",
+                }}
+                onClick={() => item.product?.slug && navigate(`/product/${item.product.slug}`)}
+                role={item.product?.slug ? "button" : undefined}
+                tabIndex={item.product?.slug ? 0 : undefined}
+              >
+                {/* Image */}
+                {(() => {
+                  const primary = item.product?.pictures?.find(p => (p as any)?.pictureType === 'PRIMARY') || item.product?.pictures?.[0];
+                  const imgUrl = primary?.url ? `http://localhost:8080/${primary.url}` : undefined;
+                  return imgUrl ? (
+                    <div style={{ width: 120, height: 120, borderRadius: 12, background: '#fff', border: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                      <img
+                        src={imgUrl}
+                        alt={item.product?.name}
+                        style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                      />
+                    </div>
+                  ) : (
+                    <div style={{ width: 120, height: 120, background: '#f3f4f6', borderRadius: 12 }} />
+                  );
+                })()}
+
+                {/* Info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: 15,
+                      overflow: 'hidden',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 5,
+                      WebkitBoxOrient: 'vertical',
+                    }}
+                  >
+                    {item.product?.name}
+                  </div>
+                  <div style={{ color: "#6b7280", fontSize: 14 }}>{item.product?.price?.toFixed(2)} грн</div>
+                </div>
+
+                {/* Qty controls */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }} onClick={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const pid = Number((item.product as any)?.id);
+                      if (Number.isFinite(pid)) changeQuantityDelta(pid, -1, item.quantity);
+                    }}
+                    disabled={loading || item.quantity <= 1}
+                    style={{ width: 32, height: 32, borderRadius: 6 }}
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    min={1}
+                    value={pendingQty[item.id] ?? item.quantity}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const parsed = Number.parseInt(val, 10);
+                      setPendingQty((m) => ({ ...m, [item.id]: Number.isFinite(parsed) ? parsed : 1 }));
+                    }}
+                    onBlur={() => {
+                      const pid = Number((item.product as any)?.id);
+                      if (!Number.isFinite(pid)) return;
+                      const desired = pendingQty[item.id] ?? item.quantity;
+                      commitQuantity(pid, desired, item.quantity);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const pid = Number((item.product as any)?.id);
+                        if (!Number.isFinite(pid)) return;
+                        const desired = pendingQty[item.id] ?? item.quantity;
+                        commitQuantity(pid, desired, item.quantity);
+                      }
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ width: 68, height: 32, padding: 4, borderRadius: 6, border: '1px solid #e5e7eb' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const pid = Number((item.product as any)?.id);
+                      if (Number.isFinite(pid)) changeQuantityDelta(pid, +1, item.quantity);
+                    }}
+                    disabled={loading}
+                    style={{ width: 32, height: 32, borderRadius: 6 }}
+                  >
+                    +
+                  </button>
+                </div>
+
+                {/* Remove */}
+                <button type="button" onClick={(e) => { e.stopPropagation(); removeItem(item.id); }} disabled={loading} style={{ marginLeft: 12 }}>
                   Видалити
                 </button>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
 
-          <h2>Загальна сума: {total} грн</h2>
-
-          {!isCheckout ? (
-            <button onClick={() => setIsCheckout(true)}>
-              Оформити замовлення
-            </button>
-          ) : (
-            <div style={{ marginTop: "20px" }}>
-              <h3>Оформлення замовлення</h3>
-              <div>
-                <label>Адреса:</label>
-                <input
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                />
-                {errors.address && (
-                  <p style={{ color: "red" }}>{errors.address}</p>
-                )}
+          <div className="bg-white border rounded-xl mt-4 sticky bottom-4 p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="text-lg font-semibold">Загальна сума: {total.toFixed(2)} грн</div>
+              <div className="flex gap-3">
+                <button
+                  onClick={clearAll}
+                  disabled={loading || items.length === 0}
+                  className="px-4 py-2 rounded-full border hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Очистити кошик
+                </button>
+                <a href="/checkout">
+                  <button
+                    disabled={items.length === 0}
+                    className="px-5 py-2 rounded-full bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50"
+                  >
+                    Перейти до оплати
+                  </button>
+                </a>
               </div>
-              <div>
-                <label>Контакт (email або телефон):</label>
-                <input
-                  value={contact}
-                  onChange={(e) => setContact(e.target.value)}
-                />
-                {errors.contact && (
-                  <p style={{ color: "red" }}>{errors.contact}</p>
-                )}
-              </div>
-              <div>
-                <label>Спосіб оплати:</label>
-                <input
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                />
-                {errors.paymentMethod && (
-                  <p style={{ color: "red" }}>{errors.paymentMethod}</p>
-                )}
-              </div>
-              <button onClick={handleCheckout} disabled={loading}>
-                {loading ? "Відправка..." : "Підтвердити замовлення"}
-              </button>
-              <button
-                onClick={() => setIsCheckout(false)}
-                style={{ marginLeft: "10px" }}
-              >
-                Скасувати
-              </button>
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>

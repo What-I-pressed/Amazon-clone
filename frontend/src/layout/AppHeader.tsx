@@ -5,6 +5,7 @@ import { AuthContext } from "../context/AuthContext";
 import { fetchSellerProfile } from "../api/seller";
 import type { Seller } from "../types/seller";
 import CategoryDropdown from "../components/CategoryDropdown";
+import { fetchCart } from "../api/cart";
 
 const Navbar: React.FC = () => {
   const [languageDropdown, setLanguageDropdown] = useState(false);
@@ -21,6 +22,7 @@ const Navbar: React.FC = () => {
   const { user, logoutUser } = auth;
 
   const [seller, setSeller] = useState<Seller | null>(null);
+  const [cartCount, setCartCount] = useState<number>(0);
 
   useEffect(() => {
     const loadSeller = async () => {
@@ -36,6 +38,28 @@ const Navbar: React.FC = () => {
       }
     };
     loadSeller();
+  }, [user]);
+
+  useEffect(() => {
+    const loadCart = async () => {
+      try {
+        if (!user) {
+          setCartCount(0);
+          return;
+        }
+        const items = await fetchCart();
+        const count = items.reduce((sum, it) => sum + (it.quantity || 0), 0);
+        setCartCount(count);
+      } catch {
+        setCartCount(0);
+      }
+    };
+    // initial load and on user change
+    loadCart();
+    // listen for global cart updates
+    const handleUpdated = () => loadCart();
+    window.addEventListener('cart:updated', handleUpdated as EventListener);
+    return () => window.removeEventListener('cart:updated', handleUpdated as EventListener);
   }, [user]);
 
   useEffect(() => {
@@ -200,9 +224,39 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
+          {/* Favourites */}
+          <div
+            className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
+            onClick={() => navigate("/favourites")}
+            title="Go to favourites"
+          >
+            Favourites
+          </div>
+
+          {/* Orders */}
+          <div
+            className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
+            onClick={() => navigate("/orders")}
+            title="Go to orders"
+          >
+            Orders
+          </div>
+
           {/* Cart */}
-          <div className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]">
+          <div
+            className="relative cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
+            onClick={() => navigate("/cart")}
+            title="Go to cart"
+          >
             Cart
+            {cartCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center"
+                aria-label={`Items in cart: ${cartCount}`}
+              >
+                {cartCount}
+              </span>
+            )}
           </div>
         </div>
       </div>
