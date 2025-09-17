@@ -53,7 +53,7 @@ export default function CategoryDropdown({ onSelect }: CategoryDropdownProps) {
     <div className="relative" ref={dropdownRef}>
       <button
         type="button"
-        className="px-3 flex items-center h-10 bg-[#757575] text-white text-sm select-none transition-colors duration-300 ease-in-out hover:bg-[#343434] focus:outline-none"
+        className="px-3 flex rounded-md items-center h-10 bg-[#757575] text-white text-sm select-none transition-colors duration-300 ease-in-out hover:bg-[#343434] focus:outline-none"
         onClick={() => setIsOpen(prev => !prev)}
       >
         <span>{selected}</span>
