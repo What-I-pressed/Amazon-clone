@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { addFavourite, deleteFavourite } from "../api/favourites";
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { addFavourite } from "../api/favourites";
+import { addToCart as addToCartApi } from "../api/cart";
+import { fetchFavourites } from "../api/favourites";
+import { fetchCart } from "../api/cart";
 
 type ProductCardVariant = 'grid' | 'carousel';
 
@@ -27,25 +30,44 @@ const ProductCard: React.FC<ProductCardProps> = ({
   variant = 'grid',
   className = "",
 }) => {
+  const navigate = useNavigate();
   const [liked, setLiked] = useState(false);
-  const [favouriteId, setFavouriteId] = useState<number | null>(null);
   const [loadingFav, setLoadingFav] = useState(false);
+  const [addingCart, setAddingCart] = useState(false);
+  const [inCartQty, setInCartQty] = useState<number>(0);
 
-  const toggleFavourite = async () => {
-    if (!id) return; // cannot favourite without product id
+  useEffect(() => {
+    let mounted = true;
+    const init = async () => {
+      if (!id) return;
+      try {
+        const [favs, cartItems] = await Promise.allSettled([
+          fetchFavourites(),
+          fetchCart(),
+        ]);
+        if (!mounted) return;
+        if (favs.status === 'fulfilled') {
+          const f = favs.value.find((it) => Number(it.product?.id) === Number(id));
+          if (f) { setLiked(true); } else { setLiked(false); }
+        }
+        if (cartItems.status === 'fulfilled') {
+          const found = cartItems.value.find((ci) => Number(ci.product?.id) === Number(id));
+          setInCartQty(found ? (found.quantity || 0) : 0);
+        }
+      } catch {
+        // ignore
+      }
+    };
+    init();
+    return () => { mounted = false; };
+  }, [id]);
+
+  const addFavouriteOnce = async () => {
+    if (!id || liked) return; // cannot add if already liked
     try {
       setLoadingFav(true);
-      if (!liked) {
-        const createdId = await addFavourite(Number(id));
-        setFavouriteId(createdId);
-        setLiked(true);
-      } else {
-        if (favouriteId != null) {
-          await deleteFavourite(favouriteId);
-        }
-        setFavouriteId(null);
-        setLiked(false);
-      }
+      await addFavourite(Number(id));
+      setLiked(true);
     } catch (e) {
       // optional: show toast
     } finally {
@@ -53,30 +75,39 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }
   };
 
+  const handleAddToCart = async () => {
+    if (!id) return;
+    try {
+      setAddingCart(true);
+      await addToCartApi({ productId: Number(id), quantity: 1 });
+      // optional: show toast or update a global cart badge
+      window.dispatchEvent(new CustomEvent('cart:updated'));
+      setInCartQty((q) => q + 1);
+    } catch (e) {
+      // optional: show toast
+    } finally {
+      setAddingCart(false);
+    }
+  };
+
   const cardWidth = variant === 'carousel' ? 'w-72' : 'w-80';
   const imageHeight = variant === 'carousel' ? 'h-56' : 'h-80';
+  const displayedImageUrl = imageUrl?.startsWith('http') ? imageUrl : `http://localhost:8080/${imageUrl}`;
 
   return (
     <div
-      className={`${cardWidth} h-full flex rounded-md flex-col overflow-hidden bg-white ${className}`}
+      className={`${cardWidth} h-full flex rounded-md flex-col overflow-hidden bg-white ${className} ${slug ? 'cursor-pointer' : ''}`}
+      onClick={() => { if (slug) navigate(`/product/${slug}`); }}
+      role={slug ? 'button' : undefined}
+      tabIndex={slug ? 0 : undefined}
     >
       {/* Image + Discount */}
       <div className={`relative ${imageHeight} group overflow-hidden`}>
-        {slug ? (
-          <Link to={`/product/${slug}`} className="block w-full h-full">
-            <img 
-              src={imageUrl}
-              alt={title}
-              className="w-full h-full object-contain object-center transition-transform duration-300 group-hover:scale-105 cursor-pointer rounded-3xl bg-white"
-            />
-          </Link>
-        ) : (
-          <img 
-            src={imageUrl}
-            alt={title}
-            className="w-full h-full object-contain object-center transition-transform duration-300 group-hover:scale-105 rounded-3xl bg-white"
-          />
-        )}
+        <img 
+          src={displayedImageUrl}
+          alt={title}
+          className="w-full h-full object-contain object-center transition-transform duration-300 group-hover:scale-105 rounded-3xl bg-white"
+        />
         {discountPercent ? (
           <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-md">
             {discountPercent}
@@ -86,13 +117,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
       {/* Info */}
       <div className="p-4 space-y-2 flex flex-col">
-        {slug ? (
-          <Link to={`/product/${slug}`} className="block">
-            <h3 className="text-base font-medium text-gray-800 hover:underline cursor-pointer line-clamp-2">{title}</h3>
-          </Link>
-        ) : (
-          <h3 className="text-base font-medium text-gray-800 line-clamp-2">{title}</h3>
-        )}
+        <h3 className="text-base font-medium text-gray-800 line-clamp-2">{title}</h3>
 
         <div className="flex items-center gap-2">
           <span className="font-semibold text-black">{price}</span>
@@ -103,14 +128,18 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Button + Wishlist */}
         <div className="flex items-center gap-4 mt-auto pt-2">
-          <button className="flex-1 bg-[#282828] text-white rounded-3xl py-2.5 font-medium hover:opacity-90 transition">
-            Add to cart
+          <button
+            onClick={(e) => { e.stopPropagation(); handleAddToCart(); }}
+            disabled={addingCart || !id}
+            className="flex-1 bg-[#282828] text-white rounded-3xl py-2.5 font-medium hover:opacity-90 transition disabled:opacity-50"
+          >
+            {addingCart ? "Adding..." : inCartQty > 0 ? `In cart (${inCartQty})` : "Add to cart"}
           </button>
           <button
-            onClick={toggleFavourite}
-            disabled={loadingFav || !id}
+            onClick={(e) => { e.stopPropagation(); addFavouriteOnce(); }}
+            disabled={loadingFav || !id || liked}
             className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
-            title={liked ? "Remove from favourites" : "Add to favourites"}
+            title={liked ? "Already in favourites" : "Add to favourites"}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

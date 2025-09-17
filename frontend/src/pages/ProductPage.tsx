@@ -4,6 +4,8 @@ import type { Product } from "../types/product";
 import type { Seller } from "../types/seller";
 import { fetchProductBySlug } from "../api/products";
 import { fetchSellerProfileBySlug } from "../api/seller";
+import { addToCart as addToCartApi, fetchCart } from "../api/cart";
+import { addFavourite, deleteFavourite, fetchFavourites } from "../api/favourites";
 
 const ProductPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -18,6 +20,10 @@ const ProductPage: React.FC = () => {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const panStartRef = useRef<{ x: number; y: number } | null>(null);
+  const [addingCart, setAddingCart] = useState(false);
+  const [inCartQty, setInCartQty] = useState<number>(0);
+  const [liked, setLiked] = useState(false);
+  const [favouriteId, setFavouriteId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -37,6 +43,30 @@ const ProductPage: React.FC = () => {
           const sellerData = await fetchSellerProfileBySlug(productData.sellerSlug);
           if (!isMounted) return;
           setSeller(sellerData);
+        }
+        // compute if product already in cart
+        try {
+          const cartItems = await fetchCart();
+          if (!isMounted) return;
+          const found = cartItems.find((ci) => ci.product?.id === productData.id);
+          setInCartQty(found ? (found.quantity || 0) : 0);
+        } catch {
+          setInCartQty(0);
+        }
+        // load favourite state for this product
+        try {
+          const favs = await fetchFavourites();
+          if (!isMounted) return;
+          const match = favs.find((f) => f.product?.id === productData.id);
+          if (match) {
+            setLiked(true);
+            setFavouriteId(match.id);
+          } else {
+            setLiked(false);
+            setFavouriteId(null);
+          }
+        } catch {
+          // ignore favourites load error silently
         }
       } catch (e: unknown) {
         if (!isMounted) return;
@@ -76,6 +106,39 @@ const ProductPage: React.FC = () => {
     return next;
   });
   const resetZoom = () => { setZoom(1); setOffset({ x: 0, y: 0 }); };
+
+  const handleAddToCart = async () => {
+    if (!product?.id) return;
+    try {
+      setAddingCart(true);
+      await addToCartApi({ productId: Number(product.id), quantity: 1 });
+      window.dispatchEvent(new CustomEvent('cart:updated'));
+      setInCartQty((q) => q + 1);
+    } catch {
+      // optionally show toast
+    } finally {
+      setAddingCart(false);
+    }
+  };
+
+  const toggleFavourite = async () => {
+    if (!product?.id) return;
+    try {
+      if (!liked) {
+        const createdId = await addFavourite(Number(product.id));
+        setFavouriteId(createdId);
+        setLiked(true);
+      } else {
+        if (favouriteId != null) {
+          await deleteFavourite(favouriteId);
+        }
+        setFavouriteId(null);
+        setLiked(false);
+      }
+    } catch {
+      // optionally show toast
+    }
+  };
 
   // Keyboard navigation when lightbox is open
   useEffect(() => {
@@ -139,11 +202,19 @@ const ProductPage: React.FC = () => {
           <p className="text-gray-700 leading-relaxed">{product.description}</p>
 
           <div className="flex gap-3 mt-6">
-            <button className="flex-1 bg-[#282828] text-white rounded-3xl py-2.5 font-medium hover:opacity-90 transition">
-              Add to cart
+            <button
+              onClick={handleAddToCart}
+              disabled={addingCart}
+              className="flex-1 bg-[#282828] text-white rounded-3xl py-2.5 font-medium hover:opacity-90 transition disabled:opacity-50"
+            >
+              {addingCart ? "Adding..." : inCartQty > 0 ? `In cart (${inCartQty})` : "Add to cart"}
             </button>
-            <button className="w-10 h-10 rounded-full border bg-gray-300 border-gray-200 flex items-center justify-center hover:bg-gray-500 transition">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-6 h-6">
+            <button
+              onClick={toggleFavourite}
+              title={liked ? "Remove from favourites" : "Add to favourites"}
+              className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill={liked ? "red" : "none"} viewBox="0 0 24 24" strokeWidth={1.8} stroke={liked ? "red" : "currentColor"} className="w-6 h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.74 0-3.278 1.012-4.062 2.475A4.875 4.875 0 008.25 3.75C5.66 3.75 3.563 5.765 3.563 8.25c0 7.22 8.437 11.25 8.437 11.25s8.438-4.03 8.438-11.25z" />
               </svg>
             </button>
