@@ -18,6 +18,7 @@ public class ProductFilterDto {
     private Double lowerPriceBound = null;
     private Double upperPriceBound = null;
     private List<Long> sellerIds = null;
+    private List<String> slugs = null;
     private Map<String, String> characteristics = null;
 
 }

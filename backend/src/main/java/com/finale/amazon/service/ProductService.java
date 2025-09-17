@@ -53,7 +53,7 @@ public class ProductService {
     }
 
     private Specification<Product> getSpec(String name, Long categoryId, Double lowerBound,
-            Double upperBound,List<Long> sellersIds ,Map<String, String> characteristics) {
+            Double upperBound,List<Long> sellersIds, List<String> slugs,Map<String, String> characteristics) {
         Map<String, String> filtered = characteristics != null ? characteristics.entrySet().stream().filter(entry -> entry.getValue() != null)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)) : null;
         System.out.println("Name : " + name);
@@ -77,16 +77,17 @@ public class ProductService {
                 .reduce(Specification.where(null), Specification::and) : null;
 
         Specification<Product> sellerSpec = sellersIds != null ? sellersIds.stream().map(entry -> ProductSpecification.sellerIs(entry)).reduce(Specification.where(null), Specification::or) : null;
-
+        Specification<Product> slugSpec = slugs != null ? slugs.stream().map(entry -> ProductSpecification.sellerIs(entry)).reduce(Specification.where(null), Specification::or) : null;
         spec = spec.and(charSpec);
         spec = spec.and(sellerSpec);
+        spec = spec.and(slugSpec);
         return spec;
     }
 
     @Transactional(readOnly = true)
     public Page<ProductDto> getProductsPage(Pageable pageable, String name, Long categoryId, Double lowerBound,
-            Double upperBound, List<Long>sellersId, Map<String, String> characteristics) {
-        Specification<Product> spec = getSpec(name, categoryId, lowerBound, upperBound, sellersId,characteristics);
+            Double upperBound, List<Long>sellersId, List<String> slugs, Map<String, String> characteristics) {
+        Specification<Product> spec = getSpec(name, categoryId, lowerBound, upperBound, sellersId, slugs,characteristics);
 
         Page<Product> page = productRepository.findAll(spec, pageable);
         page.getContent().stream().forEach(prod -> prod.setPictures(pictureRepository.findMainPicture(prod.getId())));
