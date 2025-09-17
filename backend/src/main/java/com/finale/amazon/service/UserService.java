@@ -13,6 +13,8 @@ import com.finale.amazon.repository.UserRepository;
 import com.finale.amazon.security.JwtUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -50,21 +52,11 @@ public class UserService {
 
     private final String dirPath = "uploads/pictures/";
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     private String hashPassword(String password) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
-            StringBuilder hexString = new StringBuilder();
-            for (byte b : hash) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1)
-                    hexString.append('0');
-                hexString.append(hex);
-            }
-            return hexString.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error hashing password", e);
-        }
+        return passwordEncoder.encode(password);
     }
 
     public String generateVerificationToken(User user) {
@@ -78,8 +70,7 @@ public class UserService {
     }
 
     private boolean verifyPassword(String password, String hashedPassword) {
-
-        return hashPassword(password).equals(hashedPassword);
+        return passwordEncoder.matches(password, hashedPassword);
     }
 
     // private void cp(String password, String email){
@@ -97,7 +88,6 @@ public class UserService {
     public User getUserById(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
     }
-    
 
     public Optional<User> getUserByEmail(String email) {
         try {
@@ -109,6 +99,62 @@ public class UserService {
         } catch (Exception e) {
             return Optional.empty();
         }
+    }
+
+    public User createUser(UserRequestDto userRequestDto) {
+        User user = new User();
+        user.setUsername(userRequestDto.getUsername());
+        user.setEmail(userRequestDto.getEmail());
+        user.setDescription(userRequestDto.getDescription());
+        user.setBlocked(false);
+
+
+        Role role = roleRepository.findByName(userRequestDto.getRoleName())
+                .orElseThrow(() -> new RuntimeException("Role not found"));
+        user.setRole(role);
+        user.setCreatedAt(LocalDateTime.now());
+
+        if (userRequestDto.getPassword() != null && !userRequestDto.getPassword().isEmpty()) {
+            System.out.println(userRequestDto.getPassword());
+            user.setPassword(hashPassword(userRequestDto.getPassword()));
+        } else {
+            throw new RuntimeException("Password is required");
+        }
+
+        if ("SELLER".equalsIgnoreCase(role.getName())) {
+            user.setSlug(generateUniqueSellerSlug());
+        }
+
+        return userRepository.save(user);
+    }
+
+    public Optional<User> authenticateUser(String email, String password) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return Optional.empty();
+        }
+        User user = userOpt.get();
+
+        if (!user.isEmailVerified()) {
+            throw new RuntimeException("User email is unverified");
+        }
+        if (user.isBlocked()) {
+            throw new RuntimeException("User account is blocked");
+        }
+        if (user.getPassword() == null || user.getPassword().isEmpty()) {
+            // лог: hash відсутній
+            return Optional.empty();
+        }
+
+        boolean matches = passwordEncoder.matches(password, user.getPassword());
+        System.out.println("Auth attempt for " + email + " — hash-prefix: " + user.getPassword().substring(0, 4) +
+                " len=" + user.getPassword().length() + " matches=" + matches);
+
+        if (!matches) {
+            return Optional.empty();
+        }
+
+        return Optional.of(user);
     }
 
     public Optional<User> getUserBySlug(String slug) {
@@ -142,36 +188,6 @@ public class UserService {
         }
     }
 
-    public User createUser(UserRequestDto userRequestDto) {
-        try {
-
-            User user = new User();
-            user.setUsername(userRequestDto.getUsername());
-            user.setEmail(userRequestDto.getEmail());
-            user.setPassword(userRequestDto.getPassword());
-            user.setDescription(userRequestDto.getDescription());
-            user.setBlocked(false);
-
-            Role role = roleRepository.findByName(userRequestDto.getRoleName())
-                    .orElseThrow(() -> new RuntimeException("Role not found"));
-            user.setRole(role);
-            user.setCreatedAt(LocalDateTime.now());
-
-            if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-                user.setPassword(hashPassword(user.getPassword()));
-            } else
-                throw new RuntimeException("Password is required");
-
-            if (role != null && "SELLER".equalsIgnoreCase(role.getName())) {
-                user.setSlug(generateUniqueSellerSlug());
-            }
-
-            return userRepository.save(user);
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
-    }
-
     public User updateUser(Long id, User userDetails) {
         Optional<User> optionalUser = userRepository.findById(id);
 
@@ -189,7 +205,7 @@ public class UserService {
             if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
                 existingUser.setPassword(hashPassword(userDetails.getPassword()));
             }
-            
+
             if (userDetails.getRole() != null) {
                 existingUser.setRole(userDetails.getRole());
             }
@@ -211,23 +227,6 @@ public class UserService {
         } else {
             throw new RuntimeException("User not found with id: " + id);
         }
-    }
-
-    public Optional<User> authenticateUser(String email, String password) {
-        Optional<User> user = getUserByEmail(email);
-        // cp(password, email);
-        if (!user.get().isEmailVerified()) {
-            throw new RuntimeException("User email is unverified");
-        }
-
-        if (user.isPresent() && verifyPassword(password, user.get().getPassword())) {
-            if (user.get().isBlocked()) {
-                throw new RuntimeException("User account is blocked");
-            }
-            return user;
-        }
-
-        return Optional.empty();
     }
 
     public String authenticateToken(String token) {
@@ -276,7 +275,7 @@ public class UserService {
         return false;
     }
 
-    public User updateUserProfile(Long userId, String name, String description) throws IOException  {
+    public User updateUserProfile(Long userId, String name, String description) throws IOException {
         Optional<User> optionalUser = userRepository.findById(userId);
 
         if (optionalUser.isPresent()) {
@@ -293,13 +292,12 @@ public class UserService {
         throw new RuntimeException("User not found with id: " + userId);
     }
 
-    public User updateUserProfile(Long userId, MultipartFile file) throws IOException  {
+    public User updateUserProfile(Long userId, MultipartFile file) throws IOException {
         Optional<User> optionalUser = userRepository.findById(userId);
 
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
 
-            
             if (file != null) {
                 Picture picture = new Picture();
                 Files.createDirectories(Paths.get(dirPath));

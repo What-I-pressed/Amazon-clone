@@ -18,6 +18,7 @@ import com.finale.amazon.dto.UserLoginRequestDto;
 import com.finale.amazon.dto.UserRegistrationDto;
 import com.finale.amazon.dto.UserRequestDto;
 import com.finale.amazon.entity.User;
+import com.finale.amazon.repository.UserRepository;
 import com.finale.amazon.security.JwtUtil;
 import com.finale.amazon.service.UserService;
 
@@ -47,6 +48,9 @@ public class AuthController {
 
     @Autowired
     private JavaMailSender mailSender;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<String> handleValidationErrors(MethodArgumentNotValidException ex) {
@@ -96,7 +100,7 @@ public class AuthController {
             User user = userService.getUserByEmail(email)
                     .orElseThrow(() -> new RuntimeException("User not found"));
             user.setEmailVerified(true);
-            userService.updateUser(user.getId(), user);
+            userRepository.save(user);
             return ResponseEntity.ok("Email verified");
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Error verifying email: " + e.getMessage());
