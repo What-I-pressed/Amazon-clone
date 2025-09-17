@@ -5,6 +5,7 @@ import { AuthContext } from "../context/AuthContext";
 import { fetchSellerProfile } from "../api/seller";
 import type { Seller } from "../types/seller";
 import CategoryDropdown from "../components/CategoryDropdown";
+import { fetchCart } from "../api/cart";
 
 const Navbar: React.FC = () => {
   const [languageDropdown, setLanguageDropdown] = useState(false);

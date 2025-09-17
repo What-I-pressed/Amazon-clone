@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import { ChevronRight, SlidersHorizontal, X } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { SlidersHorizontal, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { searchProducts } from '../api/search';
 import ProductCard from './ProductCard';
@@ -167,19 +167,19 @@ const SearchResults: React.FC = () => {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
               >
-                <Link to={`/product/${product.slug}`} className="block">
-                  <ProductCard
-                    id={product.id}
-                    slug={product.slug}
-                    imageUrl={
-                      product.pictures && product.pictures.length > 0
-                        ? `http://localhost:8080/${product.pictures[0].url}`
-                        : '/images/product/placeholder.jpg'
-                    }
-                    title={product.name || ''}
-                    price={`$${Number(product.price).toLocaleString()}`}
-                  />
-                </Link>
+                {(() => {
+                  const primary = product.pictures?.find(p => p.pictureType === 'PRIMARY') || product.pictures?.[0];
+                  const imgUrl = primary?.url ? `http://localhost:8080/${primary.url}` : '/images/product/placeholder.jpg';
+                  return (
+                    <ProductCard
+                      id={product.id}
+                      slug={product.slug}
+                      imageUrl={imgUrl}
+                      title={product.name || ''}
+                      price={`$${Number(product.price).toLocaleString()}`}
+                    />
+                  );
+                })()}
               </motion.div>
             ))}
           </AnimatePresence>
