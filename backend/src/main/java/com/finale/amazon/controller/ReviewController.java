@@ -144,13 +144,8 @@ public class ReviewController {
     @Operation(summary = "Отримати відгук за ID", description = "Повертає відгук разом з інформацією про користувача та батьківський/дочірні відгуки")
     @GetMapping("/{id}")
     public ResponseEntity<?> getReviewById(
-            @RequestParam String token,
             @Parameter(description = "ID відгуку") @PathVariable Long id
     ) {
-        if (jwtUtil.isTokenExpired(token)) {
-            return ResponseEntity.status(400).body("Token expired");
-        }
-
         Optional<Review> reviewOpt = reviewService.getReviewById(id);
         return reviewOpt.map(review -> ResponseEntity.ok(new ReviewDto(review)))
                         .orElseGet(() -> ResponseEntity.notFound().build());
@@ -158,10 +153,7 @@ public class ReviewController {
 
     @Operation(summary = "Отримати всі відгуки продукту", description = "Повертає список всіх головних відгуків продукту разом із відповідями на них")
     @GetMapping("/product/{productId}")
-    public ResponseEntity<?> getAllReviewsByProduct(@RequestParam String token,@PathVariable Long productId) {
-        if (jwtUtil.isTokenExpired(token)) {
-            return ResponseEntity.status(400).body("Token is expired");
-        }
+    public ResponseEntity<?> getAllReviewsByProduct(@PathVariable Long productId) {
         List<ReviewDto> reviews = reviewService.getAllReviewsByProduct(productId);
         return ResponseEntity.ok(reviews);
     }
