@@ -61,3 +61,24 @@ export async function fetchSellerProductsBySlug(
     throw error;
   }
 }
+
+// Best-effort fetch by numeric ID. Tries common patterns used in backends.
+export async function fetchProductById(id: number): Promise<Product | null> {
+  const candidates = [
+    `${API_BASE}/id/${id}`,
+    `${API_BASE}/${id}`,
+  ];
+
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        return data as Product;
+      }
+    } catch {
+      // try next
+    }
+  }
+  return null;
+}

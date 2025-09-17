@@ -1,4 +1,11 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import type { Product } from "../types/product";
+import type { Seller } from "../types/seller";
+import { fetchProductBySlug } from "../api/products";
+import { fetchSellerProfileBySlug } from "../api/seller";
+import { addToCart as addToCartApi, fetchCart } from "../api/cart";
+import { addFavourite, deleteFavourite, fetchFavourites } from "../api/favourites";
 
 // Mock icon components since they're imported but not defined
 const PlusIcon = ({ className }: { className?: string }) => (
@@ -51,9 +58,14 @@ const ProductPage = () => {
   // Missing refs
   const wheelCooldownRef = useRef(0);
   const panStartRef = useRef<{ x: number; y: number } | null>(null);
+  const [addingCart, setAddingCart] = useState(false);
+  const [inCartQty, setInCartQty] = useState<number>(0);
+  const [liked, setLiked] = useState(false);
+  const [favouriteId, setFavouriteId] = useState<number | null>(null);
 
   // Mock data (since the original data fetching is incomplete)
   const product = {
+    id: 1,
     name: "Modern Bookshelf",
     price: 60,
     description: "Upgrade your bedroom with this elegant double bed and matching side tables. Crafted from high-quality wood with a modern design, it combines comfort and style to enhance your living space.",
@@ -160,6 +172,7 @@ const ProductPage = () => {
   });
   
   const resetZoom = () => { setZoom(1); setOffset({ x: 0, y: 0 }); };
+
 
   // Keyboard navigation when lightbox is open
   useEffect(() => {
