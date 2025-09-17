@@ -292,10 +292,12 @@ const ProductPage: React.FC = () => {
         {/* Product Info */}
         <div className="space-y-4 relative">
           <button 
-            onClick={() => setIsFavorite(!isFavorite)}
+            onClick={toggleFavourite}
             className="absolute top-0 right-0 w-10 h-10 rounded-full flex items-center justify-center transition"
           >
-            <Heart className={`w-6 h-6 ${isFavorite ? 'text-red-500 fill-red-500' : ''}`} />
+            <svg xmlns="http://www.w3.org/2000/svg" fill={liked ? "red" : "none"} viewBox="0 0 24 24" strokeWidth={1.8} stroke={liked ? "red" : "currentColor"} className="w-6 h-6">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.74 0-3.278 1.012-4.062 2.475A4.875 4.875 0 008.25 3.75C5.66 3.75 3.563 5.765 3.563 8.25c0 7.22 8.437 11.25 8.437 11.25s8.438-4.03 8.438-11.25z" />
+            </svg>
           </button>
           <h1 className="text-3xl font-bold pr-12">{product.name}</h1>
           <p className="text-2xl font-semibold">${product.price.toLocaleString()}</p>
@@ -317,11 +319,24 @@ const ProductPage: React.FC = () => {
               </div>
             </Link>
           )}
-
-          <p className="text-2xl font-semibold">$ {product.price.toLocaleString()}</p>
-          <p className="text-gray-700 leading-relaxed">{product.description}</p>
-
-          <div className="flex gap-3 mt-6">
+          
+          {/* Dividing line between seller info and description */}
+          <div className="border-t border-[#DDDDDD] my-8"></div>
+          
+          <p className="text-gray-700 leading-relaxed">
+            {showFullDescription ? product.description : product.description.slice(0, 500)}
+            {!showFullDescription && product.description.length > 500 && '... '}
+            {!showFullDescription && product.description.length > 500 && (
+              <button 
+                onClick={() => setShowFullDescription(true)}
+                className="text-black"
+              >
+                Load more
+              </button>
+            )}
+          </p>
+          
+          <div className="flex gap-3">
             <button
               onClick={handleAddToCart}
               disabled={addingCart}
@@ -337,6 +352,13 @@ const ProductPage: React.FC = () => {
               <svg xmlns="http://www.w3.org/2000/svg" fill={liked ? "red" : "none"} viewBox="0 0 24 24" strokeWidth={1.8} stroke={liked ? "red" : "currentColor"} className="w-6 h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.74 0-3.278 1.012-4.062 2.475A4.875 4.875 0 008.25 3.75C5.66 3.75 3.563 5.765 3.563 8.25c0 7.22 8.437 11.25 8.437 11.25s8.438-4.03 8.438-11.25z" />
               </svg>
+            </button>
+          </div>
+          <div className="mt-4 space-y-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 17h4V5H2v12h3m5 0l-3 3l-3-3m12 2v-2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2m0-4V7a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v6"/>
+              </svg>
               <span>Free worldwide shipping on all orders over $100</span>
             </div>
             <div className="flex items-center gap-2">
@@ -345,10 +367,6 @@ const ProductPage: React.FC = () => {
                 <path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/>
               </svg>
               <span>Delivers in 3-7 Working Days</span>
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <div className="flex-1 text-gray-700 rounded-3xl py-2.5 font-medium hover:opacity-90 transition">
             </div>
           </div>
         </div>
