@@ -73,7 +73,7 @@ const HomePage: React.FC = () => {
     <div className="flex flex-col items-center space-y-4">
       <div className="w-41 h-41 rounded-full flex items-center justify-center overflow-hidden"
            style={{ backgroundColor: styles.colors.categoryBg }}>
-        <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+        <img src={imageUrl} alt={title} className="max-w-full max-h-full object-contain object-center" />
       </div>
       <div className={styles.layout.textCenter}>
         <h3 className={styles.typography.categoryTitle} style={{ color: styles.colors.categoryText }}>
@@ -530,8 +530,8 @@ const HomePage: React.FC = () => {
                   disabled={!canScroll || isScrolling}
                   className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300 transform hover:scale-105 active:scale-95 ${
                     canScroll && !isScrolling
-                      ? 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 cursor-pointer'
-                      : 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-50'
+                      ? 'border-gray-200 hover:border-gray-300 hover:bg-white cursor-pointer'
+                      : 'border-gray-100 bg-white cursor-not-allowed opacity-50'
                   }`}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

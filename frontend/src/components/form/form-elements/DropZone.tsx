@@ -26,7 +26,7 @@ const DropzoneComponent: React.FC = () => {
         ${
           isDragActive
             ? "border-brand-500 bg-gray-100 dark:bg-gray-800"
-            : "border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
+            : "border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-900"
         }
       `}
           id="demo-upload"

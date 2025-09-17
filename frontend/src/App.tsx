@@ -53,7 +53,6 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/catalog" element={<CatalogPage />} />
           <Route path="/product/:slug" element={<ProductPage />} />
-
           <Route path="seller">
             <Route path=":slug" element={<SellerProfile />} /> 
             <Route path="dashboard" element={<SellerDashboard />} /> 

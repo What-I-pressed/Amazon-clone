@@ -46,15 +46,15 @@ export default function SellerProfile() {
     : "/images/avatar-placeholder.png";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="max-w-[1332px] mx-auto py-8 px-6">
         {/* Banner */}
         {seller.banner && (
-          <div className="rounded-2xl overflow-hidden mb-8 h-[232px]">
+          <div className="rounded-2xl overflow-hidden mb-8 h-[232px] bg-white flex items-center justify-center">
             <img
               src={seller.banner}
               alt="banner"
-              className="w-full h-full object-cover"
+              className="max-w-full max-h-full object-contain"
             />
           </div>
         )}
