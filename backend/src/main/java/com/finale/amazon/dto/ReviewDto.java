@@ -28,7 +28,13 @@ public class ReviewDto {
             this.username = review.getUser().getUsername();
             this.userId = review.getUser().getId();
         }
-        parentId = review.getParent().getId();
+        if (review.getParent() != null) {
+            this.parentId = review.getParent().getId();
+        }
+        if (review.getProduct() != null) {
+            this.productId = review.getProduct().getId();
+        }
+
         stars = (long)review.getStars();
     }
 } 

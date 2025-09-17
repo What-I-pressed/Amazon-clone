@@ -35,6 +35,7 @@ import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import ProfilePage from "./pages/ProfilePage";
 import ChatPage from "./pages/ChatPage";
+import SearchResults from "./pages/SearchResults";
 
 // Seller
 import SellerProfile from "./pages/Seller/Profile";
@@ -51,16 +52,18 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/catalog" element={<CatalogPage />} />
-          <Route path="/product/:id" element={<ProductPage />} />
+          <Route path="/product/:slug" element={<ProductPage />} />
           <Route path="seller">
-              <Route index element={<SellerProfile />} /> 
-              <Route path="dashboard" element={<SellerDashboard />} /> 
-              <Route path="edit" element={<SellerEditProfile />} /> 
-            </Route>
+            <Route path=":slug" element={<SellerProfile />} /> 
+            <Route path="dashboard" element={<SellerDashboard />} /> 
+            <Route path="edit" element={<SellerEditProfile />} /> 
+          </Route>
+
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/chat" element={<ChatPage />} />
+          <Route path="/search" element={<SearchResults />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegistrationForm />} />
         </Route>

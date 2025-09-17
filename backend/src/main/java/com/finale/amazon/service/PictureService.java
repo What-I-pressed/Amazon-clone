@@ -51,6 +51,29 @@ public class PictureService {
         Picture saved = pictureRepository.save(picture);
         return new PictureDto(saved);
     }
+    public PictureDto replacePicture(Long pictureId, MultipartFile file) throws IOException {
+        Picture picture = pictureRepository.findById(pictureId)
+                .orElseThrow(() -> new RuntimeException("Picture not found"));
+
+        Files.deleteIfExists(Paths.get(dirPath + picture.getPath()));
+        String path = UUID.randomUUID().toString() + ".jpg";
+        Files.write(Paths.get(dirPath + path), file.getBytes());
+
+        picture.setPath(path);
+        picture.setName(file.getOriginalFilename());
+
+        Picture saved = pictureRepository.save(picture);
+        return new PictureDto(saved);
+    }
+
+    public void deletePicture(Long pictureId) throws IOException {
+        Picture picture = pictureRepository.findById(pictureId)
+                .orElseThrow(() -> new RuntimeException("Picture not found"));
+
+        Files.deleteIfExists(Paths.get(dirPath + picture.getPath()));
+
+        pictureRepository.delete(picture);
+    }
 
     public Optional<PictureDto> getPicture(Long id) {
         return pictureRepository.findById(id)

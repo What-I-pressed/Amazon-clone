@@ -25,7 +25,7 @@ const BannerSlider: React.FC = () => {
           <img
             src="https://via.placeholder.com/1000x400/2563eb/ffffff?text=Знижки+до+50%"
             alt="Знижки"
-            className="w-full h-96 object-cover rounded-2xl"
+            className="w-full h-96 object-contain rounded-2xl bg-white"
           />
         </SwiperSlide>
 
@@ -34,7 +34,7 @@ const BannerSlider: React.FC = () => {
           <img
             src="https://via.placeholder.com/1000x400/16a34a/ffffff?text=Нові+надходження"
             alt="Новинки"
-            className="w-full h-96 object-cover rounded-2xl"
+            className="w-full h-96 object-contain rounded-2xl bg-white"
           />
         </SwiperSlide>
 
@@ -43,7 +43,7 @@ const BannerSlider: React.FC = () => {
           <img
             src="https://via.placeholder.com/1000x400/f59e0b/ffffff?text=Рекомендовані+товари"
             alt="Рекомендовані"
-            className="w-full h-96 object-cover rounded-2xl"
+            className="w-full h-96 object-contain rounded-2xl bg-white"
           />
         </SwiperSlide>
       </Swiper>
