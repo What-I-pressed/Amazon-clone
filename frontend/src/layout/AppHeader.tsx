@@ -201,7 +201,11 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Cart */}
-          <div className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]">
+          <div
+            className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
+            onClick={() => navigate("/cart")}
+            title="Go to cart"
+          >
             Cart
           </div>
         </div>
