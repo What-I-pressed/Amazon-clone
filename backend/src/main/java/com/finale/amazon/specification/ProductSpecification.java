@@ -25,6 +25,15 @@ public class ProductSpecification {
         };
     }
 
+    public static Specification<Product> sellerIs(String slug) {
+        return (root, query, cb) -> {
+
+            if(slug == null ) return null;
+            Join<Product, User> seller = root.join("seller", JoinType.LEFT);
+                    return cb.equal(seller.get("slug"), slug);
+        };
+    }
+
     public static Specification<Product> hasCategory(Long categoryId) {
         return (root, query, cb) -> categoryId == null ? null
                 : cb.equal(root.get("category").get("id"), categoryId);
