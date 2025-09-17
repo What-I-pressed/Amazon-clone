@@ -44,10 +44,7 @@ public class OrderController {
         User seller  = userService.getUserById(jwtUtil.extractUserId(token));
         List<Order> orders = orderService.getOrdersBySeller(seller);
 
-        if (orders.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(orders.stream().map(OrderDto::new).collect(Collectors.toList()));
     }
 
     @Operation(summary = "Отримати замовлення користувача", description = "Повертає всі замовлення поточного користувача")
