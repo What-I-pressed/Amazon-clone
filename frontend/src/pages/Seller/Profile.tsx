@@ -60,32 +60,35 @@ export default function SellerProfile() {
         )}
 
         {/* Seller Info */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 flex items-center gap-6 mb-8">
+        <div className="rounded-2xl border border-[#e0e0e0] p-8 flex items-center gap-8 mb-8">
           <img
             src={avatarUrl}
             alt="avatar"
-            className="w-[83px] h-[83px] rounded-full object-cover"
+            className="w-20 h-20 rounded-full object-cover"
           />
           <div className="flex-1">
-            <h1 className="text-2xl font-semibold">{seller.username}</h1>
+            <h1 className="text-3xl font-bold text-[#333]">{seller.username}</h1>
             {seller.description && (
-              <p className="text-sm text-gray-500">{seller.description}</p>
+              <p className="text-base text-[#666] mt-2">{seller.description}</p>
             )}
           </div>
         </div>
 
          {/* Products */}
         <main className="col-span-9">
-          <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+          <div className="p-6 mb-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold">Товари продавця</h2>
-                <p className="text-sm text-gray-500">Знайдено: {products.length}</p>
+                <h2 className="text-4xl font-semibold">All items</h2>
+                <p className="text-[#4D4D4D]">found: {products.length}</p>
+                <br />
+                <div className="border-t border-[#e0e0e0] my-3"></div>
+                <p className="text-[#a8a8a8]">All items below are created and listed by the same seller. Explore more from this author</p>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
             {products.map((product) => (
               <Link key={product.id} to={`/product/${product.slug}`}>
                 <ProductCard

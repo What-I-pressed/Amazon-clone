@@ -182,8 +182,6 @@ public class ProductService {
         }
         if (dto.getSellerId() != null) {
             userRepository.findById(dto.getSellerId()).ifPresent(product::setSeller);
-            characteristicTypeRepository.findByName(dto.getCharacteristicTypeName().toLowerCase())
-                    .ifPresent(product::setCharacteristic);
         }
 
         if (dto.getCharacteristics() != null) {

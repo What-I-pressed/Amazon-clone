@@ -29,6 +29,13 @@ export async function createOrder(payload: OrderCreationDto): Promise<any> {
   return res.data;
 }
 
+// Get orders that include items of the current seller
+export async function fetchSellerOrders(): Promise<any[]> {
+  const token = getToken();
+  const res = await api.get(`/orders/seller/orders`, { params: { token } });
+  return Array.isArray(res.data) ? res.data : [];
+}
+
 export async function fetchOrders(): Promise<Order[]> {
     try {
         const res = await fetch(API_BASE);
