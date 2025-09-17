@@ -1,5 +1,6 @@
 import type { Product } from "../types/product";
 import type { Seller } from "../types/seller";
+import api from "./axios";
 
 const API_BASE = "/api/products";
 const API_SELLER = "/api/seller";
@@ -81,4 +82,29 @@ export async function fetchProductById(id: number): Promise<Product | null> {
     }
   }
   return null;
+}
+
+// Create product for a seller using backend endpoint: POST /api/products/create/{sellerId}
+export interface ProductCreationPayload {
+  name: string;
+  description?: string;
+  price: number;
+  priceWithoutDiscount: number;
+  quantityInStock: number;
+  categoryName: string;
+  subcategoryName?: string;
+  characteristicTypeName?: string;
+  discountLaunchDate?: string; // ISO string
+  discountExpirationDate?: string; // ISO string
+  characteristics?: any[]; // optional
+  variations?: any[]; // optional
+}
+
+export async function createProductForSeller(
+  sellerId: number,
+  payload: ProductCreationPayload
+): Promise<Product> {
+  const body = { ...payload, sellerId };
+  const res = await api.post<Product>(`/products/create/${sellerId}`, body);
+  return res.data;
 }
