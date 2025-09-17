@@ -80,7 +80,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({
         {products.map((product) => (
           <div
             key={product.id}
-            className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+            className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg"
           >
             <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20">
               <img

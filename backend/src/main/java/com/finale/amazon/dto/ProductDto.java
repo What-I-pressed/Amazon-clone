@@ -33,6 +33,7 @@ public class ProductDto {
 
     private String sellerName;
     private Long sellerId;
+    private String sellerSlug;
     
     private List<CharacteristicDto> characteristics;
     private List<PictureDto> pictures;
@@ -50,6 +51,7 @@ public class ProductDto {
         this.discountExpirationDate = product.getDiscountExpirationDate();
         this.quantityInStock = product.getQuantityInStock();
         this.quantitySold = product.getQuantitySold();
+        this.sellerSlug = product.getSeller() != null ? product.getSeller().getSlug() : null;
         
         
         if (this.priceWithoutDiscount > 0) {

@@ -52,7 +52,7 @@ public class ProductController {
     }
 
     @Operation(summary = "Отримати продукт за slug", description = "Повертає продукт за його slug")
-    @GetMapping("/{slug:[a-zA-Z0-9-]+}")
+    @GetMapping("/{slug:.+}")
     public ResponseEntity<ProductDto> getProductBySlug(
             @Parameter(description = "Slug продукту") @PathVariable String slug) {
         Optional<Product> productOpt = productService.getProductBySlug(slug);

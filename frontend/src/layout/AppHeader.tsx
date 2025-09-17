@@ -74,8 +74,8 @@ const Navbar: React.FC = () => {
         </div>
 
         {/* Search bar */}
-        <div className="flex-grow">
-          <div className="flex rounded-md overflow-visible max-w-md mx-auto h-10 relative" style={{ backgroundColor: "#A2A2A2" }}>
+        <div className="flex-grow ">
+          <div className="flex rounded-full overflow-visible max-w-md mx-auto h-10 relative" style={{ backgroundColor: "#A2A2A2" }}>
             {/* Category dropdown */}
             <CategoryDropdown
               onSelect={(category) => {
@@ -96,7 +96,7 @@ const Navbar: React.FC = () => {
 
             {/* Search button */}
             <button
-              className="px-3 py-2 flex items-center justify-center transition-colors duration-300 ease-in-out hover:bg-[#343434] group focus:outline-none"
+              className="px-3 py-2 rounded-md flex items-center justify-center transition-colors duration-300 ease-in-out hover:bg-[#343434] group focus:outline-none"
               style={{ backgroundColor: "#757575" }}
               aria-label="Search"
               onClick={handleSearch}
@@ -148,8 +148,8 @@ const Navbar: React.FC = () => {
               onClick={() => setAccountDropdown(prev => !prev)}
             >
               <div className="flex items-center justify-center gap-2">
-                {seller?.avatar ? (
-                  <img src={seller.avatar} alt="avatar" className="w-6 h-6 rounded-full object-cover" />
+                {seller?.url ? (
+                  <img src={seller.url} alt="avatar" className="w-6 h-6 rounded-full object-cover" />
                 ) : null}
                 <span>
                   {user ? `Hello, ${seller?.username || user.username || user.email}` : "Hello, sign in"}
