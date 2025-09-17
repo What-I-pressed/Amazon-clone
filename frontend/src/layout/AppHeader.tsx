@@ -226,7 +226,7 @@ const Navbar: React.FC = () => {
               <div className="py-1">
                 {user ? (
                   <>
-                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/seller"}>
+                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => navigate(`/seller/${seller?.slug}`)}>
                       Seller Profile
                     </button>
                     <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/seller/dashboard"}>
