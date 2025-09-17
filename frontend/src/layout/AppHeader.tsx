@@ -207,9 +207,7 @@ const Navbar: React.FC = () => {
               onClick={() => setAccountDropdown(prev => !prev)}
             >
               <div className="flex items-center justify-center gap-2">
-                {seller?.url ? (
-                  <img src={seller.url} alt="avatar" className="w-6 h-6 rounded-full object-cover" />
-                ) : null}
+                
                 <span>
                   {user ? `Hello, ${seller?.username || user.username || user.email}` : "Hello, sign in"}
                 </span>
