@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import Logo from "../components/ui/avatar/logo.svg";
 import { AuthContext } from "../context/AuthContext";
 import { fetchSellerProfile } from "../api/seller";
@@ -9,6 +10,8 @@ const Navbar: React.FC = () => {
   const [languageDropdown, setLanguageDropdown] = useState(false);
   const [accountDropdown, setAccountDropdown] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
 
   const languageRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
@@ -52,6 +55,12 @@ const Navbar: React.FC = () => {
     window.location.href = "/";
   };
 
+  const handleSearch = () => {
+    if (searchTerm.trim()) {
+      navigate(`/search?query=${searchTerm.trim()}`);
+    }
+  };
+
   return (
     <nav style={{ backgroundColor: "#434343" }} className="text-white py-4 relative">
       <div className="max-w-7xl mx-auto px-8 flex items-center gap-8">
@@ -80,6 +89,9 @@ const Navbar: React.FC = () => {
               className="w-full px-3 text-white bg-transparent focus:outline-none placeholder-white text-sm hover:placeholder-gray-300 transition-colors duration-500 ease-in-out"
               placeholder="Nexora Search"
               type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             />
 
             {/* Search button */}
@@ -87,6 +99,7 @@ const Navbar: React.FC = () => {
               className="px-3 py-2 flex items-center justify-center transition-colors duration-300 ease-in-out hover:bg-[#343434] group focus:outline-none"
               style={{ backgroundColor: "#757575" }}
               aria-label="Search"
+              onClick={handleSearch}
             >
               <span className="material-icons font-normal text-sm text-black group-hover:text-white transition-colors duration-300 ease-in-out">
                 search
