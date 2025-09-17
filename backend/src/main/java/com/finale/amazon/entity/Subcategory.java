@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import lombok.*;
 
 @Entity
@@ -18,7 +19,7 @@ public class Subcategory {
 
     private String name;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id", nullable = false)
+    @OneToOne
+    @JoinColumn
     private Category category;
 }

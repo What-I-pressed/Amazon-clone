@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.finale.amazon.service.CategoryService;
 import com.finale.amazon.service.CharacteristicService;
 import com.finale.amazon.service.SellerService;
 
@@ -21,6 +22,9 @@ public class CharacteristicController {
     @Autowired
     private SellerService sellerService;
 
+    @Autowired
+    private CategoryService categoryService;
+
     @GetMapping("/custom")
     public ResponseEntity<?> getCustomCharacteristicList(@RequestParam Long subcategoryId){
         return ResponseEntity.ok(characteristicService.belongsToSubcategory(subcategoryId));
@@ -29,5 +33,10 @@ public class CharacteristicController {
     @GetMapping("/sellers/")
     public ResponseEntity<?> getSellersBySubcategoryId(@RequestParam Long subcategoryId){
         return ResponseEntity.ok(sellerService.getBySubcategoryId(subcategoryId));
+    }
+
+    @GetMapping("/categories/")
+    public ResponseEntity<?> getCategories(){
+        return ResponseEntity.ok(categoryService.getCategoryList());
     }
 }

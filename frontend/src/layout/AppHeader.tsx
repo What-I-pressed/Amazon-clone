@@ -3,14 +3,14 @@ import Logo from "../components/ui/avatar/logo.svg";
 import { AuthContext } from "../context/AuthContext";
 import { fetchSellerProfile } from "../api/seller";
 import type { Seller } from "../types/seller";
+import CategoryDropdown from "../components/CategoryDropdown";
 
 const Navbar: React.FC = () => {
   const [languageDropdown, setLanguageDropdown] = useState(false);
-  const [categoryDropdown, setCategoryDropdown] = useState(false);
   const [accountDropdown, setAccountDropdown] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
   const languageRef = useRef<HTMLDivElement>(null);
-  const categoryRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
 
   const auth = useContext(AuthContext);
@@ -40,9 +40,6 @@ const Navbar: React.FC = () => {
       if (languageRef.current && !languageRef.current.contains(event.target as Node)) {
         setLanguageDropdown(false);
       }
-      if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) {
-        setCategoryDropdown(false);
-      }
       if (accountRef.current && !accountRef.current.contains(event.target as Node)) {
         setAccountDropdown(false);
       }
@@ -69,47 +66,14 @@ const Navbar: React.FC = () => {
 
         {/* Search bar */}
         <div className="flex-grow">
-          <div className="flex rounded-md overflow-hidden max-w-md mx-auto h-10 relative" style={{ backgroundColor: "#A2A2A2" }}>
+          <div className="flex rounded-md overflow-visible max-w-md mx-auto h-10 relative" style={{ backgroundColor: "#A2A2A2" }}>
             {/* Category dropdown */}
-            <div className="relative" ref={categoryRef}>
-              <button
-                type="button"
-                className="px-3 flex items-center h-full bg-[#757575] text-white text-sm select-none transition-colors duration-300 ease-in-out hover:bg-[#343434] focus:outline-none"
-                onClick={(e) => { e.preventDefault(); setCategoryDropdown(prev => !prev); }}
-              >
-                <span>All</span>
-                <span className="material-icons ml-1" style={{ lineHeight: 1 }}>arrow_drop_down</span>
-              </button>
-
-              <div
-                className={`absolute top-full left-0 mt-1 w-48 rounded-md shadow-lg z-50 overflow-hidden transition-all duration-300 ease-out transform ${
-                  categoryDropdown ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
-                }`}
-                style={{ backgroundColor: "#757575" }}
-              >
-                <div className="py-1">
-                  {[
-                    "All Categories",
-                    "Electronics",
-                    "Clothing & Fashion",
-                    "Home & Garden",
-                    "Books",
-                    "Sports & Outdoors",
-                    "Health & Beauty",
-                    "Toys & Games",
-                    "Automotive",
-                  ].map(cat => (
-                    <button
-                      key={cat}
-                      className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-[#343434] transition-colors duration-200 ease-out focus:outline-none"
-                      onClick={(e) => { e.preventDefault(); setCategoryDropdown(false); }}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <CategoryDropdown
+              onSelect={(category) => {
+                setSelectedCategory(category);
+                console.log("Selected category:", category);
+              }}
+            />
 
             {/* Search input */}
             <input
@@ -146,9 +110,8 @@ const Navbar: React.FC = () => {
             </div>
 
             <div
-              className={`absolute top-full right-0 mt-1 w-20 rounded-md shadow-lg z-50 overflow-hidden transition-all duration-300 ease-out transform ${
-                languageDropdown ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
-              }`}
+              className={`absolute top-full right-0 mt-1 w-20 rounded-md shadow-lg z-50 overflow-hidden transition-all duration-300 ease-out transform ${languageDropdown ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
+                }`}
               style={{ backgroundColor: "#757575" }}
             >
               <div className="py-1">
@@ -186,9 +149,8 @@ const Navbar: React.FC = () => {
             </div>
 
             <div
-              className={`absolute top-full right-0 mt-1 w-32 rounded-md shadow-lg z-50 overflow-hidden transition-all duration-300 ease-out transform ${
-                accountDropdown ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
-              }`}
+              className={`absolute top-full right-0 mt-1 w-32 rounded-md shadow-lg z-50 overflow-hidden transition-all duration-300 ease-out transform ${accountDropdown ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
+                }`}
               style={{ backgroundColor: "#757575" }}
             >
               <div className="py-1">
