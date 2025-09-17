@@ -1,187 +1,144 @@
-import React, { useState } from "react";
-
-interface CartItem {
-  id: number;
-  name: string;
-  price: number;
-  qty: number;
-}
-
-interface OrderData {
-  items: CartItem[];
-  address: string;
-  contact: string;
-  paymentMethod: string;
-}
-
-interface FormErrors {
-  address?: string;
-  contact?: string;
-  paymentMethod?: string;
-}
+import React, { useEffect, useMemo, useState } from "react";
+import { fetchCart, addToCart, removeFromCart, clearCart, type CartItemResponseDto } from "../api/cart";
 
 const CartPage: React.FC = () => {
-  const [cart, setCart] = useState<CartItem[]>([
-    { id: 1, name: "Товар 1", price: 500, qty: 2 },
-    { id: 2, name: "Товар 2", price: 300, qty: 1 },
-    { id: 3, name: "Товар 3", price: 150, qty: 3 },
-  ]);
+  const [items, setItems] = useState<CartItemResponseDto[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [address, setAddress] = useState("");
-  const [contact, setContact] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("");
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [isCheckout, setIsCheckout] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const total = useMemo(() => {
+    return items.reduce((sum, it) => sum + (it.product?.price || 0) * it.quantity, 0);
+  }, [items]);
 
-  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-
-  
-  const handleQtyChange = (id: number, qty: number) => {
-    setCart((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, qty } : item))
-    );
-  };
-
-  
-  const handleRemove = (id: number) => {
-    setCart((prev) => prev.filter((item) => item.id !== id));
-  };
-
-  // валідація 
-  const validate = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!address.trim()) newErrors.address = "Адреса обов'язкова";
-    if (!contact.trim()) {
-      newErrors.contact = "Контакт обов'язковий";
-    } else if (
-      !/^\+?\d{10,15}$/.test(contact) &&
-      !/^[\w.-]+@[\w.-]+\.[A-Za-z]{2,}$/.test(contact)
-    ) {
-      newErrors.contact = "Введіть коректний email або номер телефону";
-    }
-    if (!paymentMethod.trim())
-      newErrors.paymentMethod = "Виберіть спосіб оплати";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  
-  const handleCheckout = () => {
-    if (!validate()) return;
-
-    setLoading(true);
-
-    const order: OrderData = { items: cart, address, contact, paymentMethod };
-    // тут можна викликати бекенд
-    setTimeout(() => {
-      console.log("Замовлення:", order);
-      alert("Замовлення успішно надіслано!");
-      setCart([]); 
-      setAddress("");
-      setContact("");
-      setPaymentMethod("");
-      setIsCheckout(false);
+  const load = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await fetchCart();
+      setItems(data);
+    } catch (e: any) {
+      setError(e?.response?.data?.message || e?.message || "Не вдалося завантажити кошик");
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const updateQuantity = async (productId: number, quantity: number) => {
+    if (quantity < 1) return;
+    try {
+      setLoading(true);
+      await addToCart({ productId, quantity });
+      // Reload to reflect server state
+      await load();
+    } catch (e: any) {
+      setError(e?.response?.data?.message || e?.message || "Не вдалося оновити кількість");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const removeItem = async (cartItemId: number) => {
+    try {
+      setLoading(true);
+      await removeFromCart(cartItemId);
+      setItems((prev) => prev.filter((i) => i.id !== cartItemId));
+    } catch (e: any) {
+      setError(e?.response?.data?.message || e?.message || "Не вдалося видалити товар");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearAll = async () => {
+    try {
+      setLoading(true);
+      await clearCart();
+      setItems([]);
+    } catch (e: any) {
+      setError(e?.response?.data?.message || e?.message || "Не вдалося очистити кошик");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div style={{ maxWidth: "600px", margin: "0 auto", padding: "20px" }}>
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: 20 }}>
       <h1>Кошик</h1>
 
-      {cart.length === 0 ? (
+      {loading && <p>Завантаження...</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      {items.length === 0 && !loading ? (
         <p>Ваш кошик порожній</p>
       ) : (
         <div>
-          {cart.map((item) => (
-            <div
-              key={item.id}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "10px",
-                borderBottom: "1px solid #ccc",
-                paddingBottom: "10px",
-              }}
-            >
-              <div>
-                <p>{item.name}</p>
-                <p>{item.price} грн</p>
-              </div>
-              <div>
-                <input
-                  type="number"
-                  min={1}
-                  value={item.qty}
-                  onChange={(e) =>
-                    handleQtyChange(item.id, parseInt(e.target.value))
-                  }
-                  style={{ width: "60px" }}
-                />
-                <button
-                  onClick={() => handleRemove(item.id)}
-                  style={{ marginLeft: "10px" }}
-                >
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {items.map((item) => (
+              <div
+                key={item.id}
+                style={{
+                  display: "flex",
+                  gap: 16,
+                  alignItems: "center",
+                  borderBottom: "1px solid #e5e7eb",
+                  paddingBottom: 12,
+                }}
+              >
+                {/* Image */}
+                {item.product?.pictures?.[0]?.url ? (
+                  <img
+                    src={item.product.pictures[0].url}
+                    alt={item.product.name}
+                    style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 8 }}
+                  />
+                ) : (
+                  <div style={{ width: 72, height: 72, background: "#f3f4f6", borderRadius: 8 }} />
+                )}
+
+                {/* Info */}
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600 }}>{item.product?.name}</div>
+                  <div style={{ color: "#6b7280" }}>{item.product?.price?.toFixed(2)} грн</div>
+                </div>
+
+                {/* Qty controls */}
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <button onClick={() => updateQuantity(Number(item.product.id), item.quantity - 1)} disabled={loading || item.quantity <= 1}>
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    min={1}
+                    value={item.quantity}
+                    onChange={(e) => updateQuantity(Number(item.product.id), parseInt(e.target.value) || 1)}
+                    style={{ width: 60 }}
+                  />
+                  <button onClick={() => updateQuantity(Number(item.product.id), item.quantity + 1)} disabled={loading}>
+                    +
+                  </button>
+                </div>
+
+                {/* Remove */}
+                <button onClick={() => removeItem(item.id)} disabled={loading} style={{ marginLeft: 12 }}>
                   Видалити
                 </button>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
 
-          <h2>Загальна сума: {total} грн</h2>
-
-          {!isCheckout ? (
-            <button onClick={() => setIsCheckout(true)}>
-              Оформити замовлення
-            </button>
-          ) : (
-            <div style={{ marginTop: "20px" }}>
-              <h3>Оформлення замовлення</h3>
-              <div>
-                <label>Адреса:</label>
-                <input
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                />
-                {errors.address && (
-                  <p style={{ color: "red" }}>{errors.address}</p>
-                )}
-              </div>
-              <div>
-                <label>Контакт (email або телефон):</label>
-                <input
-                  value={contact}
-                  onChange={(e) => setContact(e.target.value)}
-                />
-                {errors.contact && (
-                  <p style={{ color: "red" }}>{errors.contact}</p>
-                )}
-              </div>
-              <div>
-                <label>Спосіб оплати:</label>
-                <input
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                />
-                {errors.paymentMethod && (
-                  <p style={{ color: "red" }}>{errors.paymentMethod}</p>
-                )}
-              </div>
-              <button onClick={handleCheckout} disabled={loading}>
-                {loading ? "Відправка..." : "Підтвердити замовлення"}
-              </button>
-              <button
-                onClick={() => setIsCheckout(false)}
-                style={{ marginLeft: "10px" }}
-              >
-                Скасувати
-              </button>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 16 }}>
+            <h2>Загальна сума: {total.toFixed(2)} $</h2>
+            <div style={{ display: "flex", gap: 12 }}>
+              <button onClick={clearAll} disabled={loading || items.length === 0}>Очистити кошик</button>
+              <a href="/checkout">
+                <button disabled={items.length === 0}>Перейти до оплати</button>
+              </a>
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>
