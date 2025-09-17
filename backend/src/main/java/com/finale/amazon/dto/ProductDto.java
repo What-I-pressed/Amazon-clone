@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProductDto {
     private Long id;
+    private String slug;
     private String name;
     private String description;
     private double price;
@@ -32,6 +33,7 @@ public class ProductDto {
 
     private String sellerName;
     private Long sellerId;
+    private String sellerSlug;
     
     private List<CharacteristicDto> characteristics;
     private List<PictureDto> pictures;
@@ -40,6 +42,7 @@ public class ProductDto {
     
     public ProductDto(com.finale.amazon.entity.Product product) {
         this.id = product.getId();
+        this.slug = product.getSlug();
         this.name = product.getName();
         this.description = product.getDescription();
         this.price = product.getPrice();
@@ -48,6 +51,7 @@ public class ProductDto {
         this.discountExpirationDate = product.getDiscountExpirationDate();
         this.quantityInStock = product.getQuantityInStock();
         this.quantitySold = product.getQuantitySold();
+        this.sellerSlug = product.getSeller() != null ? product.getSeller().getSlug() : null;
         
         
         if (this.priceWithoutDiscount > 0) {

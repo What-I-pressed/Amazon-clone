@@ -5,6 +5,7 @@ import org.springframework.data.jpa.domain.Specification;
 import com.finale.amazon.entity.CharacteristicType;
 import com.finale.amazon.entity.CharacteristicValue;
 import com.finale.amazon.entity.Product;
+import com.finale.amazon.entity.User; 
 
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
@@ -18,24 +19,33 @@ public class ProductSpecification {
     public static Specification<Product> sellerIs(Long sellerId) {
         return (root, query, cb) -> {
 
-            if(sellerId == null ) return null
+
+            if(sellerId == null ) return null;
+
             Join<Product, User> seller = root.join("seller", JoinType.LEFT);
                     return cb.equal(seller.get("id"), sellerId);
         };
     }
 
+    public static Specification<Product> sellerIs(String slug) {
+        return (root, query, cb) -> {
+
+            if(slug == null ) return null;
+            Join<Product, User> seller = root.join("seller", JoinType.LEFT);
+                    return cb.equal(seller.get("slug"), slug);
+        };
+    }
+
     public static Specification<Product> hasCategory(Long categoryId) {
-        return (root, query, cb) -> categoryId == null ? null : cb.equal(root.get("category").get("id"), categoryId);
+        return (root, query, cb) -> categoryId == null ? null
+                : cb.equal(root.get("category").get("id"), categoryId);
     }
 
     public static Specification<Product> priceBetween(Double minPrice, Double maxPrice) {
         return (root, query, cb) -> {
-            if (minPrice == null && maxPrice == null)
-                return null;
-            if (minPrice == null)
-                return cb.lessThanOrEqualTo(root.get("price"), maxPrice);
-            if (maxPrice == null)
-                return cb.greaterThanOrEqualTo(root.get("price"), minPrice);
+            if (minPrice == null && maxPrice == null) return null;
+            if (minPrice == null) return cb.lessThanOrEqualTo(root.get("price"), maxPrice);
+            if (maxPrice == null) return cb.greaterThanOrEqualTo(root.get("price"), minPrice);
             return cb.between(root.get("price"), minPrice, maxPrice);
         };
     }
@@ -47,7 +57,8 @@ public class ProductSpecification {
 
             return cb.and(
                     cb.equal(cb.lower(names.get("name")), typeName.toLowerCase()),
-                    cb.like(cb.lower(values.get("value")), "%" + value.toLowerCase() + "%"));
+                    cb.like(cb.lower(values.get("value")), "%" + value.toLowerCase() + "%")
+            );
         };
     }
 }

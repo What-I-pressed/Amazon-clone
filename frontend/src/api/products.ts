@@ -1,123 +1,63 @@
 import type { Product } from "../types/product";
+import type { Seller } from "../types/seller";
 
 const API_BASE = "/api/products";
+const API_SELLER = "/api/seller";
 
 export async function fetchProducts(): Promise<Product[]> {
-    try {
-        const res = await fetch(API_BASE);
-        if (!res.ok) {
-            throw new Error("Не вдалося отримати список товарів");
-        }
-        return res.json();
-    } catch (error) {
-        console.error("[API] Помилка fetchProducts:", error);
-        throw error;
-    }
-}
-
-export async function fetchProductById(id: string): Promise<Product> {
-    if (!id) {
-        throw new Error("Ідентифікатор товару не може бути пустим");
-    }
-
-    try {
-        const res = await fetch(`${API_BASE}/${id}`);
-        if (!res.ok) {
-            throw new Error(`Не вдалося отримати товар з id: ${id}`);
-        }
-        return res.json();
-    } catch (error) {
-        console.error(`[API] Помилка fetchProductById (id: ${id}):`, error);
-        throw error;
-    }
-}
-
-export async function createProduct(data: Partial<Product>): Promise<Product> {
-    if (!data.name || !data.price) {
-        throw new Error("Назва та ціна товару обов'язкові");
-    }
-
-    try {
-        const res = await fetch(API_BASE, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-
-        if (!res.ok) {
-            throw new Error("Не вдалося створити товар");
-        }
-
-        return res.json();
-    } catch (error) {
-        console.error("[API] Помилка createProduct:", error);
-        throw error;
-    }
-}
-
-export async function updateProduct(id: string, data: Partial<Product>): Promise<Product> {
-    if (!id) {
-        throw new Error("Ідентифікатор товару не може бути пустим");
-    }
-    if (!data) {
-        throw new Error("Дані для оновлення товару відсутні");
-    }
-
-    try {
-        const res = await fetch(`${API_BASE}/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-
-        if (!res.ok) {
-            throw new Error(`Не вдалося оновити товар з id: ${id}`);
-        }
-
-        return res.json();
-    } catch (error) {
-        console.error(`[API] Помилка updateProduct (id: ${id}):`, error);
-        throw error;
-    }
-}
-
-export async function deleteProduct(id: string): Promise<void> {
-    if (!id) {
-        throw new Error("Ідентифікатор товару не може бути пустим");
-    }
-
-    try {
-        const res = await fetch(`${API_BASE}/${id}`, {
-            method: "DELETE",
-        });
-
-        if (!res.ok) {
-            throw new Error(`Не вдалося видалити товар з id: ${id}`);
-        }
-    } catch (error) {
-        console.error(`[API] Помилка deleteProduct (id: ${id}):`, error);
-        throw error;
-    }
-}
-
-export async function fetchSellerProducts(
-    vendorId: string,
-    page = 0,
-    size = 12
-  ): Promise<Product[]> {
-    if (!vendorId) {
-      throw new Error("Ідентифікатор продавця не може бути пустим");
-    }
-  
-    try {
-      const res = await fetch(`${API_BASE}/vendor/${vendorId}?page=${page}&size=${size}`);
-      if (!res.ok) {
-        throw new Error(`Не вдалося отримати товари продавця з id: ${vendorId}`);
-      }
-      return res.json();
-    } catch (error) {
-      console.error(`[API] Помилка fetchSellerProducts (vendorId: ${vendorId}):`, error);
-      throw error;
-    }
+  try {
+    const res = await fetch(`${API_BASE}/page/0?size=100`);
+    if (!res.ok) throw new Error("Не вдалося отримати список товарів");
+    const pageData = await res.json();
+    return pageData.content || [];
+  } catch (error) {
+    console.error("[API] Помилка fetchProducts:", error);
+    throw error;
   }
-  
+}
+
+export async function fetchProductBySlug(slug: string): Promise<Product> {
+  if (!slug) throw new Error("Slug товару не може бути пустим");
+  try {
+    const res = await fetch(`${API_BASE}/${slug}`);
+    if (!res.ok) throw new Error(`Не вдалося отримати товар зі slug: ${slug}`);
+    return res.json();
+  } catch (error) {
+    console.error(`[API] Помилка fetchProductBySlug (slug: ${slug}):`, error);
+    throw error;
+  }
+}
+
+export async function fetchSellerProfileBySlug(slug: string): Promise<Seller> {
+  if (!slug) throw new Error("Slug продавця не може бути пустим");
+  try {
+    const res = await fetch(`${API_SELLER}/${slug}`);
+    if (!res.ok) throw new Error(`Не вдалося отримати профіль продавця зі slug: ${slug}`);
+    const data = await res.json();
+    // адаптируем avatar/banner
+    return {
+      ...data,
+      avatar: data.url ? `http://localhost:8080/${data.url}` : null,
+      banner: data.banner ? `http://localhost:8080/${data.banner}` : null,
+    };
+  } catch (error) {
+    console.error(`[API] Помилка fetchSellerProfileBySlug (slug: ${slug}):`, error);
+    throw error;
+  }
+}
+
+export async function fetchSellerProductsBySlug(
+  slug: string,
+  page = 0,
+  size = 12
+): Promise<{ content: Product[]; totalElements: number }> {
+  if (!slug) throw new Error("Slug продавця не може бути пустим");
+  try {
+    const res = await fetch(`${API_BASE}/vendor/slug/${slug}?page=${page}&size=${size}`);
+    if (!res.ok) throw new Error(`Не вдалося отримати товари продавця зі slug: ${slug}`);
+    return res.json();
+  } catch (error) {
+    console.error(`[API] Помилка fetchSellerProductsBySlug (slug: ${slug}):`, error);
+    throw error;
+  }
+}

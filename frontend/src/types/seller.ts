@@ -1,12 +1,16 @@
 import type { SellerStats } from "./sellerstats";
 
 export type Seller = {
-  id: string;
-  name: string;
+  id: number;
+  username: string;
   email: string;
-  avatar?: string;
-  banner?: string;
-  rating?: number;
   description?: string;
+  roleName?: string;
+  createdAt?: string;
+  blocked?: boolean;
+  url?: string;       // avatar
+  banner?: string;
+  slug: string;       // добавляем slug
+  rating?: number;
   stats?: SellerStats;
 };

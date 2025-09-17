@@ -50,6 +50,9 @@ public class User {
     @Column(length = 512, nullable = false, unique = true)
     private String email;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    private Picture picture;
+
     @Column(nullable = false)
     private String password;
 
@@ -67,5 +70,8 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Favourite> favourites;
+
+    @Column(length = 256, unique = true)
+    private String slug;
 
 }

@@ -1,7 +1,38 @@
-import { useState } from 'react';
-import { PlusIcon, ArrowRightIcon, ChevronLeftIcon, GroupIcon, AngleDownIcon } from '../icons';
+import { useState, useEffect, useMemo, useRef } from 'react';
+
+// Mock icon components since they're imported but not defined
+const PlusIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+  </svg>
+);
+
+const ArrowRightIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+  </svg>
+);
+
+const ChevronLeftIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+  </svg>
+);
+
+const GroupIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+  </svg>
+);
+
+const AngleDownIcon = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+  </svg>
+);
 
 const ProductPage = () => {
+  // Original state variables
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -9,6 +40,36 @@ const ProductPage = () => {
   const [userRating, setUserRating] = useState(0);
   const [cartItems, setCartItems] = useState<Record<number, number>>({});
   const [email, setEmail] = useState('nexora@email.com');
+
+  // Missing state variables for the lightbox functionality
+  const [activeImageIdx, setActiveImageIdx] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  
+  // Missing refs
+  const wheelCooldownRef = useRef(0);
+  const panStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  // Mock data (since the original data fetching is incomplete)
+  const product = {
+    name: "Modern Bookshelf",
+    price: 60,
+    description: "Upgrade your bedroom with this elegant double bed and matching side tables. Crafted from high-quality wood with a modern design, it combines comfort and style to enhance your living space.",
+    pictures: [
+      { url: "images/product1.jpg" },
+      { url: "images/product2.jpg" },
+      { url: "images/product3.jpg" }
+    ]
+  };
+
+  const seller = {
+    username: "mebli_store",
+    slug: "mebli-store",
+    description: "Quality furniture store",
+    url: "images/seller-avatar.jpg"
+  };
 
   const productImages = [
     "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500&h=600&fit=crop",
@@ -21,7 +82,6 @@ const ProductPage = () => {
     "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=200&h=250&fit=crop",
     "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=200&h=250&fit=crop"
   ];
-
   const similarProducts = [
     {
       id: 1,
@@ -69,6 +129,49 @@ const ProductPage = () => {
     console.log('Subscribing email:', email);
   };
 
+  // Images array using useMemo
+  const images: string[] = useMemo(() => {
+    if (product?.pictures && product.pictures.length > 0) {
+      return product.pictures.map(() => `https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500&h=600&fit=crop`);
+    }
+    return productImages;
+  }, [product]);
+
+  // Lightbox controls
+  const openLightbox = (index: number) => {
+    setActiveImageIdx(index);
+    setLightboxOpen(true);
+    setZoom(1);
+    setOffset({ x: 0, y: 0 });
+  };
+
+  const closeLightbox = () => setLightboxOpen(false);
+
+  const showNext = () => setActiveImageIdx((idx) => (images.length ? (idx + 1) % images.length : idx));
+  
+  const showPrev = () => setActiveImageIdx((idx) => (images.length ? (idx - 1 + images.length) % images.length : idx));
+
+  const zoomIn = () => setZoom((z) => Math.min(4, +(z + 0.25).toFixed(2)));
+  
+  const zoomOut = () => setZoom((z) => {
+    const next = Math.max(1, +(z - 0.25).toFixed(2));
+    if (next === 1) setOffset({ x: 0, y: 0 });
+    return next;
+  });
+  
+  const resetZoom = () => { setZoom(1); setOffset({ x: 0, y: 0 }); };
+
+  // Keyboard navigation when lightbox is open
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowRight') showNext();
+      if (e.key === 'ArrowLeft') showPrev();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [lightboxOpen, images.length]);
   const StarRating = ({ rating = 4, total = 5, interactive = false, size = "w-4 h-4" }) => {
     const handleClick = (index: number) => {
       if (interactive) {
@@ -122,7 +225,7 @@ const ProductPage = () => {
         {/* Content */}
         {activeTab === "reviews" && (
           <div className="space-y-6">
-            {/* One Review */}
+            {/* Review examples */}
             <div className="bg-white p-4 rounded-md border border-gray-200">
               <div className="flex justify-between items-start">
                 <div>
@@ -137,48 +240,7 @@ const ProductPage = () => {
                   </div>
                 </div>
                 <div className="flex space-x-1 text-yellow-400">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <svg
-                      key={i}
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      className="w-4 h-4"
-                    >
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118L10 13.347l-2.987 2.134c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L3.38 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Additional Reviews */}
-            <div className="bg-white p-4 rounded-md border border-gray-200">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-semibold text-sm text-gray-800">Sarah Mitchell</p>
-                  <p className="text-gray-600 text-sm mt-1">
-                    Beautiful craftsmanship and excellent quality. The bookshelf is exactly as described and looks amazing in my living room. Assembly was straightforward too.
-                  </p>
-                  <div className="flex space-x-4 text-xs text-gray-500 mt-2">
-                    <button className="hover:underline">Like</button>
-                    <button className="hover:underline">Reply</button>
-                    <span>2h</span>
-                  </div>
-                </div>
-                <div className="flex space-x-1 text-yellow-400">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <svg
-                      key={i}
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill={i < 4 ? "currentColor" : "none"}
-                      stroke={i < 4 ? "none" : "currentColor"}
-                      className="w-4 h-4"
-                    >
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118L10 13.347l-2.987 2.134c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L3.38 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
+                  <StarRating rating={5} />
                 </div>
               </div>
             </div>
@@ -232,7 +294,7 @@ const ProductPage = () => {
           <div className="bg-white p-6 rounded-md border border-gray-200">
             <div className="space-y-4 text-gray-600 text-sm leading-relaxed">
               <h3 className="text-lg font-medium text-gray-800 mb-4">Product Description</h3>
-              <p>Upgrade your bedroom with this elegant double bed and matching side tables. Crafted from high-quality wood with a modern design, it combines comfort and style to enhance your living space. The set includes a durable frame, a supportive headboard, and two side tables with storage drawers—perfect for keeping essentials within reach.</p>
+              <p>Upgrade your bedroom with this elegant double bed and matching side tables. Crafted from high-quality wood with a modern design, it combines comfort and style to enhance your living space.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 <div>
                   <h4 className="font-medium text-gray-800 mb-2">Features:</h4>
@@ -265,16 +327,13 @@ const ProductPage = () => {
   const SimilarProducts = () => {
     return (
       <div className="w-full max-w-7xl mx-auto p-8 bg-white">
-        {/* Header */}
         <div className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900">Similar Products</h2>
         </div>
 
-        {/* Products Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {similarProducts.map((product) => (
             <div key={product.id} className="flex flex-col group w-64">
-              {/* Product Image Container */}
               <div className="relative mb-4">
                 <div className="w-full h-72 bg-gray-50 rounded-2xl overflow-hidden relative">
                   <img
@@ -283,7 +342,6 @@ const ProductPage = () => {
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                   
-                  {/* Discount Badge - only show if there's an original price */}
                   {product.originalPrice && (
                     <div className="absolute top-4 left-4">
                       <div className="bg-gray-800 text-white px-2 py-1 rounded-md text-xs font-medium">
@@ -294,31 +352,24 @@ const ProductPage = () => {
                 </div>
               </div>
 
-              {/* Product Info */}
               <div className="flex-1 flex flex-col">
-                {/* Product Name */}
                 <h3 className="text-gray-800 font-medium text-base mb-3 leading-tight">
                   {product.name}
                 </h3>
 
-                {/* Price and Add Button Row */}
                 <div className="flex items-center justify-between mt-auto">
-                  {/* Price Container */}
                   <div className="flex items-center gap-2">
-                    {/* Show original price if it exists */}
                     {product.originalPrice && (
                       <span className="text-gray-400 text-sm line-through">
                         ${product.originalPrice.toFixed(2)}
                       </span>
                     )}
                     
-                    {/* Current Price */}
                     <span className="text-gray-900 font-semibold text-lg">
                       ${product.price.toFixed(2)}
                     </span>
                   </div>
 
-                  {/* Add to Cart Button */}
                   <button
                     onClick={() => handleAddToCart(product.id)}
                     className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
@@ -328,7 +379,6 @@ const ProductPage = () => {
                   </button>
                 </div>
                 
-                {/* Cart Count Display */}
                 {cartItems[product.id] > 0 && (
                   <div className="mt-2 text-xs text-green-600 font-medium">
                     Added: {cartItems[product.id]} item{cartItems[product.id] > 1 ? 's' : ''}
@@ -339,7 +389,6 @@ const ProductPage = () => {
           ))}
         </div>
 
-        {/* Pagination Dots */}
         <div className="flex justify-center mt-8">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-pink-400 rounded-full transition-all duration-300 hover:scale-125 cursor-pointer"></div>
@@ -354,14 +403,12 @@ const ProductPage = () => {
   const NexoraFooter = () => {
     return (
       <footer className="text-white" style={{backgroundColor: '#3D3D3D', fontFamily: 'Poppins, sans-serif'}}>
-        {/* Newsletter Section */}
         <div className="max-w-7xl mx-auto px-24 py-16">
           <div className="text-center mb-20">
             <h2 className="text-5xl font-light text-gray-100 mb-10 leading-tight" style={{fontFamily: 'Afacad, sans-serif'}}>
               Subscribe To Your Newsletter<br />
               to Stay Updated About Discounts
             </h2>
-            {/* Email Input */}
             <div className="flex justify-center">
               <div className="relative">
                 <div className="flex items-center bg-black bg-opacity-15 backdrop-blur-sm border border-white border-opacity-60 rounded-full px-5 py-4 w-80">
@@ -383,9 +430,7 @@ const ProductPage = () => {
             </div>
           </div>
 
-          {/* Footer Links */}
           <div className="grid grid-cols-4 gap-12 mb-20">
-            {/* Products */}
             <div>
               <h3 className="text-gray-400 font-medium mb-8 text-lg">Products</h3>
               <ul className="space-y-6">
@@ -395,7 +440,6 @@ const ProductPage = () => {
               </ul>
             </div>
 
-            {/* Legal Pages */}
             <div>
               <h3 className="text-gray-400 font-medium mb-8 text-lg">Legal Pages</h3>
               <ul className="space-y-6">
@@ -407,7 +451,6 @@ const ProductPage = () => {
               </ul>
             </div>
 
-            {/* Support */}
             <div>
               <h3 className="text-gray-400 font-medium mb-8 text-lg">SUPPORT</h3>
               <ul className="space-y-6">
@@ -419,7 +462,6 @@ const ProductPage = () => {
               </ul>
             </div>
 
-            {/* About */}
             <div>
               <h3 className="text-gray-400 font-medium mb-8 text-lg">ABOUT</h3>
               <ul className="space-y-6">
@@ -433,7 +475,6 @@ const ProductPage = () => {
           </div>
         </div>
 
-        {/* Copyright Section */}
         <div className="border-t border-gray-600">
           <div className="max-w-7xl mx-auto px-24 py-6">
             <div className="text-center">
@@ -468,7 +509,9 @@ const ProductPage = () => {
                   <div
                     key={index}
                     className={`w-36 h-48 rounded-lg overflow-hidden cursor-pointer border-2 transition-all duration-200 ${
-                      selectedImage === index ? 'border-gray-300' : 'border-transparent hover:border-gray-200'
+                      selectedImage === index
+                        ? 'border-gray-300'
+                        : 'border-transparent hover:border-gray-200'
                     }`}
                     onClick={() => setSelectedImage(index)}
                   >
@@ -487,7 +530,8 @@ const ProductPage = () => {
                   <img
                     src={productImages[selectedImage]}
                     alt="Modern Bookshelf"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover cursor-zoom-in"
+                    onClick={() => openLightbox(selectedImage)}
                   />
                 </div>
               </div>
@@ -496,7 +540,6 @@ const ProductPage = () => {
 
           {/* Product Info */}
           <div className="lg:col-span-5 space-y-8">
-            {/* Title and Wishlist */}
             <div className="flex items-start justify-between">
               <h1 className="text-4xl font-light text-gray-800">Modern Bookshelf</h1>
               <button
@@ -520,7 +563,6 @@ const ProductPage = () => {
               </button>
             </div>
 
-            {/* Price and Rating */}
             <div className="space-y-3">
               <div className="flex items-center gap-4">
                 <span className="text-4xl font-medium text-gray-800">$60</span>
@@ -532,34 +574,19 @@ const ProductPage = () => {
               </div>
             </div>
 
-            {/* Review Highlight */}
-            <div className="border border-gray-300 rounded-2xl p-6 bg-gray-50">
-              <div className="flex items-start gap-5">
-                <div className="w-14 h-14 rounded-full overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face"
-                    alt="Reviewer"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-800">mebli_store</span>
-                    <div className="flex items-center gap-1">
-                      <StarRating rating={5} />
-                    </div>
+            {seller && (
+              <div className="block mt-2 p-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition">
+                <div className="flex items-center gap-4">
+                  {seller.url && <img src={`https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face`} alt={seller.username} className="w-16 h-16 rounded-full object-cover" />}
+                  <div>
+                    <p className="font-semibold text-lg">{seller.username}</p>
+                    {seller.description && <p className="text-sm text-gray-500">{seller.description}</p>}
                   </div>
-                  <button className="text-gray-700 hover:text-gray-900 flex items-center gap-2 text-sm font-medium">
-                    See all reviews <ArrowRightIcon className="w-4 h-4" />
-                  </button>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Divider */}
             <div className="w-full h-px bg-gray-200"></div>
-
-            {/* Description */}
             <div className="text-gray-600 leading-relaxed">
               <p>Upgrade your bedroom with this elegant double bed and matching side tables. Crafted from high-quality wood with a modern design, it combines comfort and style to enhance your living space. The set includes a durable frame, a supportive headboard, and two side tables with storage drawers—perfect for keeping essentials within reach.</p>
               <br />
@@ -568,10 +595,8 @@ const ProductPage = () => {
                 Ideal for modern or contemporary bedroom decor</p>
             </div>
 
-            {/* Quantity and Add to Cart */}
             <div className="space-y-4">
               <div className="flex gap-4">
-                {/* Quantity Selector */}
                 <div className="flex items-center border border-gray-300 rounded-full px-4 py-3 bg-white">
                   <button
                     onClick={decreaseQuantity}
@@ -588,19 +613,16 @@ const ProductPage = () => {
                   </button>
                 </div>
 
-                {/* Add to Cart */}
                 <button className="flex-1 bg-green-600 hover:bg-green-700 text-white py-4 px-8 rounded-full font-medium text-lg flex items-center justify-center gap-3 transition-colors">
                   Add to Cart <ArrowRightIcon className="w-5 h-5" />
                 </button>
               </div>
 
-              {/* Buy Now */}
               <button className="w-full border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white py-4 px-8 rounded-full font-medium text-lg transition-colors">
                 Buy Now
               </button>
             </div>
 
-            {/* Shipping Info */}
             <div className="space-y-4 pt-4">
               <div className="flex items-start gap-5">
                 <GroupIcon className="w-7 h-7 text-gray-500 mt-0.5" />
@@ -632,6 +654,92 @@ const ProductPage = () => {
 
       {/* Footer */}
       <NexoraFooter />
+
+      {/* Lightbox Overlay */}
+      {lightboxOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center select-none"
+          onClick={closeLightbox}
+          onWheel={(e) => {
+            e.stopPropagation();
+            if (zoom > 1) {
+              setZoom((z) => {
+                const next = e.deltaY < 0 ? Math.min(4, +(z + 0.15).toFixed(2)) : Math.max(1, +(z - 0.15).toFixed(2));
+                if (next === 1) setOffset({ x: 0, y: 0 });
+                return next;
+              });
+              return;
+            }
+            const now = Date.now();
+            if (now - wheelCooldownRef.current < 300) return;
+            wheelCooldownRef.current = now;
+            if (e.deltaY > 0) showNext(); else showPrev();
+          }}
+        >
+          <div
+            className="relative w-full h-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => {
+              if (zoom === 1) return;
+              setIsPanning(true);
+              panStartRef.current = { x: e.clientX - offset.x, y: e.clientY - offset.y };
+            }}
+            onMouseMove={(e) => {
+              if (!isPanning || !panStartRef.current) return;
+              setOffset({ x: e.clientX - panStartRef.current.x, y: e.clientY - panStartRef.current.y });
+            }}
+            onMouseUp={() => { setIsPanning(false); panStartRef.current = null; }}
+            onMouseLeave={() => { setIsPanning(false); panStartRef.current = null; }}
+          >
+            <button
+              aria-label="Close"
+              className="absolute top-4 right-4 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-2"
+              onClick={closeLightbox}
+            >
+              ✕
+            </button>
+
+            {images.length > 1 && (
+              <button
+                aria-label="Previous"
+                className="absolute left-4 md:left-6 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-3"
+                onClick={showPrev}
+              >
+                ‹
+              </button>
+            )}
+
+            {images.length > 1 && (
+              <button
+                aria-label="Next"
+                className="absolute right-4 md:right-6 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-3"
+                onClick={showNext}
+              >
+                ›
+              </button>
+            )}
+
+            <img
+              src={images[activeImageIdx]}
+              alt={`image-${activeImageIdx}`}
+              className="max-w-[95vw] max-h-[90vh] object-contain cursor-grab"
+              style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`, transition: isPanning ? 'none' : 'transform 0.12s ease-out' }}
+              onDoubleClick={() => {
+                if (zoom === 1) setZoom(2); else resetZoom();
+              }}
+            />
+
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full p-2">
+              <button onClick={zoomOut} className="px-3 py-1.5 rounded-full bg-white/20 text-white hover:bg-white/30">-</button>
+              <span className="px-2 text-white text-sm">{Math.round(zoom * 100)}%</span>
+              <button onClick={zoomIn} className="px-3 py-1.5 rounded-full bg-white/20 text-white hover:bg-white/30">+</button>
+              {zoom > 1 && (
+                <button onClick={resetZoom} className="ml-1 px-3 py-1.5 rounded-full bg-white/20 text-white hover:bg-white/30">Reset</button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

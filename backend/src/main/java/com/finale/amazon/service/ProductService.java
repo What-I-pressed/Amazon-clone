@@ -1,6 +1,7 @@
 package com.finale.amazon.service;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import java.util.Optional;
@@ -43,11 +44,18 @@ public class ProductService {
     private UserRepository userRepository;
     @Autowired
     private PictureRepository pictureRepository;
+    @Autowired
+    private SlugService slugService;
+
+    @Transactional(readOnly = true)
+    public Optional<Product> getProductBySlug(String slug) {
+        return productRepository.findBySlugWithPictures(slug);
+    }
 
     private Specification<Product> getSpec(String name, Long categoryId, Double lowerBound,
-            Double upperBound, Map<String, String> characteristics) {
-        Map<String, String> filtered = characteristics.entrySet().stream().filter(entry -> entry.getValue() != null)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            Double upperBound,List<Long> sellersIds, List<String> slugs,Map<String, String> characteristics) {
+        Map<String, String> filtered = characteristics != null ? characteristics.entrySet().stream().filter(entry -> entry.getValue() != null)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)) : null;
         System.out.println("Name : " + name);
 
         Specification<Product> spec = Specification.where(null);
@@ -62,18 +70,24 @@ public class ProductService {
             spec = spec.and(ProductSpecification.priceBetween(lowerBound, upperBound));
         }
 
-        Specification<Product> charSpec = filtered.entrySet().stream()
-                .map(entry -> ProductSpecification.matchCharacteristic(entry.getKey(), entry.getValue()))
-                .reduce(Specification.where(null), Specification::and);
+        
 
+        Specification<Product> charSpec = characteristics != null && filtered != null? filtered.entrySet().stream()
+                .map(entry -> ProductSpecification.matchCharacteristic(entry.getKey(), entry.getValue()))
+                .reduce(Specification.where(null), Specification::and) : null;
+
+        Specification<Product> sellerSpec = sellersIds != null ? sellersIds.stream().map(entry -> ProductSpecification.sellerIs(entry)).reduce(Specification.where(null), Specification::or) : null;
+        Specification<Product> slugSpec = slugs != null ? slugs.stream().map(entry -> ProductSpecification.sellerIs(entry)).reduce(Specification.where(null), Specification::or) : null;
         spec = spec.and(charSpec);
+        spec = spec.and(sellerSpec);
+        spec = spec.and(slugSpec);
         return spec;
     }
 
     @Transactional(readOnly = true)
     public Page<ProductDto> getProductsPage(Pageable pageable, String name, Long categoryId, Double lowerBound,
-            Double upperBound, Map<String, String> characteristics) {
-        Specification<Product> spec = getSpec(name, categoryId, lowerBound, upperBound, characteristics);
+            Double upperBound, List<Long>sellersId, List<String> slugs, Map<String, String> characteristics) {
+        Specification<Product> spec = getSpec(name, categoryId, lowerBound, upperBound, sellersId, slugs,characteristics);
 
         Page<Product> page = productRepository.findAll(spec, pageable);
         page.getContent().stream().forEach(prod -> prod.setPictures(pictureRepository.findMainPicture(prod.getId())));
@@ -86,17 +100,6 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    public Page<ProductDto> getProductsBySeller(Pageable pageable, String name, Long categoryId, Double lowerBound,
-            Double upperBound, Map<String, String> characteristics, Long sellerId) {
-        Specification<Product> spec = getSpec(name, categoryId, lowerBound, upperBound, characteristics);
-
-        spec = spec.and(ProductSpecification.sellerIs(sellerId));
-
-        Page<Product> page = productRepository.findAll(spec, pageable);
-        page.getContent().stream().forEach(prod -> prod.setPictures(pictureRepository.findMainPicture(prod.getId())));
-        return page.map(ProductDto::new);
-    }
-
     public void changeQuantitySold(Product product, Long add) {
         product.setQuantitySold(product.getQuantitySold() + add);
         productRepository.save(product);
@@ -106,6 +109,10 @@ public class ProductService {
         Product product = new Product();
         fillProductFromDto(product, dto);
         userRepository.findById(sellerId).ifPresent(product::setSeller);
+        Product saved = productRepository.save(product);
+        // Generate SEO slug using name and ID
+        String slug = slugService.generateSeoSlug(saved.getName(), saved.getId());
+        saved.setSlug(slug);
         return productRepository.save(product);
     }
 
@@ -114,8 +121,16 @@ public class ProductService {
         if (optionalProduct.isEmpty()) {
             throw new RuntimeException("Product not found");
         }
+        
         Product product = optionalProduct.get();
+        String oldName = product.getName();
         fillProductFromDto(product, dto);
+        Product saved = productRepository.save(product);
+        if (dto.getName() != null && !dto.getName().equals(oldName)) {
+            String slug = slugService.generateSeoSlug(saved.getName(), saved.getId());
+            saved.setSlug(slug);
+            saved = productRepository.save(saved);
+        }
         return productRepository.save(product);
     }
 
@@ -126,6 +141,12 @@ public class ProductService {
     @Transactional(readOnly = true)
     public Optional<Product> getProductById(Long productId) {
         return productRepository.findByIdWithPictures(productId);
+    }
+
+    public void genSlug(Long productId){
+        Product p = productRepository.findById(productId).get();
+        p.setSlug(slugService.generateSeoSlug(p.getName(), p.getId()));
+        productRepository.save(p);
     }
 
     public Product findProductById(Long id) {

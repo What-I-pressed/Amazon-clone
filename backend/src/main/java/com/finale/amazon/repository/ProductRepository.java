@@ -41,10 +41,16 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     List<Product> findByseller(User seller);
     
     List<Product> findByNameContainingIgnoreCase(String name);
+
+    @Query("SELECT DISTINCT p.seller FROM Product p WHERE p.subcategory.id = :subcategoryId")
+    List<User> findSellersBySubcategoryId(@Param("subcategoryId") Long subcategoryId);
     
     List<Product> findByDiscountLaunchDateBeforeAndDiscountExpirationDateAfter(LocalDateTime start, LocalDateTime end);
     
     List<Product> findByQuantityInStockGreaterThan(Long quantity);
+    
+    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.pictures WHERE p.slug = :slug")
+    Optional<Product> findBySlugWithPictures(@Param("slug") String slug);
     
     long countByCategory(Category category);
 

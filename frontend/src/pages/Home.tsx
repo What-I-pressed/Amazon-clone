@@ -1,5 +1,4 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
 import ProductCard from './ProductCard';
 
 const HomePage: React.FC = () => {
@@ -73,7 +72,7 @@ const HomePage: React.FC = () => {
     <div className="flex flex-col items-center space-y-4">
       <div className="w-41 h-41 rounded-full flex items-center justify-center overflow-hidden"
            style={{ backgroundColor: styles.colors.categoryBg }}>
-        <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+        <img src={imageUrl} alt={title} className="max-w-full max-h-full object-contain object-center" />
       </div>
       <div className={styles.layout.textCenter}>
         <h3 className={styles.typography.categoryTitle} style={{ color: styles.colors.categoryText }}>
@@ -247,6 +246,7 @@ const HomePage: React.FC = () => {
 
   const featuredProducts = [
     {
+      id: 101,
       imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Double Bed & Side Tables',
       oldPrice: '$230.00',
@@ -254,6 +254,7 @@ const HomePage: React.FC = () => {
       discountPercent: '-13%',
     },
     {
+      id: 102,
       imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Modern Sofa Set',
       oldPrice: '$230.00',
@@ -261,6 +262,7 @@ const HomePage: React.FC = () => {
       discountPercent: '-13%',
     },
     {
+      id: 103,
       imageUrl: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Smart Home Device',
       oldPrice: '$230.00',
@@ -268,6 +270,7 @@ const HomePage: React.FC = () => {
       discountPercent: '-13%',
     },
     {
+      id: 104,
       imageUrl: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Garden Tools Set',
       oldPrice: '$230.00',
@@ -278,6 +281,7 @@ const HomePage: React.FC = () => {
 
   const popularProducts = [
     {
+      id: 201,
       imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Double Bed & Side Tables',
       oldPrice: '$230.00',
@@ -285,6 +289,7 @@ const HomePage: React.FC = () => {
       discountPercent: '-13%',
     },
     {
+      id: 202,
       imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Modern Sofa Set',
       oldPrice: '$450.00',
@@ -292,6 +297,7 @@ const HomePage: React.FC = () => {
       discountPercent: '-20%',
     },
     {
+      id: 203,
       imageUrl: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Dining Table Set',
       oldPrice: '$320.00',
@@ -299,6 +305,7 @@ const HomePage: React.FC = () => {
       discountPercent: '-15%',
     },
     {
+      id: 204,
       imageUrl: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Office Chair',
       oldPrice: '$180.00',
@@ -306,6 +313,7 @@ const HomePage: React.FC = () => {
       discountPercent: '-10%',
     },
     {
+      id: 205,
       imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Coffee Table',
       oldPrice: '$200.00',
@@ -313,6 +321,7 @@ const HomePage: React.FC = () => {
       discountPercent: '-25%',
     },
     {
+      id: 206,
       imageUrl: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
       title: 'Bookshelf',
       oldPrice: '$280.00',
@@ -363,7 +372,9 @@ const HomePage: React.FC = () => {
                 className={`absolute right-2 top-2 w-10 h-10 rounded-full flex items-center justify-center ${styles.transitions.fast} ${styles.hover.scaleSmall} ${styles.hover.shadowMd}`}
                 style={{ backgroundColor: styles.colors.searchBg }}
               >
-                <Search className={`w-4 h-4 text-white hover:text-gray-100 ${styles.transitions.fast}`} strokeWidth={2} />
+                <svg className={`w-4 h-4 text-white hover:text-gray-100 ${styles.transitions.fast}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
               </button>
             </div>
           </div>
@@ -520,8 +531,8 @@ const HomePage: React.FC = () => {
                   disabled={!canScroll || isScrolling}
                   className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300 transform hover:scale-105 active:scale-95 ${
                     canScroll && !isScrolling
-                      ? 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 cursor-pointer'
-                      : 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-50'
+                      ? 'border-gray-200 hover:border-gray-300 hover:bg-white cursor-pointer'
+                      : 'border-gray-100 bg-white cursor-not-allowed opacity-50'
                   }`}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

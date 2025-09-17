@@ -78,7 +78,7 @@ const CatalogPage: React.FC = () => {
             {filteredProducts.map((product) => (
               <ProductCard
                 key={product.id}
-                
+                id={product.id}
                 imageUrl={product.image}
                 title={product.name}
                 price={`$${product.price}`}
