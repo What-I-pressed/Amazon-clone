@@ -1,5 +1,6 @@
 package com.finale.amazon.config;
 
+import com.finale.amazon.security.CustomOAuth2SuccessHandler;
 import com.finale.amazon.security.JwtAuthenticationFilter;
 import com.finale.amazon.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +26,9 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtFilter;
 
+
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomOAuth2SuccessHandler customOAuth2SuccessHandler) throws Exception {
         http.csrf().disable()
                 .authorizeHttpRequests()
                 .requestMatchers(
@@ -40,7 +42,9 @@ public class SecurityConfig {
                 .permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .oauth2Login(oauth -> oauth.successHandler(customOAuth2SuccessHandler));
 
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
