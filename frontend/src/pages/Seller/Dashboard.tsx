@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import SellerStats from "../../components/seller/SellerStats";
+import SellerStats from "../../components/seller/SellerStats";  
 import type { Seller } from "../../types/seller";
 import { fetchSellerProfile } from "../../api/seller"; 
 

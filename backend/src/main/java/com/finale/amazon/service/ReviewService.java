@@ -17,6 +17,8 @@ import com.finale.amazon.entity.User;
 import java.util.stream.Collectors;
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 
 @Service
 public class ReviewService {
@@ -55,18 +57,33 @@ public class ReviewService {
     }
 
     public Review replyReview(User user, ReviewReplyDto dto) {
-        Review parent = reviewRepository.findById(dto.getParentReviewId())
+        Review parent = reviewRepository.findById(dto.getParentId())
                 .orElseThrow(() -> new RuntimeException("Parent review not found"));
+
+        // Check if this is a reply to a reply (nested replies are not allowed)
+        if (parent.getParent() != null) {
+            throw new RuntimeException("Cannot reply to a reply. Please reply to the main review instead.");
+        }
 
         Review reply = new Review();
         reply.setDescription(dto.getDescription());
-        reply.setDate(dto.getDate());
-        reply.setStars(1);
+        reply.setDate(LocalDateTime.now());
+        reply.setStars(1); // Default rating for replies
         reply.setUser(user);
         reply.setProduct(parent.getProduct());
-        reply.setParent(parent); 
+        reply.setParent(parent);
 
-        return reviewRepository.save(reply);
+        // Save the reply
+        Review savedReply = reviewRepository.save(reply);
+        
+        // Update the parent's replies list
+        if (parent.getReplies() == null) {
+            parent.setReplies(new ArrayList<>());
+        }
+        parent.getReplies().add(savedReply);
+        reviewRepository.save(parent);
+
+        return savedReply;
     }
 
     public void deleteReview(Long id) {
@@ -78,11 +95,20 @@ public class ReviewService {
     }
 
     public List<ReviewDto> getAllReviewsByProduct(Long productId) {
-    List<Review> reviews = reviewRepository.findByProductId(productId);
-    return reviews.stream()
-                  .map(ReviewDto::new)
-                  .collect(Collectors.toList());
-}
+        // Fetch all reviews for the product (both top-level and replies)
+        List<Review> reviews = reviewRepository.findByProductId(productId);
+        return reviews.stream()
+                     .map(ReviewDto::new)
+                     .collect(Collectors.toList());
+    }
+
+    public List<ReviewDto> getRepliesForReview(Long reviewId) {
+        // Fetch all replies for a specific review
+        List<Review> replies = reviewRepository.findByParentId(reviewId);
+        return replies.stream()
+                     .map(ReviewDto::new)
+                     .collect(Collectors.toList());
+    }
     
     public Review updateReview(User user, Long reviewId, ReviewUpdateDto dto) {
         Review review = reviewRepository.findById(reviewId)

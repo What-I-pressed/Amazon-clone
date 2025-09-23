@@ -47,6 +47,10 @@ import SellerOrdersPage from "./pages/Seller/Orders";
 import CreateProductPage from "./pages/Seller/CreateProduct";
 import UploadProductPictures from "./pages/Seller/UploadProductPictures";
 
+// Customer
+import CustomerDashboard from "./pages/Customer/Dashboard";
+import CustomerEditProfile from "./pages/Customer/Edit";
+
 export default function App() {
   return (
     <Router>
@@ -65,6 +69,10 @@ export default function App() {
             <Route path="orders" element={<SellerOrdersPage />} />
             <Route path="products/create" element={<CreateProductPage />} />
             <Route path="products/:id/pictures" element={<UploadProductPictures />} />
+          </Route>
+          <Route path="customer">
+            <Route path="dashboard" element={<CustomerDashboard />} /> 
+            <Route path="edit" element={<CustomerEditProfile />} /> 
           </Route>
 
           <Route path="/cart" element={<CartPage />} />

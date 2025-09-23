@@ -30,6 +30,8 @@ public class ReviewDto {
         }
         if (review.getParent() != null) {
             this.parentId = review.getParent().getId();
+        } else {
+            this.parentId = null;
         }
         if (review.getProduct() != null) {
             this.productId = review.getProduct().getId();
