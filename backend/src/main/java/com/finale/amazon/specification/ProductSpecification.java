@@ -39,6 +39,11 @@ public class ProductSpecification {
                 : cb.equal(root.get("category").get("id"), categoryId);
     }
 
+    public static Specification<Product> hasSubcatecoryId(Long subcategoryId) {
+        return (root, query, cb) -> subcategoryId == null ? null
+                : cb.equal(root.get("subcategory").get("id"), subcategoryId);
+    }
+
     public static Specification<Product> priceBetween(Double minPrice, Double maxPrice) {
         return (root, query, cb) -> {
             if (minPrice == null && maxPrice == null) return null;

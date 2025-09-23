@@ -35,7 +35,7 @@ public class ProductController {
     public ResponseEntity<Page<ProductDto>> getProductsPage(Pageable pageable,
             @RequestBody(required = false) ProductFilterDto productFilterDto) {
         Page<ProductDto> productsPage = productService.getProductsPage(
-                pageable, productFilterDto.getName(), productFilterDto.getCategoryId(),
+                pageable, productFilterDto.getName(), productFilterDto.getCategoryId(), productFilterDto.getSubcategoryId(),
                 productFilterDto.getLowerPriceBound(), productFilterDto.getUpperPriceBound(),
                 productFilterDto.getSellerIds(), productFilterDto.getSlugs(), productFilterDto.getCharacteristics());
         return ResponseEntity.ok(productsPage);
