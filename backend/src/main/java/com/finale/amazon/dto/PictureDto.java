@@ -1,13 +1,5 @@
 package com.finale.amazon.dto;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-
 import com.finale.amazon.entity.Picture;
 
 import lombok.AllArgsConstructor;

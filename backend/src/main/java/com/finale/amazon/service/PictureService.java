@@ -2,7 +2,6 @@ package com.finale.amazon.service;
 
 import com.finale.amazon.dto.PictureDto;
 import com.finale.amazon.entity.Picture;
-import com.finale.amazon.entity.PictureType;
 import com.finale.amazon.entity.Product;
 import com.finale.amazon.repository.PictureRepository;
 import com.finale.amazon.repository.PictureTypeRepository;
