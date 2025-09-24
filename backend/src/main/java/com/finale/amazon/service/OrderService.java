@@ -41,7 +41,7 @@ public class OrderService {
     private ProductRepository productRepository;
 
     public List<Order> getOrdersBySeller(User seller) {
-        return orderRepository.findByProductSeller(seller);
+        return orderRepository.findDistinctByOrderItemsProductSeller(seller);
     }
 
     public List<Order> getOrdersByUser(User user) {

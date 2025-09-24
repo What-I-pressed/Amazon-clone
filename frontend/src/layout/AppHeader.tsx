@@ -165,6 +165,41 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
+          {/* Favourites */}
+          <div
+            className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
+            onClick={() => navigate("/favourites")}
+            title="Go to favourites"
+          >
+            Favourites
+          </div>
+
+          {/* Orders */}
+          <div
+            className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
+            onClick={() => navigate("/orders")}
+            title="Go to orders"
+          >
+            Orders
+          </div>
+
+          {/* Cart */}
+          <div
+            className="relative cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
+            onClick={() => navigate("/cart")}
+            title="Go to cart"
+          >
+            Cart
+            {cartCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center"
+                aria-label={`Items in cart: ${cartCount}`}
+              >
+                {cartCount}
+              </span>
+            )}
+          </div>
+
           {/* Account dropdown */}
           <div className="relative" ref={accountRef}>
             <div
@@ -222,41 +257,6 @@ const Navbar: React.FC = () => {
                 )}
               </div>
             </div>
-          </div>
-
-          {/* Favourites */}
-          <div
-            className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
-            onClick={() => navigate("/favourites")}
-            title="Go to favourites"
-          >
-            Favourites
-          </div>
-
-          {/* Orders */}
-          <div
-            className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
-            onClick={() => navigate("/orders")}
-            title="Go to orders"
-          >
-            Orders
-          </div>
-
-          {/* Cart */}
-          <div
-            className="relative cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
-            onClick={() => navigate("/cart")}
-            title="Go to cart"
-          >
-            Cart
-            {cartCount > 0 && (
-              <span
-                className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center"
-                aria-label={`Items in cart: ${cartCount}`}
-              >
-                {cartCount}
-              </span>
-            )}
           </div>
         </div>
       </div>

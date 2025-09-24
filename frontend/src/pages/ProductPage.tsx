@@ -1,153 +1,185 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import type { Product } from "../types/product";
 import type { Seller } from "../types/seller";
 import { fetchProductBySlug } from "../api/products";
 import { fetchSellerProfileBySlug } from "../api/seller";
+
+import { fetchProductReviews, createReview, deleteReview, type Review as ProductReview } from "../api/reviews";
+import { AuthContext } from "../context/AuthContext";
+import { Heart, Star, ArrowLeft, ArrowRight, X, Truck, Package } from 'lucide-react';
 import { addToCart as addToCartApi, fetchCart } from "../api/cart";
 import { addFavourite, deleteFavourite, fetchFavourites } from "../api/favourites";
 
-// Mock icon components since they're imported but not defined
-const PlusIcon = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-  </svg>
-);
 
-const ArrowRightIcon = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-  </svg>
-);
-
-const ChevronLeftIcon = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-  </svg>
-);
-
-const GroupIcon = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-  </svg>
-);
-
-const AngleDownIcon = ({ className }: { className?: string }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-  </svg>
-);
-
-const ProductPage = () => {
-  // Original state variables
-  const [quantity, setQuantity] = useState(1);
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [isWishlisted, setIsWishlisted] = useState(false);
-  const [activeTab, setActiveTab] = useState("reviews");
-  const [userRating, setUserRating] = useState(0);
-  const [cartItems, setCartItems] = useState<Record<number, number>>({});
-  const [email, setEmail] = useState('nexora@email.com');
-
-  // Missing state variables for the lightbox functionality
+const ProductPage: React.FC = () => {
+  const { slug } = useParams<{ slug: string }>();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [seller, setSeller] = useState<Seller | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const wheelCooldownRef = useRef<number>(0);
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
-  
-  // Missing refs
-  const wheelCooldownRef = useRef(0);
   const panStartRef = useRef<{ x: number; y: number } | null>(null);
   const [addingCart, setAddingCart] = useState(false);
   const [inCartQty, setInCartQty] = useState<number>(0);
   const [liked, setLiked] = useState(false);
   const [favouriteId, setFavouriteId] = useState<number | null>(null);
 
-  // Mock data (since the original data fetching is incomplete)
-  const product = {
-    id: 1,
-    name: "Modern Bookshelf",
-    price: 60,
-    description: "Upgrade your bedroom with this elegant double bed and matching side tables. Crafted from high-quality wood with a modern design, it combines comfort and style to enhance your living space.",
-    pictures: [
-      { url: "images/product1.jpg" },
-      { url: "images/product2.jpg" },
-      { url: "images/product3.jpg" }
-    ]
-  };
+  // Reviews state
+  const [reviews, setReviews] = useState<ProductReview[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsError, setReviewsError] = useState<string | null>(null);
+  const [newReviewText, setNewReviewText] = useState("");
+  const [newReviewStars, setNewReviewStars] = useState(5);
+  const [postingReview, setPostingReview] = useState(false);
+  const [deletingReviewId, setDeletingReviewId] = useState<number | null>(null);
+  const auth = useContext(AuthContext);
+  const currentUser = auth?.user || null;
 
-  const seller = {
-    username: "mebli_store",
-    slug: "mebli-store",
-    description: "Quality furniture store",
-    url: "images/seller-avatar.jpg"
-  };
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
 
-  const productImages = [
-    "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=500&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=500&h=600&fit=crop"
-  ];
+  useEffect(() => {
+    if (!slug) return;
 
-  const thumbnails = [
-    "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=200&h=250&fit=crop",
-    "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=200&h=250&fit=crop",
-    "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=200&h=250&fit=crop"
-  ];
-  const similarProducts = [
-    {
-      id: 1,
-      name: "Blue Armchair",
-      price: 220.00,
-      image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop&crop=center"
-    },
-    {
-      id: 2,
-      name: "Loft-style Lamp",
-      originalPrice: 160.00,
-      price: 140.00,
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=center"
-    },
-    {
-      id: 3,
-      name: "Green Chair",
-      price: 320.50,
-      image: "https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=400&h=400&fit=crop&crop=center"
-    },
-    {
-      id: 4,
-      name: "Modern Bookshelf",
-      price: 460.00,
-      image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop&crop=center"
-    }
-  ];
+    let isMounted = true;
+    setLoading(true);
+    setError(null);
 
-  const decreaseQuantity = () => {
-    if (quantity > 1) setQuantity(quantity - 1);
-  };
+    const loadData = async () => {
+      try {
+        const productData = await fetchProductBySlug(slug);
+        if (!isMounted) return;
+        setProduct(productData);
+        setActiveImageIdx(0);
 
-  const increaseQuantity = () => {
-    setQuantity(quantity + 1);
-  };
+        if (productData.sellerSlug) {
+          const sellerData = await fetchSellerProfileBySlug(productData.sellerSlug);
+          if (!isMounted) return;
+          setSeller(sellerData);
+        }
+        // compute if product already in cart
+        try {
+          const cartItems = await fetchCart();
+          if (!isMounted) return;
+          const found = cartItems.find((ci) => ci.product?.id === productData.id);
+          setInCartQty(found ? (found.quantity || 0) : 0);
+        } catch {
+          setInCartQty(0);
+        }
+        // load favourite state for this product
+        try {
+          const favs = await fetchFavourites();
+          if (!isMounted) return;
+          const match = favs.find((f) => f.product?.id === productData.id);
+          if (match) {
+            setLiked(true);
+            setFavouriteId(match.id);
+          } else {
+            setLiked(false);
+            setFavouriteId(null);
+          }
+        } catch {
+          // ignore favourites load error silently
+        }
+      } catch (e: unknown) {
+        if (!isMounted) return;
+        setError(e instanceof Error ? e.message : "Сталася помилка завантаження товару");
+      } finally {
+        if (!isMounted) return;
+        setLoading(false);
+      }
+    };
 
-  const handleAddToCart = (productId: number) => {
-    setCartItems(prev => ({
-      ...prev,
-      [productId]: (prev[productId] || 0) + 1
-    }));
-  };
+    loadData();
+    return () => { isMounted = false; };
+  }, [slug]);
 
-  const handleSubscribe = () => {
-    console.log('Subscribing email:', email);
-  };
-
-  // Images array using useMemo
   const images: string[] = useMemo(() => {
     if (product?.pictures && product.pictures.length > 0) {
-      return product.pictures.map(() => `https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500&h=600&fit=crop`);
+      return product.pictures.map(p => `http://localhost:8080/${p.url}`);
     }
-    return productImages;
+    return ["/images/product/placeholder.jpg"];
   }, [product]);
+
+  const displayedThumbnails = useMemo(() => {
+    // Always show 2 thumbnails
+    return images.slice(0, 2);
+  }, [images]);
+
+  const extraImagesCount = images.length > 2 ? images.length - 2 : 0;
+
+  // Load reviews when product is available
+  useEffect(() => {
+    const loadReviews = async () => {
+      if (!product?.id) return;
+      setReviewsLoading(true);
+      setReviewsError(null);
+      try {
+        const list = await fetchProductReviews(product.id);
+        // Sort by date desc if date exists
+        const sorted = [...list].sort((a, b) => {
+          const da = a.date ? new Date(a.date).getTime() : 0;
+          const db = b.date ? new Date(b.date).getTime() : 0;
+          return db - da;
+        });
+        setReviews(sorted);
+      } catch (e) {
+        setReviewsError(e instanceof Error ? e.message : "Не вдалося завантажити відгуки");
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+    loadReviews();
+  }, [product?.id]);
+
+  const handleDeleteReview = async (reviewId: number) => {
+    if (!product?.id || !window.confirm('Ви впевнені, що хочете видалити цей відгук?')) return;
+    
+    setDeletingReviewId(reviewId);
+    try {
+      await deleteReview(reviewId);
+      setReviews(prev => prev.filter(r => r.id !== reviewId));
+    } catch (error) {
+      console.error('Failed to delete review:', error);
+      alert('Не вдалося видалити відгук. Спробуйте пізніше.');
+    } finally {
+      setDeletingReviewId(null);
+    }
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!product?.id) return;
+    if (!newReviewText.trim()) return;
+    setPostingReview(true);
+    try {
+      await createReview({
+        productId: product.id,
+        description: newReviewText.trim(),
+        stars: newReviewStars,
+      });
+      setNewReviewText("");
+      setNewReviewStars(5);
+      // Reload reviews
+      const list = await fetchProductReviews(product.id);
+      const sorted = [...list].sort((a, b) => {
+        const da = a.date ? new Date(a.date).getTime() : 0;
+        const db = b.date ? new Date(b.date).getTime() : 0;
+        return db - da;
+      });
+      setReviews(sorted);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Не вдалося додати відгук");
+    } finally {
+      setPostingReview(false);
+    }
+  };
 
   // Lightbox controls
   const openLightbox = (index: number) => {
@@ -156,23 +188,50 @@ const ProductPage = () => {
     setZoom(1);
     setOffset({ x: 0, y: 0 });
   };
-
   const closeLightbox = () => setLightboxOpen(false);
-
   const showNext = () => setActiveImageIdx((idx) => (images.length ? (idx + 1) % images.length : idx));
-  
   const showPrev = () => setActiveImageIdx((idx) => (images.length ? (idx - 1 + images.length) % images.length : idx));
 
   const zoomIn = () => setZoom((z) => Math.min(4, +(z + 0.25).toFixed(2)));
-  
   const zoomOut = () => setZoom((z) => {
     const next = Math.max(1, +(z - 0.25).toFixed(2));
     if (next === 1) setOffset({ x: 0, y: 0 });
     return next;
   });
-  
   const resetZoom = () => { setZoom(1); setOffset({ x: 0, y: 0 }); };
 
+  const handleAddToCart = async () => {
+    if (!product?.id) return;
+    try {
+      setAddingCart(true);
+      await addToCartApi({ productId: Number(product.id), quantity: 1 });
+      window.dispatchEvent(new CustomEvent('cart:updated'));
+      setInCartQty((q) => q + 1);
+    } catch {
+      // optionally show toast
+    } finally {
+      setAddingCart(false);
+    }
+  };
+
+  const toggleFavourite = async () => {
+    if (!product?.id) return;
+    try {
+      if (!liked) {
+        const createdId = await addFavourite(Number(product.id));
+        setFavouriteId(createdId);
+        setLiked(true);
+      } else {
+        if (favouriteId != null) {
+          await deleteFavourite(favouriteId);
+        }
+        setFavouriteId(null);
+        setLiked(false);
+      }
+    } catch {
+      // optionally show toast
+    }
+  };
 
   // Keyboard navigation when lightbox is open
   useEffect(() => {
@@ -185,488 +244,246 @@ const ProductPage = () => {
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [lightboxOpen, images.length]);
-  const StarRating = ({ rating = 4, total = 5, interactive = false, size = "w-4 h-4" }) => {
-    const handleClick = (index: number) => {
-      if (interactive) {
-        setUserRating(index + 1);
-      }
-    };
 
-    return (
-      <div className="flex items-center gap-1">
-        {[...Array(total)].map((_, i) => (
-          <svg
-            key={i}
-            className={`${size} ${interactive ? 'cursor-pointer' : ''} ${
-              i < (interactive ? userRating : rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-            }`}
-            onClick={() => handleClick(i)}
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118L10 13.347l-2.987 2.134c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L3.38 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-          </svg>
-        ))}
-      </div>
-    );
-  };
-
-  const TabsReviews = () => {
-    return (
-      <div className="bg-gray-50 p-6 rounded-md">
-        {/* Tabs */}
-        <div className="flex space-x-4 border-b border-gray-200 mb-4">
-          <button
-            onClick={() => setActiveTab("description")}
-            className={`pb-2 text-gray-600 font-medium ${
-              activeTab === "description" ? "border-b-2 border-black text-black" : ""
-            }`}
-          >
-            Description
-          </button>
-          <button
-            onClick={() => setActiveTab("reviews")}
-            className={`pb-2 text-gray-600 font-medium ${
-              activeTab === "reviews" ? "border-b-2 border-black text-black" : ""
-            }`}
-          >
-            Reviews
-          </button>
-        </div>
-
-        {/* Content */}
-        {activeTab === "reviews" && (
-          <div className="space-y-6">
-            {/* Review examples */}
-            <div className="bg-white p-4 rounded-md border border-gray-200">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-semibold text-sm text-gray-800">Jordan Barret</p>
-                  <p className="text-gray-600 text-sm mt-1">
-                    This set exceeded my expectations. It's sturdy, stylish, and fits perfectly in my room. The drawers on the side tables slide smoothly and offer great storage. Great value for the price!
-                  </p>
-                  <div className="flex space-x-4 text-xs text-gray-500 mt-2">
-                    <button className="hover:underline">Like</button>
-                    <button className="hover:underline">Reply</button>
-                    <span>5m</span>
-                  </div>
-                </div>
-                <div className="flex space-x-1 text-yellow-400">
-                  <StarRating rating={5} />
-                </div>
-              </div>
-            </div>
-
-            {/* Review Form */}
-            <div className="bg-white p-4 rounded-md border border-gray-200">
-              <form className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">Your Name:</label>
-                    <input
-                      type="text"
-                      placeholder="John Doe"
-                      className="w-full px-3 py-2 border rounded-full text-sm focus:outline-none focus:ring focus:ring-gray-200"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">Your Email:</label>
-                    <input
-                      type="email"
-                      placeholder="person@gmail.com"
-                      className="w-full px-3 py-2 border rounded-full text-sm focus:outline-none focus:ring focus:ring-gray-200"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <textarea
-                    placeholder="Write your review..."
-                    className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring focus:ring-gray-200"
-                    rows={3}
-                  ></textarea>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2 text-sm text-gray-700">
-                    <span>Your Ratings:</span>
-                    <StarRating interactive={true} size="w-5 h-5" />
-                  </div>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-black text-white rounded-full text-sm hover:bg-gray-800 transition"
-                  >
-                    Post Review →
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "description" && (
-          <div className="bg-white p-6 rounded-md border border-gray-200">
-            <div className="space-y-4 text-gray-600 text-sm leading-relaxed">
-              <h3 className="text-lg font-medium text-gray-800 mb-4">Product Description</h3>
-              <p>Upgrade your bedroom with this elegant double bed and matching side tables. Crafted from high-quality wood with a modern design, it combines comfort and style to enhance your living space.</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                <div>
-                  <h4 className="font-medium text-gray-800 mb-2">Features:</h4>
-                  <ul className="space-y-1">
-                    <li>• Sturdy wooden construction with sleek finish</li>
-                    <li>• Includes two side tables with built-in drawers</li>
-                    <li>• Ideal for modern or contemporary bedroom decor</li>
-                    <li>• Easy assembly with included hardware</li>
-                    <li>• Sustainable materials and eco-friendly finish</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-800 mb-2">Specifications:</h4>
-                  <ul className="space-y-1">
-                    <li>• Material: High-quality engineered wood</li>
-                    <li>• Dimensions: 180cm x 200cm x 90cm</li>
-                    <li>• Weight capacity: Up to 300kg</li>
-                    <li>• Finish: Matte lacquer coating</li>
-                    <li>• Assembly time: 45-60 minutes</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const SimilarProducts = () => {
-    return (
-      <div className="w-full max-w-7xl mx-auto p-8 bg-white">
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900">Similar Products</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {similarProducts.map((product) => (
-            <div key={product.id} className="flex flex-col group w-64">
-              <div className="relative mb-4">
-                <div className="w-full h-72 bg-gray-50 rounded-2xl overflow-hidden relative">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                  
-                  {product.originalPrice && (
-                    <div className="absolute top-4 left-4">
-                      <div className="bg-gray-800 text-white px-2 py-1 rounded-md text-xs font-medium">
-                        -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex-1 flex flex-col">
-                <h3 className="text-gray-800 font-medium text-base mb-3 leading-tight">
-                  {product.name}
-                </h3>
-
-                <div className="flex items-center justify-between mt-auto">
-                  <div className="flex items-center gap-2">
-                    {product.originalPrice && (
-                      <span className="text-gray-400 text-sm line-through">
-                        ${product.originalPrice.toFixed(2)}
-                      </span>
-                    )}
-                    
-                    <span className="text-gray-900 font-semibold text-lg">
-                      ${product.price.toFixed(2)}
-                    </span>
-                  </div>
-
-                  <button
-                    onClick={() => handleAddToCart(product.id)}
-                    className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
-                    aria-label={`Add ${product.name} to cart`}
-                  >
-                    <PlusIcon className="w-4 h-4 text-gray-700" />
-                  </button>
-                </div>
-                
-                {cartItems[product.id] > 0 && (
-                  <div className="mt-2 text-xs text-green-600 font-medium">
-                    Added: {cartItems[product.id]} item{cartItems[product.id] > 1 ? 's' : ''}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex justify-center mt-8">
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-pink-400 rounded-full transition-all duration-300 hover:scale-125 cursor-pointer"></div>
-            <div className="w-2 h-2 bg-gray-300 rounded-full transition-all duration-300 hover:scale-125 cursor-pointer"></div>
-            <div className="w-2 h-2 bg-gray-300 rounded-full transition-all duration-300 hover:scale-125 cursor-pointer"></div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const NexoraFooter = () => {
-    return (
-      <footer className="text-white" style={{backgroundColor: '#3D3D3D', fontFamily: 'Poppins, sans-serif'}}>
-        <div className="max-w-7xl mx-auto px-24 py-16">
-          <div className="text-center mb-20">
-            <h2 className="text-5xl font-light text-gray-100 mb-10 leading-tight" style={{fontFamily: 'Afacad, sans-serif'}}>
-              Subscribe To Your Newsletter<br />
-              to Stay Updated About Discounts
-            </h2>
-            <div className="flex justify-center">
-              <div className="relative">
-                <div className="flex items-center bg-black bg-opacity-15 backdrop-blur-sm border border-white border-opacity-60 rounded-full px-5 py-4 w-80">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="bg-transparent text-gray-300 placeholder-gray-400 flex-1 outline-none text-base"
-                    placeholder="nexora@email.com"
-                  />
-                  <button
-                    onClick={handleSubscribe}
-                    className="ml-3 bg-gray-700 hover:bg-gray-600 transition-colors rounded-full p-3"
-                  >
-                    <ChevronLeftIcon className="w-6 h-6 text-white transform rotate-90" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-4 gap-12 mb-20">
-            <div>
-              <h3 className="text-gray-400 font-medium mb-8 text-lg">Products</h3>
-              <ul className="space-y-6">
-                <li><a href="#" className="text-white hover:text-gray-300 transition-colors text-lg">For Home</a></li>
-                <li><a href="#" className="text-white hover:text-gray-300 transition-colors text-lg">For Kitchen</a></li>
-                <li><a href="#" className="text-white hover:text-gray-300 transition-colors text-lg">Electronics</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-gray-400 font-medium mb-8 text-lg">Legal Pages</h3>
-              <ul className="space-y-6">
-                <li><a href="#" className="text-white hover:text-gray-300 transition-colors text-lg">Privacy Policy</a></li>
-                <li><a href="#" className="text-white hover:text-gray-300 transition-colors text-lg">Terms & Conditions</a></li>
-                <li><a href="#" className="text-white hover:text-gray-300 transition-colors text-lg">Refund Policy</a></li>
-                <li><a href="#" className="text-white hover:text-gray-300 transition-colors text-lg">Shipping Info</a></li>
-                <li><a href="#" className="text-white hover:text-gray-300 transition-colors text-lg">Contact Us</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-gray-400 font-medium mb-8 text-lg">SUPPORT</h3>
-              <ul className="space-y-6">
-                <li><a href="#" className="text-white hover:text-gray-300 transition-colors text-lg">FAQ</a></li>
-                <li><a href="#" className="text-white hover:text-gray-300 transition-colors text-lg">Customer Service</a></li>
-                <li><a href="#" className="text-white hover:text-gray-300 transition-colors text-lg">Order Tracking</a></li>
-                <li><a href="#" className="text-white hover:text-gray-300 transition-colors text-lg">Returns & Exchanges</a></li>
-                <li><a href="#" className="text-white hover:text-gray-300 transition-colors text-lg">Warranty</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-gray-400 font-medium mb-8 text-lg">ABOUT</h3>
-              <ul className="space-y-6">
-                <li><a href="#" className="text-white hover:text-gray-300 transition-all duration-300 text-lg hover:translate-x-1">Our Story</a></li>
-                <li><a href="#" className="text-white hover:text-gray-300 transition-all duration-300 text-lg hover:translate-x-1">Sustainability</a></li>
-                <li><a href="#" className="text-white hover:text-gray-300 transition-all duration-300 text-lg hover:translate-x-1">Careers</a></li>
-                <li><a href="#" className="text-white hover:text-gray-300 transition-all duration-300 text-lg hover:translate-x-1">Blog</a></li>
-                <li><a href="#" className="text-white hover:text-gray-300 transition-all duration-300 text-lg hover:translate-x-1">Partnerships</a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div className="border-t border-gray-600">
-          <div className="max-w-7xl mx-auto px-24 py-6">
-            <div className="text-center">
-              <p className="text-white text-base">
-                Copyright © 2025 Nexora, Inc
-              </p>
-            </div>
-          </div>
-        </div>
-      </footer>
-    );
-  };
+  if (loading) return <div className="p-6 text-center">Завантаження товару...</div>;
+  if (error) return <div className="p-6 text-center text-red-600">{error}</div>;
+  if (!product) return <div className="p-6 text-center">Товар не знайдено</div>;
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Main Product Page Content */}
-      <div className="px-6 py-8 max-w-7xl mx-auto">
-        {/* Breadcrumb */}
-        <nav className="flex items-center gap-1 text-gray-500 mb-12">
-          <span>Product Listing</span>
-          <ChevronLeftIcon className="w-5 h-5" />
-          <span className="text-gray-700 font-medium">Dummy Product Page</span>
-        </nav>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-          {/* Product Images */}
-          <div className="lg:col-span-7">
-            <div className="flex gap-8">
-              {/* Thumbnails */}
-              <div className="flex flex-col gap-8">
-                {thumbnails.map((thumb, index) => (
-                  <div
-                    key={index}
-                    className={`w-36 h-48 rounded-lg overflow-hidden cursor-pointer border-2 transition-all duration-200 ${
-                      selectedImage === index
-                        ? 'border-gray-300'
-                        : 'border-transparent hover:border-gray-200'
-                    }`}
-                    onClick={() => setSelectedImage(index)}
-                  >
-                    <img
-                      src={thumb}
-                      alt={`Product view ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-
-              {/* Main Image */}
-              <div className="flex-1">
-                <div className="w-full h-[600px] rounded-lg overflow-hidden bg-gray-50">
-                  <img
-                    src={productImages[selectedImage]}
-                    alt="Modern Bookshelf"
-                    className="w-full h-full object-cover cursor-zoom-in"
-                    onClick={() => openLightbox(selectedImage)}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Product Info */}
-          <div className="lg:col-span-5 space-y-8">
-            <div className="flex items-start justify-between">
-              <h1 className="text-4xl font-light text-gray-800">Modern Bookshelf</h1>
-              <button
-                onClick={() => setIsWishlisted(!isWishlisted)}
-                className="p-2 hover:bg-gray-50 rounded-full transition-colors"
+    <div className="min-h-screen bg-white p-2 pt-12">
+      <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10">
+        {/* Product Images */}
+        <div className="w-full max-w-md self-start flex gap-4">
+          {/* Thumbnails column - always 3 items */}
+          <div className="flex flex-col gap-8 w-32">
+            {displayedThumbnails.map((src, idx) => (
+              <button 
+                key={idx} 
+                onClick={() => setActiveImageIdx(idx)}
+                className="w-full flex-1 aspect-[3/4] rounded-md overflow-hidden bg-white"
               >
-                <svg
-                  className={`w-8 h-8 ${
-                    isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-400 hover:text-red-400'
-                  }`}
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                </svg>
+                <img 
+                  src={src} 
+                  alt={`${product.name} thumbnail ${idx + 1}`} 
+                  className="w-full h-full object-cover" 
+                />
               </button>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-4">
-                <span className="text-4xl font-medium text-gray-800">$60</span>
-                <div className="w-px h-8 bg-gray-300"></div>
-                <div className="flex items-center gap-3">
-                  <StarRating rating={4} />
-                  <span className="text-gray-600">( 32 review )</span>
-                </div>
-              </div>
-            </div>
-
-            {seller && (
-              <div className="block mt-2 p-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition">
-                <div className="flex items-center gap-4">
-                  {seller.url && <img src={`https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face`} alt={seller.username} className="w-16 h-16 rounded-full object-cover" />}
-                  <div>
-                    <p className="font-semibold text-lg">{seller.username}</p>
-                    {seller.description && <p className="text-sm text-gray-500">{seller.description}</p>}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="w-full h-px bg-gray-200"></div>
-            <div className="text-gray-600 leading-relaxed">
-              <p>Upgrade your bedroom with this elegant double bed and matching side tables. Crafted from high-quality wood with a modern design, it combines comfort and style to enhance your living space. The set includes a durable frame, a supportive headboard, and two side tables with storage drawers—perfect for keeping essentials within reach.</p>
-              <br />
-              <p>Sturdy wooden construction with sleek finish<br />
-                Includes two side tables with built-in drawers<br />
-                Ideal for modern or contemporary bedroom decor</p>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex gap-4">
-                <div className="flex items-center border border-gray-300 rounded-full px-4 py-3 bg-white">
-                  <button
-                    onClick={decreaseQuantity}
-                    className="p-2 hover:bg-gray-50 rounded-full transition-colors"
-                  >
-                    <AngleDownIcon className="w-5 h-5 text-gray-600" />
-                  </button>
-                  <span className="mx-6 text-lg font-medium min-w-[20px] text-center">{quantity}</span>
-                  <button
-                    onClick={increaseQuantity}
-                    className="p-2 hover:bg-gray-50 rounded-full transition-colors"
-                  >
-                    <PlusIcon className="w-5 h-5 text-gray-600" />
-                  </button>
-                </div>
-
-                <button className="flex-1 bg-green-600 hover:bg-green-700 text-white py-4 px-8 rounded-full font-medium text-lg flex items-center justify-center gap-3 transition-colors">
-                  Add to Cart <ArrowRightIcon className="w-5 h-5" />
-                </button>
-              </div>
-
-              <button className="w-full border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white py-4 px-8 rounded-full font-medium text-lg transition-colors">
-                Buy Now
-              </button>
-            </div>
-
-            <div className="space-y-4 pt-4">
-              <div className="flex items-start gap-5">
-                <GroupIcon className="w-7 h-7 text-gray-500 mt-0.5" />
-                <div>
-                  <p className="text-gray-800 font-medium">Free worldwide shipping on all orders over $100</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-5">
-                <svg className="w-7 h-7 text-gray-500 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="1 4 1 10 7 10"></polyline>
-                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-                </svg>
-                <div>
-                  <p className="text-gray-800 font-medium">Delivers in: 3-7 Working Days Shipping & Return</p>
-                </div>
-              </div>
-            </div>
+            ))}
+            {/* Always show button as 3rd item with 3:4 ratio */}
+            <button
+              onClick={() => openLightbox(2)}
+              className="w-full flex-1 aspect-[3/4] rounded-md overflow-hidden bg-gray-100 flex items-center justify-center text-sm font-medium"
+            >
+              +{extraImagesCount > 0 ? extraImagesCount : images.length > 0 ? 1 : 0}
+            </button>
+          </div>
+          
+          {/* Main image container */}
+          <div className="flex-1 aspect-[4/5] rounded-md overflow-hidden bg-white flex-shrink-0">
+            <img
+              src={images[activeImageIdx]}
+              alt={product.name}
+              className="w-full h-full object-contain cursor-zoom-in"
+              onClick={() => openLightbox(activeImageIdx)}
+            />
           </div>
         </div>
 
-        {/* Tabs Section */}
-        <div className="mt-16">
-          <TabsReviews />
+        {/* Product Info */}
+        <div className="space-y-4 relative">
+          <button 
+            onClick={toggleFavourite}
+            className="absolute top-0 right-0 w-10 h-10 rounded-full flex items-center justify-center transition"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill={liked ? "red" : "none"} viewBox="0 0 24 24" strokeWidth={1.8} stroke={liked ? "red" : "currentColor"} className="w-6 h-6">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.74 0-3.278 1.012-4.062 2.475A4.875 4.875 0 008.25 3.75C5.66 3.75 3.563 5.765 3.563 8.25c0 7.22 8.437 11.25 8.437 11.25s8.438-4.03 8.438-11.25z" />
+            </svg>
+          </button>
+          <h1 className="text-3xl font-bold pr-12">{product.name}</h1>
+          <p className="text-2xl font-semibold">${product.price.toLocaleString()}</p>
+          
+          {/* Seller Info */}
+          {seller && (
+            <Link to={`/seller/${seller.slug}`} className="block p-4 bg-white rounded-2xl border-[1px] border-[#E0E0E0] hover:shadow-md transition">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  {seller.url && <img src={`http://localhost:8080/${seller.url}`} alt={seller.username} className="w-16 h-16 rounded-full object-cover" />}
+                  <p className="font-semibold text-lg">{seller.username}</p>
+                </div>
+                <div className="flex items-center text-black text-sm">
+                  Show More
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </Link>
+          )}
+          
+          {/* Dividing line between seller info and description */}
+          <div className="border-t border-[#DDDDDD] my-8"></div>
+          
+          <p className="text-gray-700 leading-relaxed">
+            {showFullDescription ? product.description : product.description.slice(0, 500)}
+            {!showFullDescription && product.description.length > 500 && '... '}
+            {!showFullDescription && product.description.length > 500 && (
+              <button 
+                onClick={() => setShowFullDescription(true)}
+                className="text-black"
+              >
+                Load more
+              </button>
+            )}
+          </p>
+          
+          <div className="flex gap-3">
+            <button
+              onClick={handleAddToCart}
+              disabled={addingCart}
+              className="flex-1 bg-[#42A275] text-white rounded-3xl py-2.5 font-medium hover:opacity-90 transition"
+            >
+              {addingCart ? "Adding..." : inCartQty > 0 ? `In cart (${inCartQty})` : "Add to cart"}
+            </button>
+            <button
+              onClick={toggleFavourite}
+              title={liked ? "Remove from favourites" : "Add to favourites"}
+              className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill={liked ? "red" : "none"} viewBox="0 0 24 24" strokeWidth={1.8} stroke={liked ? "red" : "currentColor"} className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.74 0-3.278 1.012-4.062 2.475A4.875 4.875 0 008.25 3.75C5.66 3.75 3.563 5.765 3.563 8.25c0 7.22 8.437 11.25 8.437 11.25s8.438-4.03 8.438-11.25z" />
+              </svg>
+            </button>
+          </div>
+          <div className="mt-4 space-y-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 17h4V5H2v12h3m5 0l-3 3l-3-3m12 2v-2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2m0-4V7a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v6"/>
+              </svg>
+              <span>Free worldwide shipping on all orders over $100</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                <path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/>
+              </svg>
+              <span>Delivers in 3-7 Working Days</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Similar Products Section */}
-      <SimilarProducts />
+      {/* Reviews Section */}
+      <div className="max-w-6xl mx-auto mt-12 mb-12 grid grid-cols-1 gap-8">
+        <section className="bg-[#F8F8F8] rounded-2xl border p-6">
+          <h2 className="text-xl font-semibold mb-4">Customer Reviews</h2>
 
-      {/* Footer */}
-      <NexoraFooter />
+          {reviewsLoading && (
+            <div className="text-gray-500">Loading reviews...</div>
+          )}
+          {reviewsError && (
+            <div className="text-red-600">{reviewsError}</div>
+          )}
+
+          {!reviewsLoading && !reviewsError && (
+            <div className="space-y-4">
+              {reviews.length === 0 ? (
+                <div className="text-gray-600">No reviews yet. Be the first to write one!</div>
+              ) : (
+                reviews.map((r) => (
+                  <div key={r.id} className="border rounded-xl p-4">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <div className="font-medium flex-1">
+                        {r.username ?? 'User'}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-gray-500">
+                          {r.date ? new Date(r.date).toLocaleString() : ''}
+                        </span>
+                        {currentUser && r.userId === currentUser.id && (
+                          <button
+                            onClick={() => handleDeleteReview(r.id)}
+                            disabled={deletingReviewId === r.id}
+                            className="text-gray-400 hover:text-red-500 transition-colors p-1 -mr-1"
+                            aria-label="Delete review"
+                            title="Delete review"
+                          >
+                            {deletingReviewId === r.id ? (
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                            ) : (
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 mb-2">
+                      {Array.from({ length: 5 }).map((_, idx) => (
+                        <Star 
+                          key={idx} 
+                          className={idx < (r.stars || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'} 
+                          size={16} 
+                        />
+                      ))}
+                    </div>
+                    <p className="text-gray-800 whitespace-pre-wrap">{r.description}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* Write a review */}
+        <section className="bg-[#F8F8F8] rounded-2xl border p-6">
+          <h3 className="text-lg font-semibold mb-3">Write a review</h3>
+          <form onSubmit={handleSubmitReview} className="space-y-4">
+            <div>
+              <label className="block text-sm text-gray-700 mb-1">Your rating</label>
+              <div className="flex items-center gap-2">
+                {([1,2,3,4,5] as const).map((val) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setNewReviewStars(val)}
+                    className="text-2xl focus:outline-none"
+                    aria-label={`Rate ${val} star${val>1?'s':''}`}
+                  >
+                    <Star 
+                      className={val <= newReviewStars ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'} 
+                      size={20} 
+                    />
+                  </button>
+                ))}
+                <span className="text-sm text-gray-600">{newReviewStars}/5</span>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm text-gray-700 mb-1">Your review</label>
+              <textarea
+                className="w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                rows={4}
+                value={newReviewText}
+                onChange={(e) => setNewReviewText(e.target.value)}
+                placeholder="Share your experience with this product..."
+                required
+              />
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={postingReview || !newReviewText.trim()}
+                className={`px-5 py-2 rounded-full text-white ${postingReview ? 'bg-gray-400' : 'bg-[#282828] hover:opacity-90'} transition`}
+              >
+                {postingReview ? 'Posting...' : 'Submit Review'}
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
 
       {/* Lightbox Overlay */}
       {lightboxOpen && (
@@ -676,6 +493,7 @@ const ProductPage = () => {
           onWheel={(e) => {
             e.stopPropagation();
             if (zoom > 1) {
+              // Zoom with wheel when zoomed in
               setZoom((z) => {
                 const next = e.deltaY < 0 ? Math.min(4, +(z + 0.15).toFixed(2)) : Math.max(1, +(z - 0.15).toFixed(2));
                 if (next === 1) setOffset({ x: 0, y: 0 });
@@ -689,6 +507,7 @@ const ProductPage = () => {
             if (e.deltaY > 0) showNext(); else showPrev();
           }}
         >
+          {/* Content wrapper to prevent closing when interacting with controls */}
           <div
             className="relative w-full h-full flex items-center justify-center"
             onClick={(e) => e.stopPropagation()}
@@ -704,34 +523,38 @@ const ProductPage = () => {
             onMouseUp={() => { setIsPanning(false); panStartRef.current = null; }}
             onMouseLeave={() => { setIsPanning(false); panStartRef.current = null; }}
           >
+            {/* Close button */}
             <button
               aria-label="Close"
               className="absolute top-4 right-4 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-2"
               onClick={closeLightbox}
             >
-              ✕
+              <X className="w-6 h-6" />
             </button>
 
+            {/* Prev button */}
             {images.length > 1 && (
               <button
                 aria-label="Previous"
                 className="absolute left-4 md:left-6 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-3"
                 onClick={showPrev}
               >
-                ‹
+                <ArrowLeft className="w-6 h-6" />
               </button>
             )}
 
+            {/* Next button */}
             {images.length > 1 && (
               <button
                 aria-label="Next"
                 className="absolute right-4 md:right-6 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-3"
                 onClick={showNext}
               >
-                ›
+                <ArrowRight className="w-6 h-6" />
               </button>
             )}
 
+            {/* Image */}
             <img
               src={images[activeImageIdx]}
               alt={`image-${activeImageIdx}`}
@@ -740,8 +563,12 @@ const ProductPage = () => {
               onDoubleClick={() => {
                 if (zoom === 1) setZoom(2); else resetZoom();
               }}
+              onMouseDown={() => {
+                // indicate panning
+              }}
             />
 
+            {/* Zoom controls */}
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full p-2">
               <button onClick={zoomOut} className="px-3 py-1.5 rounded-full bg-white/20 text-white hover:bg-white/30">-</button>
               <span className="px-2 text-white text-sm">{Math.round(zoom * 100)}%</span>

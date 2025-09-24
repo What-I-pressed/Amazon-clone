@@ -48,10 +48,10 @@ const SellerDashboard: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
           <div className="flex items-center space-x-4">
             <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center text-white font-bold text-xl">
-              {seller?.name.charAt(0).toUpperCase()}
+              {seller?.username ? seller.username.charAt(0).toUpperCase() : ''}
             </div>
             <div>
-              <h1 className="text-2xl font-bold">{seller?.name}</h1>
+              <h1 className="text-2xl font-bold">{seller?.username || 'Продавець'}</h1>
               <p className="text-gray-700">Рейтинг: {seller?.rating}/5 ⭐</p>
             </div>
           </div>
@@ -120,11 +120,11 @@ const SellerDashboard: React.FC = () => {
         <div className="bg-white rounded-lg shadow-md p-6 border border-gray-300 hover:shadow-lg transition-all duration-300">
           <h2 className="text-lg font-semibold mb-4">Інформація про продавця</h2>
           <div className="space-y-3">
-            <InfoRow label="Товарів:" value={seller?.stats?.totalOrders} />
-            <InfoRow label="Активні:" value={seller?.stats?.activeOrders} />
-            <InfoRow label="Виконані:" value={seller?.stats?.completedOrders} />
-            <InfoRow label="Скасовані:" value={seller?.stats?.cancelledOrders} />
-            <InfoRow label="Дохід:" value={`$${seller?.stats?.totalRevenue.toFixed(2)}`} />
+            <InfoRow label="Товарів:" value={seller?.stats?.totalOrders ?? 0} />
+            <InfoRow label="Активні:" value={seller?.stats?.activeOrders ?? 0} />
+            <InfoRow label="Виконані:" value={seller?.stats?.completedOrders ?? 0} />
+            <InfoRow label="Скасовані:" value={seller?.stats?.cancelledOrders ?? 0} />
+            <InfoRow label="Дохід:" value={`$${(seller?.stats?.totalRevenue || 0).toFixed(2)}`} />
           </div>
         </div>
       </div>
