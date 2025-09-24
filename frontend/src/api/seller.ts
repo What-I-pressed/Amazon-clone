@@ -86,7 +86,7 @@ export async function fetchSellerProducts(
 export async function fetchSellerProductsBySlug(
   slug: string,
   page = 0,
-  size = 12
+  size = 24
 ): Promise<PageResponse<Product>> {
   const res = await fetch(`${API_BASE}/products/page/${page}?size=${size}`, {
     method: "POST",
