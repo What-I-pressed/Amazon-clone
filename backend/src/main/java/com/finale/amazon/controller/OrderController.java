@@ -77,7 +77,14 @@ public class OrderController {
     @PutMapping("/create")
     public ResponseEntity<?> CreateOrder(@RequestParam String token, @RequestBody OrderCreationDto order){
         if(jwtUtil.isTokenExpired(token)) return ResponseEntity.status(400).body("Token is expired");
-        return ResponseEntity.ok(new OrderDto(orderService.creatOrder(order, jwtUtil.extractUserId(token))));
+        try{
+            Order o = orderService.creatOrder(order, jwtUtil.extractUserId(token));
+            return ResponseEntity.ok(new OrderDto(o));
+        }
+        catch(Exception ex){
+            return ResponseEntity.status(409).body("This product is out of stock");
+        }
+        
     }
 
     @Operation(summary = "Обробити замовлення", description = "Змінює статус замовлення на PROCESSING (тільки для ADMIN)")

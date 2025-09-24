@@ -1,11 +1,4 @@
-export type Review = {
-  id: number;
-  description: string;
-  stars: number;
-  date: string;
-  username?: string;
-  userId?: number;
-};
+import { Review } from "../types/review";
 
 const API_BASE = "http://localhost:8080/api/reviews";
 
@@ -53,4 +46,34 @@ export async function deleteReview(reviewId: number): Promise<void> {
     const text = await res.text().catch(() => '');
     throw new Error(text || 'Failed to delete review');
   }
+}
+
+export async function replyReview(input: {
+  parentId: number;  // Changed from parentReviewId
+  description: string;
+  date?: string;
+}): Promise<Review> {
+  const body = {
+    parentId: input.parentId,  // Changed from parentReviewId
+    description: input.description,
+    date: input.date ?? new Date().toISOString(),
+  };
+
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  if (!token) {
+    throw new Error('Authentication required to reply to a review');
+  }
+
+  const res = await fetch(`${API_BASE}/reply?token=${encodeURIComponent(token)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(text || 'Failed to reply to review');
+  }
+
+  return res.json();
 }

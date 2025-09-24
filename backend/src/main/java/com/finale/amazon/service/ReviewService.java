@@ -5,6 +5,9 @@ import org.springframework.stereotype.Service;
 
 import com.finale.amazon.repository.ReviewRepository;
 import com.finale.amazon.repository.UserRepository;
+
+import jakarta.transaction.Transactional;
+
 import com.finale.amazon.repository.ProductRepository;
 import com.finale.amazon.dto.ReviewCreationDto;
 import com.finale.amazon.dto.ReviewDto;
@@ -17,13 +20,15 @@ import com.finale.amazon.entity.User;
 import java.util.stream.Collectors;
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 
 @Service
 public class ReviewService {
     @Autowired
     private ReviewRepository reviewRepository;
     @Autowired
-    private UserRepository userRepository;
+    private ProductService productService;
     @Autowired
     private ProductRepository productRepository;
 
@@ -39,6 +44,7 @@ public class ReviewService {
     // return reviewRepository.save(reviewEntity);
     // }
 
+    @Transactional
     public Review createReview(User user, ReviewCreationDto dto) {
         Product product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -50,27 +56,46 @@ public class ReviewService {
         review.setUser(user);
         review.setProduct(product);
         review.setParent(null);
+        productService.updateAvgRating(product);
+        
 
         return reviewRepository.save(review);
     }
 
     public Review replyReview(User user, ReviewReplyDto dto) {
-        Review parent = reviewRepository.findById(dto.getParentReviewId())
+        Review parent = reviewRepository.findById(dto.getParentId())
                 .orElseThrow(() -> new RuntimeException("Parent review not found"));
+
+        // Check if this is a reply to a reply (nested replies are not allowed)
+        if (parent.getParent() != null) {
+            throw new RuntimeException("Cannot reply to a reply. Please reply to the main review instead.");
+        }
 
         Review reply = new Review();
         reply.setDescription(dto.getDescription());
-        reply.setDate(dto.getDate());
-        reply.setStars(1);
+        reply.setDate(LocalDateTime.now());
+        reply.setStars(1); // Default rating for replies
         reply.setUser(user);
         reply.setProduct(parent.getProduct());
-        reply.setParent(parent); 
+        reply.setParent(parent);
 
-        return reviewRepository.save(reply);
+        // Save the reply
+        Review savedReply = reviewRepository.save(reply);
+        
+        // Update the parent's replies list
+        if (parent.getReplies() == null) {
+            parent.setReplies(new ArrayList<>());
+        }
+        parent.getReplies().add(savedReply);
+        reviewRepository.save(parent);
+
+        return savedReply;
     }
 
     public void deleteReview(Long id) {
+        Review review = reviewRepository.getById(id);
         reviewRepository.deleteById(id);
+        productService.updateAvgRating(review.getProduct());
     }
     
     public Optional<Review> getReviewById(Long id) {
@@ -78,11 +103,20 @@ public class ReviewService {
     }
 
     public List<ReviewDto> getAllReviewsByProduct(Long productId) {
-    List<Review> reviews = reviewRepository.findByProductId(productId);
-    return reviews.stream()
-                  .map(ReviewDto::new)
-                  .collect(Collectors.toList());
-}
+        // Fetch all reviews for the product (both top-level and replies)
+        List<Review> reviews = reviewRepository.findByProductId(productId);
+        return reviews.stream()
+                     .map(ReviewDto::new)
+                     .collect(Collectors.toList());
+    }
+
+    public List<ReviewDto> getRepliesForReview(Long reviewId) {
+        // Fetch all replies for a specific review
+        List<Review> replies = reviewRepository.findByParentId(reviewId);
+        return replies.stream()
+                     .map(ReviewDto::new)
+                     .collect(Collectors.toList());
+    }
     
     public Review updateReview(User user, Long reviewId, ReviewUpdateDto dto) {
         Review review = reviewRepository.findById(reviewId)
@@ -99,7 +133,9 @@ public class ReviewService {
             review.setStars(dto.getStars());
         }
 
-        return reviewRepository.save(review);
+        Review r = reviewRepository.save(review);
+        productService.updateAvgRating(review.getProduct());
+        return r;
     }
 
 }

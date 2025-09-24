@@ -254,7 +254,7 @@ const CartPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-sm overflow-hidden">
             {/* Header */}
             <div className="bg-gray-400 text-white px-6 py-3">
-              <h3 className="text-sm font-medium">Cart Total</h3>
+              <h3 className="text-xl font-medium">Cart Total</h3>
             </div>
 
             {/* Content */}

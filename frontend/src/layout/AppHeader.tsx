@@ -226,19 +226,29 @@ const Navbar: React.FC = () => {
               <div className="py-1">
                 {user ? (
                   <>
-                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/seller"}>
-                      Seller Profile
-                    </button>
-                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/seller/dashboard"}>
-                      Seller Dashboard
-                    </button>
-                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/seller/edit"}>
-                      Edit Seller
-                    </button>
-                    <div className="h-px bg-[#6a6a6a] my-1" />
-                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/profile"}>
-                      Account Profile
-                    </button>
+                    {seller ? (
+                      <>
+                        <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => navigate(`/seller/${seller.slug}`)}>
+                          Seller Profile
+                        </button>
+                        <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => navigate("/seller/dashboard")}>
+                          Seller Dashboard
+                        </button>
+                        <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => navigate("/seller/edit")}>
+                          Edit Seller
+                        </button>
+                        <div className="h-px bg-[#6a6a6a] my-1" />
+                      </>
+                    ) : (
+                      <>
+                        <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => navigate("/customer/dashboard")}>
+                          Profile
+                        </button>
+                        <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => navigate("/customer/edit")}>
+                          Edit Profile
+                        </button>
+                      </>
+                    )}
                     <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={logoutUser}>
                       Logout
                     </button>

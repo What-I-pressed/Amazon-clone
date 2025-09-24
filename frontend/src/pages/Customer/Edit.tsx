@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import type { Product } from "../../types/product";
-import type { Seller } from "../../types/seller";
-import { fetchSellerProfile, fetchSellerProducts, updateSellerProfile, fetchSellerStats } from "../../api/seller";
+import type { Customer } from "../../types/customer";
+import { fetchCustomerProfile, updateCustomerProfile } from "../../api/customer";
 
-const SellerEditProfile = () => {
-  const [seller, setSeller] = useState<Seller | null>(null);
+const CustomerEditProfile = () => {
+  const [customer, setCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -14,16 +13,12 @@ const SellerEditProfile = () => {
   const [surname, setSurname] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [description, setDescription] = useState("");
   const [avatar, setAvatar] = useState("");
-  const [products, setProducts] = useState<Product[]>([]);
 
   // Settings states
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
-  const [autoReply, setAutoReply] = useState(true);
   const [language, setLanguage] = useState("uk");
-  const [timezone, setTimezone] = useState("Europe/Kiev");
 
   // Address states
   const [shippingAddress, setShippingAddress] = useState("");
@@ -48,31 +43,19 @@ const SellerEditProfile = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [profile, prods] = await Promise.all([
-          fetchSellerProfile(),
-          fetchSellerProducts(0, 100).catch(() => ({ content: [] as Product[] })),
-        ]);
-
-        // Optionally fetch stats separately if not included in profile
-        let stats = profile.stats;
-        if (!stats) {
-          try {
-            stats = await fetchSellerStats();
-          } catch {}
-        }
-
-        setSeller({ ...profile, stats });
-
+        const profile = await fetchCustomerProfile();
+        
+        setCustomer(profile);
+        
         const nameParts = (profile.username || "").split(" ");
         setFirstName(nameParts[0] || "");
         setSurname(nameParts.slice(1).join(" ") || "");
         setEmail(profile.email || "");
-        setDescription(profile.description || "");
-        setAvatar(profile.url || "");
-        setProducts(prods.content || []);
+        setPhone(profile.phone || "");
+        setAvatar(profile.avatar || "");
         setLoading(false);
       } catch (e: any) {
-        setError(e?.message || "Не вдалося завантажити профіль продавця");
+        setError(e?.message || "Не вдалося завантажити профіль покупця");
         setLoading(false);
       }
     };
@@ -80,18 +63,18 @@ const SellerEditProfile = () => {
   }, []);
 
   const handleSaveProfile = async () => {
-    if (!seller) return;
+    if (!customer) return;
     setSaving(true);
     try {
-      const updated = await updateSellerProfile({
+      const updated = await updateCustomerProfile({
         username: `${firstName} ${surname}`.trim(),
         email,
-        description,
-        url: avatar,
+        phone,
+        avatar,
       });
-      setSeller((prev) => ({ ...(prev as Seller), ...updated }));
+      setCustomer(updated);
     } catch (e: any) {
-      setError(e?.message || "Не вдалося оновити профіль продавця");
+      setError(e?.message || "Не вдалося оновити профіль покупця");
     } finally {
       setSaving(false);
     }
@@ -105,31 +88,10 @@ const SellerEditProfile = () => {
     }, 1000);
   };
 
-  const handleProductChange = (
-    id: string,
-    field: keyof Product,
-    value: string | number
-  ) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, [field]: value } : p))
-    );
-  };
-
-  const handleSaveProducts = async () => {
-    // TODO: implement save products API when available
-    if (!seller) return;
-    setSaving(true);
-    try {
-      setSeller({ ...seller });
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const handleSaveAddress = async () => {
-    // TODO: implement address update API when available
     setSaving(true);
     try {
+      // TODO: implement address update API when available
     } finally {
       setSaving(false);
     }
@@ -162,7 +124,7 @@ const SellerEditProfile = () => {
       <div className="text-red-500 text-center mt-4">Помилка: {error}</div>
     );
 
-  if (!seller)
+  if (!customer)
     return (
       <div className="text-gray-500 text-center mt-4">Профіль не знайдено</div>
     );
@@ -176,8 +138,7 @@ const SellerEditProfile = () => {
             Налаштування профілю
           </h1>
           <p className="text-gray-600">
-            Керуйте своїм профілем продавця, налаштуваннями акаунту та товарами
-            в одному місці.
+            Керуйте своїм профілем покупця та налаштуваннями акаунту.
           </p>
         </div>
 
@@ -205,7 +166,7 @@ const SellerEditProfile = () => {
                       />
                     ) : (
                       <span className="text-white text-xl font-semibold">
-                        {firstName.charAt(0).toUpperCase() || "S"}
+                        {firstName.charAt(0).toUpperCase() || "C"}
                       </span>
                     )}
                   </div>
@@ -274,20 +235,6 @@ const SellerEditProfile = () => {
                     />
                   </div>
                 </div>
-              </div>
-
-              {/* Description */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Опис магазину
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={4}
-                  className={inputArea}
-                  placeholder="Опишіть ваш магазин або бізнес..."
-                />
               </div>
 
               <div className="flex justify-center">
@@ -437,49 +384,22 @@ const SellerEditProfile = () => {
                         SMS сповіщення
                       </span>
                     </label>
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={autoReply}
-                        onChange={(e) => setAutoReply(e.target.checked)}
-                        className="h-4 w-4 text-[#282828] focus:ring-[#282828] border-[#DFDFDF] rounded"
-                      />
-                      <span className="ml-3 text-sm text-gray-700">
-                        Автовідповіді
-                      </span>
-                    </label>
                   </div>
                 </div>
 
-                {/* Language & Timezone */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Мова
-                    </label>
-                    <select
-                      value={language}
-                      onChange={(e) => setLanguage(e.target.value)}
-                      className={inputNormal}
-                    >
-                      <option value="uk">Українська</option>
-                      <option value="en">English</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Часовий пояс
-                    </label>
-                    <select
-                      value={timezone}
-                      onChange={(e) => setTimezone(e.target.value)}
-                      className={inputNormal}
-                    >
-                      <option value="Europe/Kiev">Europe/Kiev</option>
-                      <option value="Europe/Warsaw">Europe/Warsaw</option>
-                      <option value="Europe/London">Europe/London</option>
-                    </select>
-                  </div>
+                {/* Language */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Мова
+                  </label>
+                  <select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className={inputNormal}
+                  >
+                    <option value="uk">Українська</option>
+                    <option value="en">English</option>
+                  </select>
                 </div>
               </div>
 
@@ -494,74 +414,7 @@ const SellerEditProfile = () => {
               </div>
             </div>
 
-            {/* Products */}
-            <div className="border-b border-[#DFDFDF] pb-8 mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                Редагувати товари
-              </h2>
-              <div className="grid gap-6 md:grid-cols-2">
-                {products.map((product) => (
-                  <div
-                    key={product.id}
-                    className="border border-[#DFDFDF] rounded-lg p-6 space-y-4"
-                  >
-                    <div className="aspect-w-16 aspect-h-9 bg-white rounded-lg overflow-hidden flex items-center justify-center">
-                      <img
-                        src={product.pictures[0]?.url}
-                        alt={product.name}
-                        className="max-w-full max-h-full object-contain"
-                      />
-                    </div>
-                    <input
-                      type="text"
-                      value={product.name}
-                      onChange={(e) =>
-                        handleProductChange(product.id, "name", e.target.value)
-                      }
-                      className={inputNormal}
-                      placeholder="Назва товару"
-                    />
-                    <textarea
-                      value={product.description}
-                      onChange={(e) =>
-                        handleProductChange(
-                          product.id,
-                          "description",
-                          e.target.value
-                        )
-                      }
-                      className={inputArea}
-                      rows={3}
-                      placeholder="Опис товару"
-                    />
-                    <input
-                      type="number"
-                      value={product.price}
-                      onChange={(e) =>
-                        handleProductChange(
-                          product.id,
-                          "price",
-                          parseFloat(e.target.value)
-                        )
-                      }
-                      className={inputNormal}
-                      placeholder="Ціна"
-                    />
-                  </div>
-                ))}
-              </div>
-              <div className="flex justify-center mt-6">
-                <button
-                  onClick={handleSaveProducts}
-                  disabled={saving}
-                  className={buttonClass}
-                >
-                  {saving ? "Збереження..." : "Зберегти товари"}
-                </button>
-              </div>
-            </div>
-
-            {/* Account Info / Quick Actions / Danger Zone */}
+            {/* Account Info / Danger Zone */}
             <div className="space-y-8">
               {/* Account Info */}
               <div className="border-b border-[#DFDFDF] pb-8 mb-8">
@@ -569,43 +422,12 @@ const SellerEditProfile = () => {
                   Інформація про акаунт
                 </h2>
                 <p className="text-gray-600 mb-2">
-                  ID: <span className="font-mono">{seller.id}</span>
+                  ID: <span className="font-mono">{customer.id}</span>
                 </p>
-                <p className="text-gray-600 mb-2">Email: {seller.email}</p>
-                <p className="text-gray-600 mb-2">Рейтинг: {seller.rating}/5</p>
+                <p className="text-gray-600 mb-2">Email: {customer.email}</p>
                 <p className="text-gray-600 mb-2">
-                  Товарів: {products.length}
+                  Телефон: {customer.phone || 'Не вказано'}
                 </p>
-                <p className="text-gray-600">
-                  Замовлень: {seller.stats?.totalOrders ?? 0}
-                </p>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="border-b border-[#DFDFDF] pb-8 mb-8">
-                <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                  Швидкі дії
-                </h2>
-                <div className="flex flex-wrap gap-4">
-                  <button
-                    onClick={() => alert("Товар додано")}
-                    className={buttonClass}
-                  >
-                    Додати товар
-                  </button>
-                  <button
-                    onClick={() => alert("Звіт згенеровано")}
-                    className={buttonClass}
-                  >
-                    Згенерувати звіт
-                  </button>
-                  <button
-                    onClick={() => alert("Імпорт даних...")}
-                    className={buttonClass}
-                  >
-                    Імпортувати дані
-                  </button>
-                </div>
               </div>
 
               {/* Danger Zone */}
@@ -631,9 +453,9 @@ const SellerEditProfile = () => {
             </div>
           </div>
         </div>
-      </div> 
+      </div>
     </div>
   );
 };
 
-export default SellerEditProfile;
+export default CustomerEditProfile;
