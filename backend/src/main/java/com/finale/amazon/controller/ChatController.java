@@ -57,6 +57,7 @@ public class ChatController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Повідомлення успішно відправлено"),
             @ApiResponse(responseCode = "400", description = "Токен протермінований або некоректний"),
+            @ApiResponse(responseCode = "403", description = "Не можна надіслати повідомлення самому собі"),
             @ApiResponse(responseCode = "404", description = "Отримувач не знайдений")
     })
     @PostMapping("/send")
@@ -68,6 +69,9 @@ public class ChatController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token expired");
 
         Long senderId = jwtUtil.extractUserId(token);
+        if (senderId.equals(request.getReceiverId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot send message to yourself");
+        }
         MessageDto sentMessage = chatService.sendMessage(senderId, request.getReceiverId(), request.getContent());
         return ResponseEntity.ok(sentMessage);
     }
