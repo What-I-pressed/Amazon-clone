@@ -2,8 +2,9 @@
   "dependencies": {
     "@react-oauth/google": "^0.12.2",
     "@types/jwt-decode": "^2.2.1",
-    "axios": "^1.12.1",
     "jwt-decode": "^4.0.0",
+    "axios": "^1.12.2",
+    "framer-motion": "^12.23.14",
     "lucide-react": "^0.544.0"
   }
 }

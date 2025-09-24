@@ -52,7 +52,7 @@ const FavouritesPage: React.FC = () => {
 
   return (
     <div style={{ maxWidth: 1000, margin: "0 auto", padding: 20 }}>
-      <h1 className="text-2xl font-bold mb-2">Обране</h1>
+      <h1 className="text-4xl font-bold mb-2">Favorite</h1>
       {loading && <p>Завантаження...</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {items.length === 0 && !loading ? (

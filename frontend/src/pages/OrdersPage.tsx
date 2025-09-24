@@ -55,68 +55,118 @@ const OrdersPage: React.FC = () => {
     setProductMap({});
   };
 
+  const formatStatus = (status: string) => {
+    const s = String(status || 'NEW').toUpperCase();
+    switch (s) {
+      case 'NEW': return 'In Progress';
+      case 'PROCESSING': return 'In Progress';
+      case 'SHIPPED': return 'Shipped';
+      case 'DELIVERED': return 'Delivered';
+      case 'CANCELLED': return 'Cancelled';
+      default: return 'In Progress';
+    }
+  };
+
+  const getStatusBadgeClass = (status: string) => {
+    const s = String(status || 'NEW').toUpperCase();
+    switch (s) {
+      case 'NEW':
+      case 'PROCESSING':
+        return 'bg-orange-100 text-orange-700 border border-orange-200';
+      case 'SHIPPED':
+        return 'bg-blue-100 text-blue-700 border border-blue-200';
+      case 'DELIVERED':
+        return 'bg-green-100 text-green-700 border border-green-200';
+      case 'CANCELLED':
+        return 'bg-red-100 text-red-700 border border-red-200';
+      default:
+        return 'bg-orange-100 text-orange-700 border border-orange-200';
+    }
+  };
+
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Мої замовлення</h1>
-      {loading && <p>Завантаження...</p>}
-      {error && <p className="text-red-500">{error}</p>}
-      {!loading && orders.length === 0 && <p>У вас поки немає замовлень.</p>}
-
-      <div className="space-y-4">
-        {orders.map((order: any) => (
-          <div
-            key={order.id}
-            className="bg-white rounded-xl border p-5 cursor-pointer shadow-sm hover:shadow-md transition-shadow"
-            onClick={() => openDetails(order)}
-            role="button"
-            tabIndex={0}
-          >
-            <div className="flex justify-between items-center">
-              <div className="text-sm text-gray-500">ID: {order.id}</div>
-              {(() => {
-                const s = String(order.orderStatus || order.status || 'NEW').toUpperCase();
-                const styles: Record<string, string> = {
-                  NEW: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
-                  PROCESSING: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
-                  SHIPPED: 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200',
-                  DELIVERED: 'bg-green-50 text-green-700 ring-1 ring-green-200',
-                  CANCELLED: 'bg-red-50 text-red-700 ring-1 ring-red-200',
-                };
-                return (
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${styles[s] || 'bg-gray-100 text-gray-700'}`}>
-                    {s}
-                  </span>
-                );
-              })()}
-            </div>
-            {order.orderDate && (
-              <div className="text-sm text-gray-500 mt-1">
-                Дата створення: {new Date(order.orderDate).toLocaleString()}
-              </div>
-            )}
-            {typeof order.totalPrice === 'number' && (
-              <div className="mt-2 font-semibold">Сума: {Number(order.totalPrice).toFixed(2)} грн</div>
-            )}
-            <div className="mt-1 text-sm text-gray-600">
-              Товарів: {Array.isArray(order.orderItems) ? order.orderItems.length : 0}
-            </div>
-
-            {Array.isArray(order.orderItems) && order.orderItems.length > 0 && (
-              <div className="mt-3">
-                <div className="text-sm font-semibold mb-2">Товари</div>
-                <ul className="space-y-1">
-                  {order.orderItems.map((it: any, idx: number) => (
-                    <li key={idx} className="flex justify-between text-sm">
-                      <span className="truncate mr-2">{it?.product?.name || it?.productName || `Товар #${it?.productId || idx+1}`}</span>
-                      <span className="text-gray-600">x{it?.quantity || 1}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        ))}
+    <div className="max-w-6xl mx-auto p-6 min-h-screen">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Order History</h1>
+        <p className="text-gray-600">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.</p>
       </div>
+
+      {loading && <div className="text-center py-8"><p className="text-gray-600">Завантаження...</p></div>}
+      {error && <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6"><p className="text-red-700">{error}</p></div>}
+      {!loading && orders.length === 0 && <div className="text-center py-8"><p className="text-gray-600">У вас поки немає замовлень.</p></div>}
+
+      {/* Table */}
+      {!loading && orders.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          {/* Table Header */}
+          <div className="bg-gray-400 text-white">
+            <div className="grid grid-cols-6 gap-4 px-6 py-3 text-sm font-medium">
+              <div>Order no</div>
+              <div>Status</div>
+              <div>Tracking ID</div>
+              <div>Delivery Date</div>
+              <div className="text-right">Price</div>
+            </div>
+          </div>
+
+          {/* Table Body */}
+          <div className="divide-y divide-gray-200">
+            {orders.map((order: any) => {
+              const firstItem = Array.isArray(order.orderItems) && order.orderItems.length > 0 ? order.orderItems[0] : null;
+              const itemsCount = Array.isArray(order.orderItems) ? order.orderItems.length : 0;
+              
+              return (
+                <div
+                  key={order.id}
+                  className="grid grid-cols-6 gap-4 px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                  onClick={() => openDetails(order)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  {/* Order no */}
+                  <div className="flex items-center">
+                    <span className="text-sm font-medium text-gray-900">{order.id}</span>
+                  </div>
+
+
+                  {/* Status */}
+                  <div className="flex items-center">
+                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(order.orderStatus || order.status)}`}>
+                      <div className="w-1.5 h-1.5 bg-current rounded-full"></div>
+                      {formatStatus(order.orderStatus || order.status)}
+                    </span>
+                  </div>
+
+                  {/* Tracking ID */}
+                  <div className="flex items-center">
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm text-gray-900">{order.id}78</span>
+                      <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Delivery Date */}
+                  <div className="flex items-center">
+                    <span className="text-sm text-gray-600">
+                      {order.orderDate ? new Date(order.orderDate).toLocaleDateString() : '-'}
+                    </span>
+                  </div>
+
+                  {/* Price */}
+                  <div className="flex items-center justify-end">
+                    <span className="text-sm font-semibold text-gray-900">
+                      ${typeof order.totalPrice === 'number' ? Number(order.totalPrice).toFixed(2) : '0.00'}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Details Modal */}
       {detailsOpen && (
