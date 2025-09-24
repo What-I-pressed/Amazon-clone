@@ -5,6 +5,9 @@ import org.springframework.stereotype.Service;
 
 import com.finale.amazon.repository.ReviewRepository;
 import com.finale.amazon.repository.UserRepository;
+
+import jakarta.transaction.Transactional;
+
 import com.finale.amazon.repository.ProductRepository;
 import com.finale.amazon.dto.ReviewCreationDto;
 import com.finale.amazon.dto.ReviewDto;
@@ -25,7 +28,7 @@ public class ReviewService {
     @Autowired
     private ReviewRepository reviewRepository;
     @Autowired
-    private UserRepository userRepository;
+    private ProductService productService;
     @Autowired
     private ProductRepository productRepository;
 
@@ -41,6 +44,7 @@ public class ReviewService {
     // return reviewRepository.save(reviewEntity);
     // }
 
+    @Transactional
     public Review createReview(User user, ReviewCreationDto dto) {
         Product product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -52,6 +56,8 @@ public class ReviewService {
         review.setUser(user);
         review.setProduct(product);
         review.setParent(null);
+        productService.updateAvgRating(product);
+        
 
         return reviewRepository.save(review);
     }
@@ -87,7 +93,9 @@ public class ReviewService {
     }
 
     public void deleteReview(Long id) {
+        Review review = reviewRepository.getById(id);
         reviewRepository.deleteById(id);
+        productService.updateAvgRating(review.getProduct());
     }
     
     public Optional<Review> getReviewById(Long id) {
@@ -125,7 +133,9 @@ public class ReviewService {
             review.setStars(dto.getStars());
         }
 
-        return reviewRepository.save(review);
+        Review r = reviewRepository.save(review);
+        productService.updateAvgRating(review.getProduct());
+        return r;
     }
 
 }

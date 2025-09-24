@@ -1,14 +1,12 @@
 package com.finale.amazon.service;
 
 import com.finale.amazon.entity.User;
-import com.finale.amazon.entity.VerificationToken;
 import com.finale.amazon.dto.UserRequestDto;
 import com.finale.amazon.dto.UserDto;
 import com.finale.amazon.entity.Picture;
 import com.finale.amazon.entity.Role;
 import com.finale.amazon.repository.PictureRepository;
 import com.finale.amazon.repository.RoleRepository;
-import com.finale.amazon.repository.TokenRepository;
 import com.finale.amazon.repository.UserRepository;
 import com.finale.amazon.security.JwtUtil;
 
@@ -38,8 +36,6 @@ public class UserService {
     @Autowired
     private RoleRepository roleRepository;
 
-    @Autowired
-    private TokenRepository tokenRepository;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -57,16 +53,6 @@ public class UserService {
 
     private String hashPassword(String password) {
         return passwordEncoder.encode(password);
-    }
-
-    public String generateVerificationToken(User user) {
-        String token = UUID.randomUUID().toString();
-        VerificationToken verificationToken = new VerificationToken();
-        verificationToken.setToken(token);
-        verificationToken.setUser(user);
-        verificationToken.setExpiryDate(LocalDateTime.now().plusMinutes(60));
-        tokenRepository.save(verificationToken);
-        return token;
     }
 
     private boolean verifyPassword(String password, String hashedPassword) {

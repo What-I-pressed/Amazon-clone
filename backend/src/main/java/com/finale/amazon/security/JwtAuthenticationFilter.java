@@ -2,6 +2,7 @@ package com.finale.amazon.security;
 
 import com.finale.amazon.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,6 +23,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private CustomUserDetailsService userDetailsService;
+
+    @Value("spring.security.oauth2.client.registration.google.client-id")
+    private String jwtSecret;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
