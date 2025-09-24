@@ -15,8 +15,16 @@ const SearchResults: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(24);
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<ProductFiltersState>({}); // applied filters
-  const [pendingFilters, setPendingFilters] = useState<ProductFiltersState>({}); // edited but not applied yet
+  // Default/empty filters object
+  const emptyFilters: ProductFiltersState = {
+    lowerPriceBound: null,
+    upperPriceBound: null,
+    characteristics: null,
+    sortField: null,
+    sortDir: null,
+  };
+  const [filters, setFilters] = useState<ProductFiltersState>(emptyFilters); // applied filters
+  const [pendingFilters, setPendingFilters] = useState<ProductFiltersState>(emptyFilters); // edited but not applied yet
   const [applyKey, setApplyKey] = useState(0); // increments when Apply is pressed
 
   // Stable callback to prevent ProductFilters effect loops
@@ -42,6 +50,31 @@ const SearchResults: React.FC = () => {
 
   const query = useQuery();
   const searchTerm = query.get('query') || '';
+
+  // Load saved filters on first mount (persist across reloads)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('search.filters.v1');
+      if (raw) {
+        const saved = JSON.parse(raw) as ProductFiltersState;
+        setFilters(saved);
+        setPendingFilters(saved);
+        setApplyKey(k => k + 1); // trigger initial fetch with saved filters
+      }
+    } catch (e) {
+      console.warn('Failed to load saved filters', e);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist applied filters whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('search.filters.v1', JSON.stringify(filters));
+    } catch (e) {
+      console.warn('Failed to save filters', e);
+    }
+  }, [filters]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -90,9 +123,11 @@ const SearchResults: React.FC = () => {
   if (error) return (
     <div className="flex items-center justify-center min-h-[400px] text-red-500">{error}</div>
   );
-  if (products.length === 0) return (
-    <div className="flex items-center justify-center min-h-[400px] text-gray-500">No products found.</div>
-  );
+  if (!loading && products.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px] text-gray-500">No products found.</div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-white">
@@ -105,7 +140,7 @@ const SearchResults: React.FC = () => {
             </button>
           </div>
           <ProductFilters
-            initial={{}}
+            initial={filters}
             onChange={handleFiltersChange}
           />
           <div className="mt-6 flex gap-3">
@@ -118,7 +153,12 @@ const SearchResults: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={() => { setPendingFilters({}); setFilters({}); setApplyKey((k)=>k+1); }}
+              onClick={() => {
+                setPendingFilters(emptyFilters);
+                setFilters(emptyFilters);
+                try { localStorage.removeItem('search.filters.v1'); } catch {}
+                setApplyKey((k)=>k+1);
+              }}
               className="px-4 py-2 rounded-md border text-sm"
             >
               Reset

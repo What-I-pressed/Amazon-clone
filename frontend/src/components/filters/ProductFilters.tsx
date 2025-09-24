@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
-export type CharacteristicsSelection = Record<string, string>; // { [typeName]: value }
+export type CharacteristicsSelection = Record<string, string | null>; // { [typeName]: value }
 
 export interface ProductFiltersState {
-  lowerPriceBound?: number | null;
-  upperPriceBound?: number | null;
-  characteristics?: CharacteristicsSelection | null;
-  sortField?: 'price' | 'avgRating' | 'views' | null;
-  sortDir?: 'asc' | 'desc' | null;
+  lowerPriceBound: number | null;
+  upperPriceBound: number | null;
+  characteristics: Record<string, string> | null;
+  sortField: 'price' | 'avgRating' | 'views' | null;
+  sortDir: 'asc' | 'desc' | null;
 }
 
 interface ProductFiltersProps {
@@ -16,55 +16,102 @@ interface ProductFiltersProps {
 }
 
 const ProductFilters: React.FC<ProductFiltersProps> = ({ initial, onChange }) => {
-  const [priceMin, setPriceMin] = useState<number>(initial?.lowerPriceBound ?? 0);
-  const [priceMax, setPriceMax] = useState<number>(initial?.upperPriceBound ?? 0);
+  const [priceMinInput, setPriceMinInput] = useState<string>(initial?.lowerPriceBound?.toString() ?? '');
+  const [priceMaxInput, setPriceMaxInput] = useState<string>(initial?.upperPriceBound?.toString() ?? '');
   const [availableCharacteristics] = useState<Record<string, string[]>>({});
-  const [selectedCharacteristics, setSelectedCharacteristics] = useState<CharacteristicsSelection>(initial?.characteristics ?? {});
+  const [selectedCharacteristics, setSelectedCharacteristics] = useState<CharacteristicsSelection>(initial?.characteristics ?? {} as CharacteristicsSelection);
   const [sortField, setSortField] = useState<'price' | 'avgRating' | 'views' | null>(initial?.sortField ?? null);
   const [sortDir, setSortDir] = useState<'asc' | 'desc' | null>(initial?.sortDir ?? null);
-
+  const [appliedPriceMin, setAppliedPriceMin] = useState<string>(initial?.lowerPriceBound?.toString() ?? '');
+  const [appliedPriceMax, setAppliedPriceMax] = useState<string>(initial?.upperPriceBound?.toString() ?? '');
+  const [appliedSort, setAppliedSort] = useState<string>(initial?.sortField && initial?.sortDir ? `${initial.sortField} ${initial.sortDir}` : '');
+  const skipNotifyRef = useRef(false);
 
   // Note: characteristics and sellers used to depend on subcategory.
   // Categories were removed, so we skip fetching and leave these empty for now.
 
+  useEffect(() => {
+    // Programmatic initialization from parent; avoid notifying parent
+    skipNotifyRef.current = true;
+    setPriceMinInput(initial?.lowerPriceBound?.toString() ?? '');
+    setPriceMaxInput(initial?.upperPriceBound?.toString() ?? '');
+    setSelectedCharacteristics((initial?.characteristics ?? {}) as CharacteristicsSelection);
+    setSortField(initial?.sortField ?? null);
+    setSortDir(initial?.sortDir ?? null);
+
+    // Also set applied states from initial for badges
+    setAppliedPriceMin(initial?.lowerPriceBound?.toString() ?? '');
+    setAppliedPriceMax(initial?.upperPriceBound?.toString() ?? '');
+    setAppliedSort(initial?.sortField && initial?.sortDir ? `${initial.sortField} ${initial.sortDir}` : '');
+
+    // Re-enable notifications after state sync
+    const t = setTimeout(() => { skipNotifyRef.current = false; }, 0);
+    return () => clearTimeout(t);
+  }, [initial]);
+
   // Notify parent on changes (debounced)
   useEffect(() => {
+    if (skipNotifyRef.current) return;
     const cleanChars = Object.fromEntries(
-      Object.entries(selectedCharacteristics).filter(([_, v]) => v && v.trim() !== '')
+      Object.entries(selectedCharacteristics).filter(([_, v]) => v !== null && v.trim() !== '')
     );
+    
+    const lowerPriceBound = priceMinInput ? (isNaN(parseFloat(priceMinInput)) ? null : parseFloat(priceMinInput)) : null;
+    const upperPriceBound = priceMaxInput ? (isNaN(parseFloat(priceMaxInput)) ? null : parseFloat(priceMaxInput)) : null;
+
     const handle = setTimeout(() => {
+      setAppliedPriceMin(priceMinInput);
+      setAppliedPriceMax(priceMaxInput);
+      setAppliedSort(sortField && sortDir ? `${sortField} ${sortDir}` : '');
       onChange({
-        lowerPriceBound: priceMin || null,
-        upperPriceBound: priceMax || null,
-        characteristics: Object.keys(cleanChars).length ? cleanChars : null,
+        lowerPriceBound,
+        upperPriceBound,
+        characteristics: Object.keys(cleanChars).length ? (cleanChars as Record<string, string>) : null,
         sortField: sortField ?? null,
         sortDir: sortDir ?? null,
       });
     }, 300);
     return () => clearTimeout(handle);
-  }, [priceMin, priceMax, selectedCharacteristics, sortField, sortDir, onChange]);
+  }, [priceMinInput, priceMaxInput, selectedCharacteristics, sortField, sortDir, onChange]);
 
   return (
     <div className="space-y-6">
       {/* Categories section removed per request */}
 
       <div>
-        <h3 className="text-lg font-semibold mb-2">Price</h3>
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-lg font-semibold">Price</h3>
+          {appliedPriceMin || appliedPriceMax ? (
+            <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+              Applied: {appliedPriceMin} - {appliedPriceMax}
+            </span>
+          ) : null}
+        </div>
         <div className="flex items-center gap-2">
           <input
-            type="number"
-            value={priceMin}
-            min={0}
-            onChange={(e) => setPriceMin(Number(e.target.value))}
+            type="text"
+            inputMode="decimal"
+            value={priceMinInput}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                setPriceMinInput(value);
+              }
+            }}
             placeholder="Min"
             className="w-24 border rounded px-2 py-1"
           />
           <span>-</span>
           <input
-            type="number"
-            value={priceMax}
-            min={0}
-            onChange={(e) => setPriceMax(Number(e.target.value))}
+            type="text"
+            inputMode="decimal"
+            value={priceMaxInput}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                setPriceMaxInput(value);
+              }
+            }}
             placeholder="Max"
             className="w-24 border rounded px-2 py-1"
           />
@@ -109,7 +156,14 @@ const ProductFilters: React.FC<ProductFiltersProps> = ({ initial, onChange }) =>
 
       {/* Sorting */}
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold">Sort By</h3>
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Sort By</h3>
+          {appliedSort ? (
+            <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+              Applied: {appliedSort}
+            </span>
+          ) : null}
+        </div>
         <div className="flex items-center gap-3">
           <select
             className="border rounded px-2 py-1"
