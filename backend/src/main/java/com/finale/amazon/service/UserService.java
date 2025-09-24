@@ -106,6 +106,8 @@ public class UserService {
         user.setUsername(userRequestDto.getUsername());
         user.setEmail(userRequestDto.getEmail());
         user.setDescription(userRequestDto.getDescription());
+        user.setName(userRequestDto.getName());
+        user.setPhone(userRequestDto.getPhone());
         user.setBlocked(false);
 
 
@@ -196,6 +198,12 @@ public class UserService {
             if (userDetails.getUsername() != null) {
                 existingUser.setUsername(userDetails.getUsername());
             }
+            if(userDetails.getName() != null){
+                existingUser.setName(userDetails.getName());
+            }
+            if(userDetails.getPhone() != null){
+                existingUser.setPhone(userDetails.getPhone());
+            }
             if (userDetails.getDescription() != null) {
                 existingUser.setDescription(userDetails.getDescription());
             }
@@ -275,7 +283,7 @@ public class UserService {
         return false;
     }
 
-    public User updateUserProfile(Long userId, String name, String description) throws IOException {
+    public User updateUserProfile(Long userId, String username, String name, String description, String phone) throws IOException {
         Optional<User> optionalUser = userRepository.findById(userId);
 
         if (optionalUser.isPresent()) {
@@ -286,6 +294,12 @@ public class UserService {
             }
             if (description != null) {
                 user.setDescription(description);
+            }
+            if (name != null) {
+                user.setName(name);
+            }
+            if (phone != null) {
+                user.setPhone(phone);
             }
             return userRepository.save(user);
         }
@@ -377,6 +391,12 @@ public class UserService {
             }
             seller.setEmail(updateRequest.getEmail());
             seller.setEmailVerified(false);
+        }
+        if (updateRequest.getName() != null) {
+            seller.setName(updateRequest.getName());
+        }
+        if (updateRequest.getPhone() != null) {
+            seller.setPhone(updateRequest.getPhone());
         }
 
         return userRepository.save(seller);

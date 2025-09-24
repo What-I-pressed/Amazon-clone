@@ -31,6 +31,12 @@ public class User {
     @Column(length = 256)
     private String username;
 
+    @Column(length = 128)
+    private String name;
+
+    @Column(length = 20, unique = true)
+    private String phone;
+
     @Column(length = 8192)
     private String description;
 

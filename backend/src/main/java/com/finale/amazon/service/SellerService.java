@@ -108,6 +108,19 @@ public class SellerService {
                     }
                     seller.setEmail(updateRequest.getEmail());
                 }
+                if (updateRequest.getName() != null && !updateRequest.getName().isBlank()) {
+                    if (updateRequest.getName().length() < 2 || updateRequest.getName().length() > 128) {
+                        throw new IllegalArgumentException("Name should be from 2 to 128 characters long");
+                    }
+                    seller.setName(updateRequest.getName());
+                }
+
+                if (updateRequest.getPhone() != null && !updateRequest.getPhone().isBlank()) {
+                    if (!updateRequest.getPhone().matches("\\+?[0-9]{7,20}")) {
+                        throw new IllegalArgumentException("Phone number must be 7-20 digits, optional + at start");
+                    }
+                    seller.setPhone(updateRequest.getPhone());
+                }
             
                 return userRepository.save(seller);
             }

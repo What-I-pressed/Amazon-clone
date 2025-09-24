@@ -48,8 +48,10 @@ public class UserController {
         User updatedUser = userService.updateUserProfile(
                 jwtUtil.extractUserId(token),
                 userDto.getUsername(),
-                userDto.getDescription()
-        );
+                userDto.getName(),
+                userDto.getDescription(),
+                userDto.getPhone()  
+        ); 
 
         return ResponseEntity.ok(new UserDto(updatedUser));
     }

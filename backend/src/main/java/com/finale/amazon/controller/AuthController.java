@@ -145,6 +145,8 @@ public class AuthController {
             userRequest.setUsername(userDto.getUsername());
             userRequest.setEmail(userDto.getEmail());
             userRequest.setPassword(userDto.getPassword());
+            userRequest.setName(userDto.getName());
+            userRequest.setPhone(userDto.getPhone());
             userRequest.setRoleName("CUSTOMER");
 
             User u = userService.createUser(userRequest);
@@ -168,6 +170,8 @@ public class AuthController {
             userRequest.setUsername(sellerDto.getUsername());
             userRequest.setEmail(sellerDto.getEmail());
             userRequest.setPassword(sellerDto.getPassword());
+            userRequest.setName(sellerDto.getName());
+            userRequest.setPhone(sellerDto.getPhone());
             userRequest.setRoleName("SELLER");
 
             User u = userService.createUser(userRequest);
