@@ -108,3 +108,45 @@ export async function createProductForSeller(
   const res = await api.post<Product>(`/products/create/${sellerId}`, body);
   return res.data;
 }
+
+// Helper function to get auth headers
+function getAuthHeaders() {
+  const token = localStorage.getItem("token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+// Update product
+export async function updateProduct(
+  productId: number,
+  payload: Partial<ProductCreationPayload>
+): Promise<Product> {
+  try {
+    const res = await fetch(`${API_BASE}/update/${productId}`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error("Failed to update product");
+    return res.json();
+  } catch (e) {
+    console.error("[API] updateProduct:", e);
+    throw e;
+  }
+}
+
+// Delete product
+export async function deleteProduct(productId: number): Promise<void> {
+  try {
+    const res = await fetch(`${API_BASE}/delete/${productId}`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to delete product");
+  } catch (e) {
+    console.error("[API] deleteProduct:", e);
+    throw e;
+  }
+}

@@ -50,7 +50,7 @@ const SellerEditProfile = () => {
       try {
         const [profile, prods] = await Promise.all([
           fetchSellerProfile(),
-          fetchSellerProducts().catch(() => [] as Product[]),
+          fetchSellerProducts(0, 100).catch(() => ({ content: [] as Product[] })),
         ]);
 
         // Optionally fetch stats separately if not included in profile
@@ -68,8 +68,8 @@ const SellerEditProfile = () => {
         setSurname(nameParts.slice(1).join(" ") || "");
         setEmail(profile.email || "");
         setDescription(profile.description || "");
-        setAvatar(profile.avatar || "");
-        setProducts(prods || []);
+        setAvatar(profile.url || "");
+        setProducts(prods.content || []);
         setLoading(false);
       } catch (e: any) {
         setError(e?.message || "Не вдалося завантажити профіль продавця");
@@ -87,7 +87,7 @@ const SellerEditProfile = () => {
         username: `${firstName} ${surname}`.trim(),
         email,
         description,
-        avatar,
+        url: avatar,
       });
       setSeller((prev) => ({ ...(prev as Seller), ...updated }));
     } catch (e: any) {
@@ -507,7 +507,7 @@ const SellerEditProfile = () => {
                   >
                     <div className="aspect-w-16 aspect-h-9 bg-white rounded-lg overflow-hidden flex items-center justify-center">
                       <img
-                        src={product.images[0]}
+                        src={product.pictures[0]?.url}
                         alt={product.name}
                         className="max-w-full max-h-full object-contain"
                       />
