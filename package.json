@@ -1,5 +1,9 @@
 {
   "dependencies": {
-    "axios": "^1.12.1"
+    "@react-oauth/google": "^0.12.2",
+    "@types/jwt-decode": "^2.2.1",
+    "axios": "^1.12.1",
+    "jwt-decode": "^4.0.0",
+    "lucide-react": "^0.544.0"
   }
 }

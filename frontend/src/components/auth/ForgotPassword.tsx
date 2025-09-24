@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, Search, ShoppingCart, User } from 'lucide-react';
+import { Eye, Search, ShoppingCart } from 'lucide-react';
 
 export default function PasswordResetForm() {
   const [newPassword, setNewPassword] = useState('');

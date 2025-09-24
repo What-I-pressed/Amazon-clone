@@ -1,6 +1,6 @@
-package com.finale.amazon.dto;
+package com.finale.amazon.controller;
 
-import com.finale.amazon.dto.UserService;
+import com.finale.amazon.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

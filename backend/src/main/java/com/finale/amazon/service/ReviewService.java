@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.finale.amazon.repository.ReviewRepository;
-import com.finale.amazon.repository.UserRepository;
 import com.finale.amazon.repository.ProductRepository;
 import com.finale.amazon.dto.ReviewCreationDto;
 import com.finale.amazon.dto.ReviewDto;
@@ -22,8 +21,6 @@ import java.util.Optional;
 public class ReviewService {
     @Autowired
     private ReviewRepository reviewRepository;
-    @Autowired
-    private UserRepository userRepository;
     @Autowired
     private ProductRepository productRepository;
 
