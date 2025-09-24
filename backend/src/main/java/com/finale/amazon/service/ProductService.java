@@ -65,7 +65,7 @@ public class ProductService {
         productRepository.save(product);
     }
 
-    private Specification<Product> getSpec(String name, Long categoryId, Double lowerBound,
+    private Specification<Product> getSpec(String name, Long categoryId, Long subcategoryId, Double lowerBound,
             Double upperBound, List<Long> sellersIds, List<String> slugs, Map<String, String> characteristics) {
         Map<String, String> filtered = characteristics != null
                 ? characteristics.entrySet().stream().filter(entry -> entry.getValue() != null)
@@ -80,6 +80,9 @@ public class ProductService {
         }
         if (categoryId != null) {
             spec = spec.and(ProductSpecification.hasCategory(categoryId));
+        }
+        if (subcategoryId != null) {
+            spec = spec.and(ProductSpecification.hasSubcategory(subcategoryId));
         }
         if (lowerBound != null && upperBound != null) {
             spec = spec.and(ProductSpecification.priceBetween(lowerBound, upperBound));
@@ -102,10 +105,11 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductDto> getProductsPage(Pageable pageable, String name, Long categoryId, Double lowerBound,
-            Double upperBound, List<Long> sellersId, List<String> slugs, Map<String, String> characteristics) {
-        Specification<Product> spec = getSpec(name, categoryId, lowerBound, upperBound, sellersId, slugs,
-                characteristics);
+    public Page<ProductDto> getProductsPage(Pageable pageable, String name, Long categoryId, Long subcategoryId,
+            Double lowerBound, Double upperBound, List<Long> sellersId, List<String> slugs,
+            Map<String, String> characteristics) {
+        Specification<Product> spec = getSpec(name, categoryId, subcategoryId, lowerBound, upperBound, sellersId,
+                slugs, characteristics);
 
         Page<Product> page = productRepository.findAll(spec, pageable);
         page.getContent().stream().forEach(prod -> prod.setPictures(pictureRepository.findMainPicture(prod.getId())));

@@ -50,6 +50,8 @@ const SearchResults: React.FC = () => {
 
   const query = useQuery();
   const searchTerm = query.get('query') || '';
+  const subcategoryIdStr = query.get('subcategoryId');
+  const subcategoryId = subcategoryIdStr ? Number(subcategoryIdStr) : undefined;
 
   // Load saved filters on first mount (persist across reloads)
   useEffect(() => {
@@ -84,6 +86,7 @@ const SearchResults: React.FC = () => {
       try {
         const payload: ProductFilterDto = {
           name: searchTerm || undefined,
+          subcategoryId: subcategoryId ?? undefined,
           lowerPriceBound: filters.lowerPriceBound ?? undefined,
           upperPriceBound: filters.upperPriceBound ?? undefined,
           // Note: categoryId not wired yet; backend filters by categoryId only.
@@ -106,7 +109,7 @@ const SearchResults: React.FC = () => {
       clearTimeout(timeout);
       controller.abort();
     };
-  }, [searchTerm, applyKey]);
+  }, [searchTerm, applyKey, subcategoryId]);
 
   const loadMore = () => {
     setVisibleCount(prev => prev + 24);
