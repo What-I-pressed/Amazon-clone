@@ -16,6 +16,11 @@ export default function SellerProfile() {
   const [isOwner, setIsOwner] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editForm, setEditForm] = useState({ name: "", description: "", price: 0 });
+  const [page, setPage] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
+  const [hasMore, setHasMore] = useState(false);
+
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -25,9 +30,9 @@ export default function SellerProfile() {
         const sellerData = await fetchSellerProfileBySlug(slug);
         setSeller(sellerData);
 
-        const productsPage = await fetchSellerProductsBySlug(slug, 0, 12);
+        const productsPage = await fetchSellerProductsBySlug(slug, 0, itemsPerPage);
         setProducts(productsPage.content || []);
-
+        setHasMore(productsPage.content.length === itemsPerPage);
         // Check if current user is the owner of this profile
         if (authContext?.user) {
           try {
@@ -47,6 +52,31 @@ export default function SellerProfile() {
 
     loadData();
   }, [slug, authContext?.user]);
+
+  const handleLoadMore = async () => {
+    if (!slug || loadingMore) return;
+  
+    setLoadingMore(true);
+    const nextSize = itemsPerPage + 12; // +12 к размеру выборки
+  
+    try {
+      // всегда грузим с page=0, но с растущим size
+      const productsPage = await fetchSellerProductsBySlug(slug, 0, nextSize);
+  
+      // заменяем весь список товара
+      setProducts(productsPage.content || []);
+  
+      // проверяем, есть ли ещё
+      setHasMore(productsPage.content.length < productsPage.totalElements);
+  
+      setItemsPerPage(nextSize); // сохраняем новое значение size
+    } catch (err) {
+      console.error("Failed to load more products:", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+  
 
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
@@ -260,6 +290,18 @@ export default function SellerProfile() {
               </div>
             ))}
           </div>
+
+          {hasMore && (
+            <div className="text-center mt-8">
+              <button
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                className="px-6 py-3 bg-[#282828] text-white font-medium rounded-full hover:bg-[#3A3A3A] transition-colors disabled:bg-gray-400"
+              >
+                {loadingMore ? "Loading..." : "Load More"}
+              </button>
+            </div>
+          )}
         </main>
       </div>
     </div>
