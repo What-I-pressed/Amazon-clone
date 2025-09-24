@@ -3,6 +3,7 @@ package com.finale.amazon.controller;
 import com.finale.amazon.dto.EditMessageRequest;
 import com.finale.amazon.dto.MessageDto;
 import com.finale.amazon.dto.SendMessageRequest;
+import com.finale.amazon.dto.UserDto;
 import com.finale.amazon.service.ChatService;
 import com.finale.amazon.security.JwtUtil;
 
@@ -142,4 +143,24 @@ public class ChatController {
         List<MessageDto> messages = chatService.getAllMessagesForUser(currentUserId);
         return ResponseEntity.ok(messages);
     }
+
+    @Operation(summary = "Отримати всіх чат-партнерів користувача", 
+           description = "Повертає список всіх користувачів, з якими спілкувався поточний користувач")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Список чат-партнерів успішно отримано"),
+            @ApiResponse(responseCode = "400", description = "Токен протермінований або некоректний")
+    })
+    @GetMapping("/users")
+    public ResponseEntity<List<UserDto>> getChatUsers(@RequestParam String token) {
+        if (jwtUtil.isTokenExpired(token)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        Long currentUserId = jwtUtil.extractUserId(token);
+        List<UserDto> chatUsers = chatService.getChatUsersForUser(currentUserId);
+
+        return ResponseEntity.ok(chatUsers);
+    }
+
+
 }

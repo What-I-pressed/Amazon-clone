@@ -1,8 +1,10 @@
 package com.finale.amazon.service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.finale.amazon.dto.MessageDto;
+import com.finale.amazon.dto.UserDto;
 import com.finale.amazon.entity.Message;
 import com.finale.amazon.entity.User;
 import com.finale.amazon.repository.MessageRepository;
@@ -104,4 +107,26 @@ public class ChatService {
 
         messageRepository.delete(message);
     }
+
+    public List<UserDto> getChatUsersForUser(Long userId) {
+        User currentUser = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<Message> messages = messageRepository.findBySenderOrReceiverOrderByCreatedAtAsc(currentUser, currentUser);
+
+        Set<UserDto> chatUsers = new HashSet<>();
+        for (Message m : messages) {
+            if (m.getSender().getId() != userId) {
+                chatUsers.add(new UserDto(m.getSender()));
+            }
+            if (m.getReceiver().getId() != userId) {
+                chatUsers.add(new UserDto(m.getReceiver()));
+            }
+        }
+
+        return List.copyOf(chatUsers);
+    }
+
+    
+
 }
