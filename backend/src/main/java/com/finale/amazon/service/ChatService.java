@@ -73,11 +73,12 @@ public class ChatService {
 
     public List<MessageDto> getAllMessagesForUser(Long userId) {
         User user = userRepository.findById(userId).orElseThrow();
-        List<Message> messages = messageRepository.findByReceiverOrderByCreatedAtAsc(user);
+        List<Message> messages = messageRepository.findBySenderOrReceiverOrderByCreatedAtAsc(user, user);
         return messages.stream()
                 .map(MessageDto::new)
                 .collect(Collectors.toList());
     }
+
     @Transactional
     public MessageDto editMessage(Long messageId, Long userId, String newContent) {
         Message message = messageRepository.findById(messageId)

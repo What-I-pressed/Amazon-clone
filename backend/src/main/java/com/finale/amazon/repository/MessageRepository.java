@@ -10,6 +10,6 @@ import com.finale.amazon.entity.User;
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
     List<Message> findBySenderAndReceiverOrderByCreatedAtAsc(User sender, User receiver);
-
-    List<Message> findByReceiverOrderByCreatedAtAsc(User receiver);
+    List<Message> findBySenderOrReceiverOrderByCreatedAtAsc(User sender, User receiver);
 }
+ 
