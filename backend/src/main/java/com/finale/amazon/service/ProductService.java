@@ -28,6 +28,7 @@ import com.finale.amazon.entity.CharacteristicType;
 import com.finale.amazon.entity.CharacteristicValue;
 import com.finale.amazon.entity.Product;
 import com.finale.amazon.entity.ProductVariation;
+import com.finale.amazon.entity.Review;
 
 @Service
 public class ProductService {
@@ -47,15 +48,29 @@ public class ProductService {
     @Autowired
     private SlugService slugService;
 
-    @Transactional(readOnly = true)
+    @Transactional()
     public Optional<Product> getProductBySlug(String slug) {
-        return productRepository.findBySlugWithPictures(slug);
+        Optional<Product> productOpt = productRepository.findBySlugWithPictures(slug);
+        productOpt.ifPresent(p -> p.setViews(p.getViews() + 1));
+        return productOpt;
+    }
+
+    @Transactional
+    public void updateAvgRating(Product product) {
+        Double avg = product.getReviews().stream()
+                .mapToDouble(Review::getStars)
+                .average()
+                .orElse(0.0);
+        product.setAvgRating(avg);
+        productRepository.save(product);
     }
 
     private Specification<Product> getSpec(String name, Long categoryId, Double lowerBound,
-            Double upperBound,List<Long> sellersIds, List<String> slugs,Map<String, String> characteristics) {
-        Map<String, String> filtered = characteristics != null ? characteristics.entrySet().stream().filter(entry -> entry.getValue() != null)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)) : null;
+            Double upperBound, List<Long> sellersIds, List<String> slugs, Map<String, String> characteristics) {
+        Map<String, String> filtered = characteristics != null
+                ? characteristics.entrySet().stream().filter(entry -> entry.getValue() != null)
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+                : null;
         System.out.println("Name : " + name);
 
         Specification<Product> spec = Specification.where(null);
@@ -70,14 +85,16 @@ public class ProductService {
             spec = spec.and(ProductSpecification.priceBetween(lowerBound, upperBound));
         }
 
-        
-
-        Specification<Product> charSpec = characteristics != null && filtered != null? filtered.entrySet().stream()
+        Specification<Product> charSpec = characteristics != null && filtered != null ? filtered.entrySet().stream()
                 .map(entry -> ProductSpecification.matchCharacteristic(entry.getKey(), entry.getValue()))
                 .reduce(Specification.where(null), Specification::and) : null;
 
-        Specification<Product> sellerSpec = sellersIds != null ? sellersIds.stream().map(entry -> ProductSpecification.sellerIs(entry)).reduce(Specification.where(null), Specification::or) : null;
-        Specification<Product> slugSpec = slugs != null ? slugs.stream().map(entry -> ProductSpecification.sellerIs(entry)).reduce(Specification.where(null), Specification::or) : null;
+        Specification<Product> sellerSpec = sellersIds != null ? sellersIds.stream()
+                .map(entry -> ProductSpecification.sellerIs(entry)).reduce(Specification.where(null), Specification::or)
+                : null;
+        Specification<Product> slugSpec = slugs != null ? slugs.stream()
+                .map(entry -> ProductSpecification.sellerIs(entry)).reduce(Specification.where(null), Specification::or)
+                : null;
         spec = spec.and(charSpec);
         spec = spec.and(sellerSpec);
         spec = spec.and(slugSpec);
@@ -86,8 +103,9 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public Page<ProductDto> getProductsPage(Pageable pageable, String name, Long categoryId, Double lowerBound,
-            Double upperBound, List<Long>sellersId, List<String> slugs, Map<String, String> characteristics) {
-        Specification<Product> spec = getSpec(name, categoryId, lowerBound, upperBound, sellersId, slugs,characteristics);
+            Double upperBound, List<Long> sellersId, List<String> slugs, Map<String, String> characteristics) {
+        Specification<Product> spec = getSpec(name, categoryId, lowerBound, upperBound, sellersId, slugs,
+                characteristics);
 
         Page<Product> page = productRepository.findAll(spec, pageable);
         page.getContent().stream().forEach(prod -> prod.setPictures(pictureRepository.findMainPicture(prod.getId())));
@@ -121,7 +139,7 @@ public class ProductService {
         if (optionalProduct.isEmpty()) {
             throw new RuntimeException("Product not found");
         }
-        
+
         Product product = optionalProduct.get();
         String oldName = product.getName();
         fillProductFromDto(product, dto);
@@ -143,7 +161,7 @@ public class ProductService {
         return productRepository.findByIdWithPictures(productId);
     }
 
-    public void genSlug(Long productId){
+    public void genSlug(Long productId) {
         Product p = productRepository.findById(productId).get();
         p.setSlug(slugService.generateSeoSlug(p.getName(), p.getId()));
         productRepository.save(p);

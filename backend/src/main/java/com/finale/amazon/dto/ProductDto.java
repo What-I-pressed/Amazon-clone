@@ -42,6 +42,7 @@ public class ProductDto {
     private List<PictureDto> pictures;
     private List<ReviewDto> reviews;
     private List<ProductVariationDto> variations;
+    private long views;
     
     public ProductDto(com.finale.amazon.entity.Product product) {
         this.id = product.getId();
@@ -55,6 +56,7 @@ public class ProductDto {
         this.quantityInStock = product.getQuantityInStock();
         this.quantitySold = product.getQuantitySold();
         this.sellerSlug = product.getSeller() != null ? product.getSeller().getSlug() : null;
+        views = product.getViews();
         
         
         if (this.priceWithoutDiscount > 0) {
@@ -96,7 +98,7 @@ public class ProductDto {
                     .map(ReviewDto::new)
                     .toList();
             this.reviewCount = product.getReviews().size();
-            avgRating = reviews.stream().mapToDouble(ReviewDto::getStars).sum()/(new Double(reviewCount));
+            avgRating = product.getAvgRating();
         } else {
             this.reviewCount = 0;
         }
