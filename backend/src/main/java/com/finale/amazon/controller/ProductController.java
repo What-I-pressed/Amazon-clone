@@ -36,8 +36,9 @@ public class ProductController {
             @RequestBody(required = false) ProductFilterDto productFilterDto) {
         Page<ProductDto> productsPage = productService.getProductsPage(
                 pageable, productFilterDto.getName(), productFilterDto.getCategoryId(),
-                productFilterDto.getLowerPriceBound(), productFilterDto.getUpperPriceBound(),
-                productFilterDto.getSellerIds(), productFilterDto.getSlugs(), productFilterDto.getCharacteristics());
+                productFilterDto.getSubcategoryId(), productFilterDto.getLowerPriceBound(),
+                productFilterDto.getUpperPriceBound(), productFilterDto.getSellerIds(),
+                productFilterDto.getSlugs(), productFilterDto.getCharacteristics());
         return ResponseEntity.ok(productsPage);
     }
 

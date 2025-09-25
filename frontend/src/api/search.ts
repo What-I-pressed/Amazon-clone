@@ -4,6 +4,7 @@ import axios from './axios';
 export interface ProductFilterDto {
   name?: string | null;
   categoryId?: number | null;
+  subcategoryId?: number | null;
   lowerPriceBound?: number | null;
   upperPriceBound?: number | null;
   sellerIds?: number[] | null;

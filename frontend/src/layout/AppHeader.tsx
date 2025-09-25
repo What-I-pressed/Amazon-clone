@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Logo from "../components/ui/avatar/logo.svg";
 import { AuthContext } from "../context/AuthContext";
 import { fetchSellerProfile } from "../api/seller";
@@ -13,6 +13,8 @@ const Navbar: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<number | null>(null);
 
   const languageRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
@@ -80,9 +82,12 @@ const Navbar: React.FC = () => {
   };
 
   const handleSearch = () => {
-    if (searchTerm.trim()) {
-      navigate(`/search?query=${searchTerm.trim()}`);
-    }
+    const q = searchTerm.trim();
+    if (!q) return;
+    // Scope to the subcategory only if one is currently chosen in this header session
+    const subId = selectedSubcategoryId;
+    const base = `/search?query=${encodeURIComponent(q)}`;
+    navigate(subId ? `${base}&subcategoryId=${subId}` : base);
   };
 
   return (
@@ -105,6 +110,18 @@ const Navbar: React.FC = () => {
               onSelect={(category) => {
                 setSelectedCategory(category);
                 console.log("Selected category:", category);
+                if (category === 'All') {
+                  setSelectedSubcategoryId(null);
+                  // Also clear subcategoryId from URL, keep query if present
+                  const params = new URLSearchParams(location.search);
+                  const q = params.get('query');
+                  navigate(q ? `/search?query=${encodeURIComponent(q)}` : '/search');
+                }
+              }}
+              onSubcategorySelect={(subcategory) => {
+                // Redirect to search page filtered by selected subcategory ID (backend supports subcategoryId)
+                setSelectedSubcategoryId(subcategory.id);
+                navigate(`/search?subcategoryId=${subcategory.id}`);
               }}
             />
 

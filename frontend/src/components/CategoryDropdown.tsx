@@ -7,9 +7,10 @@ interface Subcategory {
 
 interface CategoryDropdownProps {
   onSelect: (category: string) => void;
+  onSubcategorySelect?: (subcategory: Subcategory, parentCategory: string) => void;
 }
 
-export default function CategoryDropdown({ onSelect }: CategoryDropdownProps) {
+export default function CategoryDropdown({ onSelect, onSubcategorySelect }: CategoryDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState("All");
   const [categories, setCategories] = useState<Record<string, Subcategory[]>>({});
@@ -93,7 +94,12 @@ export default function CategoryDropdown({ onSelect }: CategoryDropdownProps) {
                 <button
                   key={subcategory.id}
                   className="w-full text-left px-3 py-2 hover:bg-[#343434] text-white text-sm block"
-                  onClick={() => handleSelect(subcategory.name)}
+                  onClick={() => {
+                    handleSelect(subcategory.name);
+                    if (onSubcategorySelect && activeCategory) {
+                      onSubcategorySelect(subcategory, activeCategory);
+                    }
+                  }}
                 >
                   {subcategory.name}
                 </button>
