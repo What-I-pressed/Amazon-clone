@@ -7,6 +7,32 @@ import type { Seller } from "../../types/seller";
 import type { Product } from "../../types/product";
 import ProductCard from "../ProductCard";
 
+const createEmptyEditForm = () => ({
+  name: "",
+  description: "",
+  price: 0,
+  priceWithoutDiscount: 0,
+  discountPercentage: 0,
+  discountLaunchDate: "",
+  discountExpirationDate: "",
+});
+
+type ProductEditFormState = ReturnType<typeof createEmptyEditForm>;
+
+const calculateDiscountPercentage = (priceWithoutDiscount: number, price: number) => {
+  if (!priceWithoutDiscount || priceWithoutDiscount <= 0) return 0;
+  if (price >= priceWithoutDiscount) return 0;
+  const raw = ((priceWithoutDiscount - price) / priceWithoutDiscount) * 100;
+  return Math.round(raw * 100) / 100;
+};
+
+const formatDateInput = (isoDate?: string | null) => {
+  if (!isoDate) return "";
+  return isoDate.split("T")[0];
+};
+
+const formatCurrency = (value: number) => `$${value.toFixed(2)}`;
+
 export default function SellerProfile() {
   const { slug } = useParams<{ slug: string }>();
   const authContext = useContext(AuthContext);
@@ -15,12 +41,22 @@ export default function SellerProfile() {
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", description: "", price: 0 });
+  const [editForm, setEditForm] = useState(createEmptyEditForm());
   const [page, setPage] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   const [hasMore, setHasMore] = useState(false);
 
   const [loadingMore, setLoadingMore] = useState(false);
+
+  const updateEditForm = <K extends keyof ProductEditFormState>(key: K, value: ProductEditFormState[K]) => {
+    setEditForm(prev => {
+      const next = { ...prev, [key]: value } as ProductEditFormState;
+      if (key === "price" || key === "priceWithoutDiscount") {
+        next.discountPercentage = calculateDiscountPercentage(next.priceWithoutDiscount, next.price);
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!slug) return;
@@ -77,13 +113,19 @@ export default function SellerProfile() {
     }
   };
   
-
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
     setEditForm({
       name: product.name,
       description: product.description || "",
-      price: product.price
+      price: product.price,
+      priceWithoutDiscount: product.priceWithoutDiscount ?? product.price,
+      discountPercentage: calculateDiscountPercentage(
+        product.priceWithoutDiscount ?? product.price,
+        product.price
+      ),
+      discountLaunchDate: formatDateInput(product.discountLaunchDate),
+      discountExpirationDate: formatDateInput(product.discountExpirationDate),
     });
   };
 
@@ -91,29 +133,55 @@ export default function SellerProfile() {
     if (!editingProduct) return;
     
     try {
-      const updatedProduct = await updateProduct(parseInt(editingProduct.id), {
+      const payload = {
         name: editForm.name,
         description: editForm.description,
         price: editForm.price,
-        priceWithoutDiscount: editForm.price,
-        quantityInStock: 1,
-        categoryName: "General"
-      });
-      
-      setProducts(prev => prev.map(p => p.id === editingProduct.id ? updatedProduct : p));
+        priceWithoutDiscount: editForm.priceWithoutDiscount || editForm.price,
+        discountLaunchDate: editForm.discountLaunchDate ? new Date(editForm.discountLaunchDate).toISOString() : undefined,
+        discountExpirationDate: editForm.discountExpirationDate ? new Date(editForm.discountExpirationDate).toISOString() : undefined,
+        quantityInStock: editingProduct.quantityInStock ?? 0,
+        categoryName: editingProduct.categoryName ?? "General",
+        subcategoryName: editingProduct.subcategoryName ?? undefined,
+        characteristicTypeName: editingProduct.characteristicType ?? undefined,
+      };
+
+      if (!payload.priceWithoutDiscount || payload.priceWithoutDiscount <= 0) {
+        payload.priceWithoutDiscount = payload.price;
+      }
+
+      const updatedProduct = await updateProduct(Number(editingProduct.id), payload);
+
+      setProducts(prev => prev.map(p => {
+        if (p.id !== editingProduct.id) return p;
+
+        const effectivePriceWithoutDiscount = updatedProduct.priceWithoutDiscount ?? payload.priceWithoutDiscount ?? updatedProduct.price;
+        const recalculatedDiscount = calculateDiscountPercentage(effectivePriceWithoutDiscount, updatedProduct.price);
+        const recalculatedHasDiscount = updatedProduct.hasDiscount ?? effectivePriceWithoutDiscount > updatedProduct.price;
+
+        return {
+          ...p,
+          ...updatedProduct,
+          priceWithoutDiscount: effectivePriceWithoutDiscount,
+          discountLaunchDate: updatedProduct.discountLaunchDate ?? payload.discountLaunchDate ?? null,
+          discountExpirationDate: updatedProduct.discountExpirationDate ?? payload.discountExpirationDate ?? null,
+          discountPercentage: recalculatedDiscount,
+          hasDiscount: recalculatedHasDiscount,
+        } as Product;
+      }));
       setEditingProduct(null);
-      setEditForm({ name: "", description: "", price: 0 });
+      setEditForm(createEmptyEditForm());
     } catch (err) {
       console.error("Failed to update product:", err);
       alert("Failed to update product. Please try again.");
     }
   };
 
-  const handleDeleteProduct = async (productId: string) => {
+  const handleDeleteProduct = async (productId: number) => {
     if (!confirm("Are you sure you want to delete this product?")) return;
     
     try {
-      await deleteProduct(parseInt(productId));
+      await deleteProduct(productId);
       setProducts(prev => prev.filter(p => p.id !== productId));
     } catch (err) {
       console.error("Failed to delete product:", err);
@@ -123,7 +191,7 @@ export default function SellerProfile() {
 
   const handleCancelEdit = () => {
     setEditingProduct(null);
-    setEditForm({ name: "", description: "", price: 0 });
+    setEditForm(createEmptyEditForm());
   };
 
   if (loading) {
@@ -213,13 +281,13 @@ export default function SellerProfile() {
                       <input
                         type="text"
                         value={editForm.name}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                        onChange={(e) => updateEditForm("name", e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Product name"
                       />
                       <textarea
                         value={editForm.description}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                        onChange={(e) => updateEditForm("description", e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                         rows={3}
                         placeholder="Product description"
@@ -227,12 +295,44 @@ export default function SellerProfile() {
                       <input
                         type="number"
                         value={editForm.price}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                        onChange={(e) => updateEditForm("price", parseFloat(e.target.value) || 0)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Price"
                         step="0.01"
                         min="0"
                       />
+                      <input
+                        type="number"
+                        value={editForm.priceWithoutDiscount}
+                        onChange={(e) => updateEditForm("priceWithoutDiscount", parseFloat(e.target.value) || 0)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Price without discount"
+                        step="0.01"
+                        min="0"
+                      />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <label className="flex flex-col text-sm text-gray-600">
+                          Discount start
+                          <input
+                            type="date"
+                            value={editForm.discountLaunchDate}
+                            onChange={(e) => updateEditForm("discountLaunchDate", e.target.value)}
+                            className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </label>
+                        <label className="flex flex-col text-sm text-gray-600">
+                          Discount end
+                          <input
+                            type="date"
+                            value={editForm.discountExpirationDate}
+                            onChange={(e) => updateEditForm("discountExpirationDate", e.target.value)}
+                            className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </label>
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        Current discount: <span className="font-semibold text-gray-700">{editForm.discountPercentage.toFixed(2)}%</span>
+                      </p>
                       <div className="flex gap-2">
                         <button
                           onClick={handleSaveProduct}
@@ -252,16 +352,29 @@ export default function SellerProfile() {
                 ) : (
                   <>
                     <Link to={`/product/${product.slug}`}>
-                      <ProductCard
-                        id={product.id}
-                        imageUrl={
-                          product.pictures && product.pictures.length > 0
-                            ? `http://localhost:8080/${product.pictures[0].url}`
-                            : "/images/product/placeholder.jpg"
-                        }
-                        title={product.name}
-                        price={`$${product.price.toFixed(2)}`}
-                      />
+                      {(() => {
+                        const price = formatCurrency(product.price);
+                        const baselinePrice = product.priceWithoutDiscount ?? product.price;
+                        const percentValue = product.discountPercentage ?? calculateDiscountPercentage(baselinePrice, product.price);
+                        const showDiscount = baselinePrice > product.price && percentValue > 0;
+                        const oldPrice = showDiscount ? formatCurrency(baselinePrice) : undefined;
+                        const discountBadge = showDiscount ? `-${Math.round(percentValue)}%` : undefined;
+
+                        return (
+                          <ProductCard
+                            id={product.id}
+                            imageUrl={
+                              product.pictures && product.pictures.length > 0
+                                ? `http://localhost:8080/${product.pictures[0].url}`
+                                : "/images/product/placeholder.jpg"
+                            }
+                            title={product.name}
+                            price={price}
+                            oldPrice={oldPrice}
+                            discountPercent={discountBadge}
+                          />
+                        );
+                      })()}
                     </Link>
                     {isOwner && (
                       <div className="absolute top-2 right-2 flex gap-2">

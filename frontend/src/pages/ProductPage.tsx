@@ -7,10 +7,74 @@ import { fetchSellerProfileBySlug } from "../api/seller";
 import { fetchProductReviews, createReview, deleteReview, replyReview } from "../api/reviews";
 import { Review } from '../types/review';
 import { AuthContext } from "../context/AuthContext";
-import { Heart, Star, ArrowLeft, ArrowRight, X, Truck, Package } from 'lucide-react';
+import { Star, ArrowLeft, ArrowRight, X, Tag } from 'lucide-react';
 import { addToCart as addToCartApi, fetchCart } from "../api/cart";
 import { addFavourite, deleteFavourite, fetchFavourites } from "../api/favourites";
 
+
+const formatCurrency = (value: number) => `$${value.toFixed(2)}`;
+
+const formatDate = (value?: string | null) => {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toLocaleDateString();
+};
+
+const getDiscountMeta = (product: Product | null) => {
+  if (!product) {
+    return {
+      baselinePrice: 0,
+      percent: 0,
+      isActive: false,
+      status: "none" as const,
+      startsAt: null as string | null,
+      endsAt: null as string | null,
+    };
+  }
+
+  const price = product.price ?? 0;
+  const baselinePrice = product.priceWithoutDiscount && product.priceWithoutDiscount > 0
+    ? product.priceWithoutDiscount
+    : price;
+
+  const startsAt = product.discountLaunchDate ?? null;
+  const endsAt = product.discountExpirationDate ?? null;
+
+  const computedPercent = baselinePrice > 0 ? ((baselinePrice - price) / baselinePrice) * 100 : 0;
+  const percent = product.discountPercentage ?? Math.max(0, Math.round(computedPercent * 100) / 100);
+
+  const now = new Date();
+  const startDate = startsAt ? new Date(startsAt) : null;
+  const endDate = endsAt ? new Date(endsAt) : null;
+
+  const isAfterStart = startDate ? now >= startDate : true;
+  const isBeforeEnd = endDate ? now <= endDate : true;
+  const baselineLowerThanPrice = baselinePrice <= price;
+
+  let status: "none" | "active" | "scheduled" | "finished" = "none";
+
+  if (baselineLowerThanPrice || percent <= 0) {
+    status = "none";
+  } else if (!isAfterStart) {
+    status = "scheduled";
+  } else if (!isBeforeEnd) {
+    status = "finished";
+  } else {
+    status = "active";
+  }
+
+  const isActive = status === "active" || (product.hasDiscount ?? false);
+
+  return {
+    baselinePrice,
+    percent: Math.max(0, percent),
+    isActive,
+    status,
+    startsAt,
+    endsAt,
+  };
+};
 
 const ProductPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -45,6 +109,8 @@ const ProductPage: React.FC = () => {
   const currentUser = auth?.user || null;
 
   const [showFullDescription, setShowFullDescription] = useState(false);
+
+  const discountMeta = useMemo(() => getDiscountMeta(product), [product]);
 
   useEffect(() => {
     if (!slug) return;
@@ -294,6 +360,13 @@ const ProductPage: React.FC = () => {
   if (!product) return <div className="p-6 text-center">Товар не знайдено</div>;
 
 
+  const mainPrice = formatCurrency(product.price);
+  const baselinePriceLabel = discountMeta.baselinePrice > 0 ? formatCurrency(discountMeta.baselinePrice) : null;
+  const showBaseline = discountMeta.baselinePrice > product.price && discountMeta.percent > 0;
+  const discountLabel = discountMeta.percent > 0 ? `-${Math.round(discountMeta.percent)}%` : null;
+  const discountStarts = formatDate(discountMeta.startsAt);
+  const discountEnds = formatDate(discountMeta.endsAt);
+
   return (
     <div className="min-h-screen bg-white p-2 pt-12">
       <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10">
@@ -344,8 +417,37 @@ const ProductPage: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.74 0-3.278 1.012-4.062 2.475A4.875 4.875 0 008.25 3.75C5.66 3.75 3.563 5.765 3.563 8.25c0 7.22 8.437 11.25 8.437 11.25s8.438-4.03 8.438-11.25z" />
             </svg>
           </button>
-          <h1 className="text-3xl font-bold pr-12">{product.name}</h1>
-          <p className="text-2xl font-semibold">${product.price.toLocaleString()}</p>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold pr-12">{product.name}</h1>
+            <div className="flex items-baseline gap-3">
+              <span className="text-3xl font-semibold text-black">{mainPrice}</span>
+              {showBaseline && baselinePriceLabel ? (
+                <span className="text-lg text-gray-400 line-through">{baselinePriceLabel}</span>
+              ) : null}
+              {discountLabel ? (
+                <span className="inline-flex items-center gap-1 text-sm font-semibold text-red-600 bg-red-50 px-2 py-1 rounded-full">
+                  <Tag className="w-4 h-4" />
+                  {discountLabel}
+                </span>
+              ) : null}
+            </div>
+            {(discountMeta.status === "scheduled" || discountMeta.status === "finished") && (discountStarts || discountEnds) ? (
+              <div className="text-xs text-gray-600 flex flex-col">
+                {discountMeta.status === "scheduled" && discountStarts ? (
+                  <span>Discount starts on {discountStarts}</span>
+                ) : null}
+                {discountMeta.status === "scheduled" && discountEnds ? (
+                  <span>Ends on {discountEnds}</span>
+                ) : null}
+                {discountMeta.status === "finished" && discountEnds ? (
+                  <span>Discount ended on {discountEnds}</span>
+                ) : null}
+              </div>
+            ) : null}
+            {discountMeta.status === "active" && discountEnds ? (
+              <span className="text-xs text-green-600">Active discount until {discountEnds}</span>
+            ) : null}
+          </div>
           
           {/* Seller Info */}
           {seller && (
