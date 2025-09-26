@@ -32,6 +32,12 @@ public class FavouriteController {
         return ResponseEntity.ok(favouriteService.getByUser(jwtUtil.extractUserId(token)));
     }
 
+    @Operation(summary = "Отримати всі товари користувача", description = "Повертає список всіх товарів, доданих користувачем у обране")
+    @GetMapping("/ids/")
+    public ResponseEntity<?> getIdsByUser(@RequestParam String token){
+        return ResponseEntity.ok(favouriteService.getIdsByUser(jwtUtil.extractUserId(token)));
+    }
+
     @PostMapping("/add")
     @Operation(
         summary = "Add favourite item",
@@ -47,4 +53,6 @@ public class FavouriteController {
         favouriteService.delete(jwtUtil.extractUserId(token), favouriteId);
         return ResponseEntity.ok("Deleted successfully");
     }
+
+    
 }

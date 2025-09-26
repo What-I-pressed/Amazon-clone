@@ -42,6 +42,16 @@ public class FavouriteService {
 
     }
 
+    public List<Long> getIdsByUser(Long userId){
+        // Return PRODUCT IDs so the frontend can check favourites presence efficiently
+        return favouriteRepository
+            .findByUser(userService.getUserById(userId))
+            .stream()
+            .map(fav -> fav.getProduct() != null ? fav.getProduct().getId() : null)
+            .filter(id -> id != null)
+            .collect(Collectors.toList());
+    }
+
     public List<FavouriteResponseDto> getByUser(Long userId){
         return favouriteRepository.findByUser(userService.getUserById(userId)).stream().map(FavouriteResponseDto::new).collect(Collectors.toList());
     }
