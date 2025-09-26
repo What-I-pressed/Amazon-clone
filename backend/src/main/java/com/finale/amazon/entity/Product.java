@@ -3,6 +3,8 @@ package com.finale.amazon.entity;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.hibernate.annotations.Formula;
+
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -22,7 +24,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Product {                  
+public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -34,7 +36,7 @@ public class Product {
     private String description;
 
     @Column(nullable = false)
-    private double price;           //default currency in $, in perspective implement currency converter
+    private double price; // default currency in $, in perspective implement currency converter
 
     @Column(nullable = false)
     private double priceWithoutDiscount;
@@ -51,6 +53,9 @@ public class Product {
     @Column(nullable = false)
     private long quantitySold;
 
+    @Column(nullable = false)
+    private long views = 0L;
+
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
@@ -58,7 +63,6 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "subcategory_id")
     private Subcategory subcategory;
-
 
     @ManyToOne
     @JoinColumn(name = "characteristic_type_id")
@@ -70,6 +74,9 @@ public class Product {
 
     @Column(length = 600, unique = true)
     private String slug;
+
+    @Column(nullable = false)
+    private double avgRating = 0.0;
 
     @ManyToOne
     @JoinColumn(name = "seller_id", referencedColumnName = "id")

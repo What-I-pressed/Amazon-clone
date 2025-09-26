@@ -12,5 +12,5 @@ import java.time.LocalDateTime;
 public class ReviewReplyDto {
     private String description;
     private LocalDateTime date;
-    private Long parentReviewId; 
+    private Long parentId; 
 }

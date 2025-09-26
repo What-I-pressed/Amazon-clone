@@ -1,9 +1,13 @@
 package com.finale.amazon.security;
 
 import com.finale.amazon.entity.User;
+import com.finale.amazon.service.UserService;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +30,7 @@ public class JwtUtil {
 
     @Value("${jwt.long-expiration:604800000}") // 7 days default
     private long longExpiration;
+
 
     public String extractSubject(String token) {
         return extractClaim(token, Claims::getSubject);

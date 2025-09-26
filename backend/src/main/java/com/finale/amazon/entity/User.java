@@ -46,9 +46,6 @@ public class User {
     @Column(nullable = false)
     private boolean emailVerified = false;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private VerificationToken verificationToken;
-
     @ManyToOne
     @JoinTable(name = "user_role")
     private Role role;

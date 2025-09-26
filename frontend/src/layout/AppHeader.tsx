@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Logo from "../components/ui/avatar/logo.svg";
 import { AuthContext } from "../context/AuthContext";
 import { fetchSellerProfile } from "../api/seller";
 import type { Seller } from "../types/seller";
 import CategoryDropdown from "../components/CategoryDropdown";
+import { fetchCart } from "../api/cart";
 
 const Navbar: React.FC = () => {
   const [languageDropdown, setLanguageDropdown] = useState(false);
@@ -12,6 +13,8 @@ const Navbar: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<number | null>(null);
 
   const languageRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
@@ -21,6 +24,7 @@ const Navbar: React.FC = () => {
   const { user, logoutUser } = auth;
 
   const [seller, setSeller] = useState<Seller | null>(null);
+  const [cartCount, setCartCount] = useState<number>(0);
 
   useEffect(() => {
     const loadSeller = async () => {
@@ -36,6 +40,28 @@ const Navbar: React.FC = () => {
       }
     };
     loadSeller();
+  }, [user]);
+
+  useEffect(() => {
+    const loadCart = async () => {
+      try {
+        if (!user) {
+          setCartCount(0);
+          return;
+        }
+        const items = await fetchCart();
+        const count = items.reduce((sum, it) => sum + (it.quantity || 0), 0);
+        setCartCount(count);
+      } catch {
+        setCartCount(0);
+      }
+    };
+    // initial load and on user change
+    loadCart();
+    // listen for global cart updates
+    const handleUpdated = () => loadCart();
+    window.addEventListener('cart:updated', handleUpdated as EventListener);
+    return () => window.removeEventListener('cart:updated', handleUpdated as EventListener);
   }, [user]);
 
   useEffect(() => {
@@ -56,9 +82,12 @@ const Navbar: React.FC = () => {
   };
 
   const handleSearch = () => {
-    if (searchTerm.trim()) {
-      navigate(`/search?query=${searchTerm.trim()}`);
-    }
+    const q = searchTerm.trim();
+    if (!q) return;
+    // Scope to the subcategory only if one is currently chosen in this header session
+    const subId = selectedSubcategoryId;
+    const base = `/search?query=${encodeURIComponent(q)}`;
+    navigate(subId ? `${base}&subcategoryId=${subId}` : base);
   };
 
   return (
@@ -81,6 +110,18 @@ const Navbar: React.FC = () => {
               onSelect={(category) => {
                 setSelectedCategory(category);
                 console.log("Selected category:", category);
+                if (category === 'All') {
+                  setSelectedSubcategoryId(null);
+                  // Also clear subcategoryId from URL, keep query if present
+                  const params = new URLSearchParams(location.search);
+                  const q = params.get('query');
+                  navigate(q ? `/search?query=${encodeURIComponent(q)}` : '/search');
+                }
+              }}
+              onSubcategorySelect={(subcategory) => {
+                // Redirect to search page filtered by selected subcategory ID (backend supports subcategoryId)
+                setSelectedSubcategoryId(subcategory.id);
+                navigate(`/search?subcategoryId=${subcategory.id}`);
               }}
             />
 
@@ -141,6 +182,41 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
+          {/* Favourites */}
+          <div
+            className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
+            onClick={() => navigate("/favourites")}
+            title="Go to favourites"
+          >
+            Favorites
+          </div>
+
+          {/* Orders */}
+          <div
+            className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
+            onClick={() => navigate("/orders")}
+            title="Go to orders"
+          >
+            Orders
+          </div>
+
+          {/* Cart */}
+          <div
+            className="relative cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
+            onClick={() => navigate("/cart")}
+            title="Go to cart"
+          >
+            Cart
+            {cartCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center"
+                aria-label={`Items in cart: ${cartCount}`}
+              >
+                {cartCount}
+              </span>
+            )}
+          </div>
+
           {/* Account dropdown */}
           <div className="relative" ref={accountRef}>
             <div
@@ -148,9 +224,7 @@ const Navbar: React.FC = () => {
               onClick={() => setAccountDropdown(prev => !prev)}
             >
               <div className="flex items-center justify-center gap-2">
-                {seller?.url ? (
-                  <img src={seller.url} alt="avatar" className="w-6 h-6 rounded-full object-cover" />
-                ) : null}
+                
                 <span>
                   {user ? `Hello, ${seller?.username || user.username || user.email}` : "Hello, sign in"}
                 </span>
@@ -169,19 +243,29 @@ const Navbar: React.FC = () => {
               <div className="py-1">
                 {user ? (
                   <>
-                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/seller"}>
-                      Seller Profile
-                    </button>
-                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/seller/dashboard"}>
-                      Seller Dashboard
-                    </button>
-                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/seller/edit"}>
-                      Edit Seller
-                    </button>
-                    <div className="h-px bg-[#6a6a6a] my-1" />
-                    <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => window.location.href = "/profile"}>
-                      Account Profile
-                    </button>
+                    {seller ? (
+                      <>
+                        <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => navigate(`/seller/${seller.slug}`)}>
+                          Seller Profile
+                        </button>
+                        <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => navigate("/seller/dashboard")}>
+                          Seller Dashboard
+                        </button>
+                        <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => navigate("/seller/edit")}>
+                          Edit Seller
+                        </button>
+                        <div className="h-px bg-[#6a6a6a] my-1" />
+                      </>
+                    ) : (
+                      <>
+                        <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => navigate("/customer/dashboard")}>
+                          Profile
+                        </button>
+                        <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => navigate("/customer/edit")}>
+                          Edit Profile
+                        </button>
+                      </>
+                    )}
                     <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={logoutUser}>
                       Logout
                     </button>
@@ -198,11 +282,6 @@ const Navbar: React.FC = () => {
                 )}
               </div>
             </div>
-          </div>
-
-          {/* Cart */}
-          <div className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]">
-            Cart
           </div>
         </div>
       </div>

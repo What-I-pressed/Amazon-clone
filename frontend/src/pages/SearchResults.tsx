@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import { ChevronRight, SlidersHorizontal, X } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { SlidersHorizontal, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { searchProducts } from '../api/search';
+import { searchProductsWithFilter, type ProductFilterDto } from '../api/search';
 import ProductCard from './ProductCard';
 import type { Product } from '../types/product';
+import ProductFilters, { type ProductFiltersState } from '../components/filters/ProductFilters';
 
 const useQuery = () => new URLSearchParams(useLocation().search);
 
@@ -13,41 +14,102 @@ const SearchResults: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(24);
-  const [selectedCategory, setSelectedCategory] = useState('All Items');
   const [showFilters, setShowFilters] = useState(false);
-  const [priceMin, setPriceMin] = useState(0);
-  const [priceMax, setPriceMax] = useState(500);
+  // Default/empty filters object
+  const emptyFilters: ProductFiltersState = {
+    lowerPriceBound: null,
+    upperPriceBound: null,
+    characteristics: null,
+    sortField: null,
+    sortDir: null,
+  };
+  const [filters, setFilters] = useState<ProductFiltersState>(emptyFilters); // applied filters
+  const [pendingFilters, setPendingFilters] = useState<ProductFiltersState>(emptyFilters); // edited but not applied yet
+  const [applyKey, setApplyKey] = useState(0); // increments when Apply is pressed
+
+  // Stable callback to prevent ProductFilters effect loops
+  const handleFiltersChange = useCallback((next: ProductFiltersState) => {
+    // Store edits without triggering fetch
+    setPendingFilters((prev) => {
+      const prevStr = JSON.stringify(prev ?? {});
+      const nextStr = JSON.stringify(next ?? {});
+      if (prevStr === nextStr) return prev;
+      return next;
+    });
+  }, []);
+
+  const applyFiltersNow = useCallback(() => {
+    setFilters((prev) => {
+      const prevStr = JSON.stringify(prev ?? {});
+      const nextStr = JSON.stringify(pendingFilters ?? {});
+      if (prevStr === nextStr) return prev;
+      return pendingFilters;
+    });
+    setApplyKey((k) => k + 1);
+  }, [pendingFilters]);
 
   const query = useQuery();
   const searchTerm = query.get('query') || '';
+  const subcategoryIdStr = query.get('subcategoryId');
+  const subcategoryId = subcategoryIdStr ? Number(subcategoryIdStr) : undefined;
 
-  const categories = [
-    'Furniture',
-    'For Kitchen',
-    'For Bedroom',
-    'For Kids',
-    'Electronics',
-    'Tools'
-  ];
+  // Load saved filters on first mount (persist across reloads)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('search.filters.v1');
+      if (raw) {
+        const saved = JSON.parse(raw) as ProductFiltersState;
+        setFilters(saved);
+        setPendingFilters(saved);
+        setApplyKey(k => k + 1); // trigger initial fetch with saved filters
+      }
+    } catch (e) {
+      console.warn('Failed to load saved filters', e);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist applied filters whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('search.filters.v1', JSON.stringify(filters));
+    } catch (e) {
+      console.warn('Failed to save filters', e);
+    }
+  }, [filters]);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const controller = new AbortController();
+    const timeout = setTimeout(async () => {
       setLoading(true);
       setError(null);
-
       try {
-        const results = await searchProducts(searchTerm, 0, 100);
+        const payload: ProductFilterDto = {
+          name: searchTerm || undefined,
+          subcategoryId: subcategoryId ?? undefined,
+          lowerPriceBound: filters.lowerPriceBound ?? undefined,
+          upperPriceBound: filters.upperPriceBound ?? undefined,
+          // Note: categoryId not wired yet; backend filters by categoryId only.
+          characteristics: filters.characteristics ?? undefined,
+        };
+        const sort = filters.sortField && filters.sortDir ? `${filters.sortField},${filters.sortDir}` : undefined;
+        const results = await searchProductsWithFilter(payload, 0, 100, controller.signal, sort);
         setProducts(results.content || []);
-      } catch (err) {
+      } catch (err: any) {
+        // Ignore cancellations
+        if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') return;
         setError('Failed to fetch search results.');
         console.error(err);
       } finally {
         setLoading(false);
       }
-    };
+    }, 300);
 
-    fetchProducts();
-  }, [searchTerm]);
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [searchTerm, applyKey, subcategoryId]);
 
   const loadMore = () => {
     setVisibleCount(prev => prev + 24);
@@ -64,9 +126,11 @@ const SearchResults: React.FC = () => {
   if (error) return (
     <div className="flex items-center justify-center min-h-[400px] text-red-500">{error}</div>
   );
-  if (products.length === 0) return (
-    <div className="flex items-center justify-center min-h-[400px] text-gray-500">No products found.</div>
-  );
+  if (!loading && products.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px] text-gray-500">No products found.</div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-white">
@@ -78,60 +142,30 @@ const SearchResults: React.FC = () => {
               <X className="w-5 h-5" />
             </button>
           </div>
-          <div className="mb-8">
-            <h3 className="text-3xl text-gray-900 mb-4">Categories</h3>
-            <ul className="space-y-2">
-              {categories.map(cat => (
-                <li key={cat}>
-                  <button
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`w-full text-left text-sm py-2 px-3 rounded-md transition-colors ${
-                      selectedCategory === cat
-                        ? 'bg-gray-100 text-gray-900'
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="mb-8">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Price Range</h3>
-            <div className="px-4">
-              <div className="flex justify-between text-sm text-gray-600 mb-2">
-                <span>$0.00</span>
-                <span>$500.00</span>
-              </div>
-              <div className="relative h-2">
-                <div className="absolute w-full h-0.5 bg-gray-300 top-1/2 transform -translate-y-1/2"></div>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="500" 
-                  value={priceMin} 
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    if (val <= priceMax) setPriceMin(val);
-                  }}
-                  className="absolute w-full appearance-none bg-transparent pointer-events-auto"
-                  style={{ zIndex: 2 }}
-                />
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="500" 
-                  value={priceMax} 
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    if (val >= priceMin) setPriceMax(val);
-                  }}
-                  className="absolute w-full appearance-none bg-transparent pointer-events-auto"
-                  style={{ zIndex: 1 }}
-                />
-              </div>
-            </div>
+          <ProductFilters
+            initial={filters}
+            onChange={handleFiltersChange}
+          />
+          <div className="mt-6 flex gap-3">
+            <button
+              type="button"
+              onClick={applyFiltersNow}
+              className="px-4 py-2 rounded-md bg-gray-900 text-white text-sm"
+            >
+              Apply Filters
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setPendingFilters(emptyFilters);
+                setFilters(emptyFilters);
+                try { localStorage.removeItem('search.filters.v1'); } catch {}
+                setApplyKey((k)=>k+1);
+              }}
+              className="px-4 py-2 rounded-md border text-sm"
+            >
+              Reset
+            </button>
           </div>
         </div>
       </aside>
@@ -167,19 +201,19 @@ const SearchResults: React.FC = () => {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
               >
-                <Link to={`/product/${product.slug}`} className="block">
-                  <ProductCard
-                    id={product.id}
-                    slug={product.slug}
-                    imageUrl={
-                      product.pictures && product.pictures.length > 0
-                        ? `http://localhost:8080/${product.pictures[0].url}`
-                        : '/images/product/placeholder.jpg'
-                    }
-                    title={product.name || ''}
-                    price={`$${Number(product.price).toLocaleString()}`}
-                  />
-                </Link>
+                {(() => {
+                  const primary = product.pictures?.find(p => p.pictureType === 'PRIMARY') || product.pictures?.[0];
+                  const imgUrl = primary?.url ? `http://localhost:8080/${primary.url}` : '/images/product/placeholder.jpg';
+                  return (
+                    <ProductCard
+                      id={product.id}
+                      slug={product.slug}
+                      imageUrl={imgUrl}
+                      title={product.name || ''}
+                      price={`$${Number(product.price).toLocaleString()}`}
+                    />
+                  );
+                })()}
               </motion.div>
             ))}
           </AnimatePresence>

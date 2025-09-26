@@ -50,7 +50,7 @@ public class Review {
     private User user;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
-    private List<Review> reviews;
+    private List<Review> replies;
 
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL)
     private List<Picture> pictures;

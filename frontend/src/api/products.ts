@@ -1,5 +1,6 @@
 import type { Product } from "../types/product";
 import type { Seller } from "../types/seller";
+import api from "./axios";
 
 const API_BASE = "/api/products";
 const API_SELLER = "/api/seller";
@@ -59,5 +60,93 @@ export async function fetchSellerProductsBySlug(
   } catch (error) {
     console.error(`[API] Помилка fetchSellerProductsBySlug (slug: ${slug}):`, error);
     throw error;
+  }
+}
+
+// Best-effort fetch by numeric ID. Tries common patterns used in backends.
+export async function fetchProductById(id: number): Promise<Product | null> {
+  const candidates = [
+    `${API_BASE}/id/${id}`,
+    `${API_BASE}/${id}`,
+  ];
+
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        return data as Product;
+      }
+    } catch {
+      // try next
+    }
+  }
+  return null;
+}
+
+// Create product for a seller using backend endpoint: POST /api/products/create/{sellerId}
+export interface ProductCreationPayload {
+  name: string;
+  description?: string;
+  price: number;
+  priceWithoutDiscount: number;
+  quantityInStock: number;
+  categoryName: string;
+  subcategoryName?: string;
+  characteristicTypeName?: string;
+  discountLaunchDate?: string; // ISO string
+  discountExpirationDate?: string; // ISO string
+  characteristics?: any[]; // optional
+  variations?: any[]; // optional
+}
+
+export async function createProductForSeller(
+  sellerId: number,
+  payload: ProductCreationPayload
+): Promise<Product> {
+  const body = { ...payload, sellerId };
+  const res = await api.post<Product>(`/products/create/${sellerId}`, body);
+  return res.data;
+}
+
+// Helper function to get auth headers
+function getAuthHeaders() {
+  const token = localStorage.getItem("token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+// Update product
+export async function updateProduct(
+  productId: number,
+  payload: Partial<ProductCreationPayload>
+): Promise<Product> {
+  try {
+    const res = await fetch(`${API_BASE}/update/${productId}`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error("Failed to update product");
+    return res.json();
+  } catch (e) {
+    console.error("[API] updateProduct:", e);
+    throw e;
+  }
+}
+
+// Delete product
+export async function deleteProduct(productId: number): Promise<void> {
+  try {
+    const res = await fetch(`${API_BASE}/delete/${productId}`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to delete product");
+  } catch (e) {
+    console.error("[API] deleteProduct:", e);
+    throw e;
   }
 }

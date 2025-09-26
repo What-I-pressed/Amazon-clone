@@ -67,12 +67,6 @@ public class AuthController {
 
             String token = jwtUtil.generateToken(u);
 
-            // VerificationToken verificationToken = new VerificationToken();
-            // verificationToken.setToken(token);
-            // verificationToken.setUser(u);
-            // verificationToken.setExpiryDate(LocalDateTime.now().plusHours(24)); // 24 hours expiry
-            // tokenRepository.save(verificationToken);
-
             String url = "http://localhost:8080/api/auth/verify?token=" + token;
             String subject = "Please verify your email";
             String body = "Click the link to verify your account: " + url;

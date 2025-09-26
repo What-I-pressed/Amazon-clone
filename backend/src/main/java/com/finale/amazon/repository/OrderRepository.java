@@ -13,22 +13,23 @@ import com.finale.amazon.entity.User;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
-    
-    @Query("SELECT DISTINCT o FROM Order o JOIN o.orderItems oi JOIN oi.product p WHERE p.seller = :seller")
-    List<Order> findByProductSeller(@Param("seller") User seller);
-    
+
+    List<Order> findDistinctByOrderItemsProductSeller(User seller);
+
     @Query("SELECT COUNT(DISTINCT o) FROM Order o JOIN o.orderItems oi JOIN oi.product p WHERE p.seller = :seller")
     long countByProductSeller(@Param("seller") User seller);
-    
+
     @Query("SELECT COUNT(DISTINCT o) FROM Order o JOIN o.orderItems oi JOIN oi.product p WHERE p.seller = :seller AND o.orderStatus.name IN :statusNames")
-    long countByProductSellerAndOrderStatusNameIn(@Param("seller") User seller, @Param("statusNames") List<String> statusNames);
-    
+    long countByProductSellerAndOrderStatusNameIn(@Param("seller") User seller,
+            @Param("statusNames") List<String> statusNames);
+
     @Query("SELECT DISTINCT o FROM Order o JOIN o.orderItems oi JOIN oi.product p WHERE p.seller = :seller AND o.orderStatus.name = :statusName")
-    List<Order> findByProductSellerAndOrderStatusName(@Param("seller") User seller, @Param("statusName") String statusName);
+    List<Order> findByProductSellerAndOrderStatusName(@Param("seller") User seller,
+            @Param("statusName") String statusName);
 
     List<Order> findByOrderStatus_NameIn(List<String> statusNames);
 
     List<Order> findByUser(User user);
-    
+
     List<Order> findByOrderStatus_NameInAndUserId(List<String> statusNames, Long userId);
 }

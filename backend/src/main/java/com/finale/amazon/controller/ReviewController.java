@@ -37,52 +37,6 @@ public class ReviewController {
     private final ReviewRepository reviewRepository;
     private final JwtUtil jwtUtil;
 
-//     @Operation(summary = "Створити відгук або відповідь", 
-//            description = "Створює новий відгук для продукту або відповідь на існуючий відгук (якщо задано parentId)")
-// @PostMapping("/create")
-// public ResponseEntity<?> createReview(@RequestParam String token, @RequestBody ReviewDto reviewDto) {
-//     try {
-//         // Перевірка токена
-//         if (jwtUtil.isTokenExpired(token)) {
-//             return ResponseEntity.status(400).body("Token is expired");
-//         }
-//         // Отримуємо користувача з токена
-//         Long userId = jwtUtil.extractUserId(token);
-//         User user = userService.getUserById(userId);
-//         if (user == null) {
-//             return ResponseEntity.status(403).body("User not found");
-//         }
-//         // Перевірка продукту
-//         var productOpt = productRepository.findById(reviewDto.getProductId());
-//         if (productOpt.isEmpty()) {
-//             return ResponseEntity.status(403).body("Product not found");
-//         }
-//         // Створюємо review
-//         Review reviewEntity = new Review();
-//         reviewEntity.setDescription(reviewDto.getDescription());
-//         reviewEntity.setStars(reviewDto.getStars());
-//         reviewEntity.setDate(reviewDto.getDate());
-//         reviewEntity.setUser(user);
-//         reviewEntity.setProduct(productOpt.get());
-//         // Додаємо parent лише якщо це reply
-//         if (reviewDto.getParentId() != null && reviewDto.getParentId() != 0) {
-//             var parentOpt = reviewRepository.findById(reviewDto.getParentId());
-//             if (parentOpt.isEmpty()) {
-//                 return ResponseEntity.status(403).body("Parent review not found");
-//             }
-//             reviewEntity.setParent(parentOpt.get());
-//         } else {
-//             reviewEntity.setParent(null); // звичайний відгук
-//         }
-//         Review savedReview = reviewRepository.save(reviewEntity);
-//         return ResponseEntity.ok(new ReviewDto(savedReview));
-//     } catch (Exception e) {
-//         e.printStackTrace();
-//         return ResponseEntity.status(500).body("Internal server error");
-//     }
-// }
-
-
     @Operation(summary = "Створити відгук", description = "Створює новий відгук для продукту. Не можна створювати parentId, якщо це звичайний відгук")
     @PostMapping("/create")
     public ResponseEntity<?> createReview(@RequestParam String token,@RequestBody ReviewCreationDto dto) {
@@ -144,26 +98,25 @@ public class ReviewController {
     @Operation(summary = "Отримати відгук за ID", description = "Повертає відгук разом з інформацією про користувача та батьківський/дочірні відгуки")
     @GetMapping("/{id}")
     public ResponseEntity<?> getReviewById(
-            @RequestParam String token,
             @Parameter(description = "ID відгуку") @PathVariable Long id
     ) {
-        if (jwtUtil.isTokenExpired(token)) {
-            return ResponseEntity.status(400).body("Token expired");
-        }
-
         Optional<Review> reviewOpt = reviewService.getReviewById(id);
         return reviewOpt.map(review -> ResponseEntity.ok(new ReviewDto(review)))
                         .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Отримати всі відгуки продукту", description = "Повертає список всіх головних відгуків продукту разом із відповідями на них")
+    @Operation(summary = "Отримати всі відгуки продукту", description = "Повертає список всіх головних відгуків продукту")
     @GetMapping("/product/{productId}")
-    public ResponseEntity<?> getAllReviewsByProduct(@RequestParam String token,@PathVariable Long productId) {
-        if (jwtUtil.isTokenExpired(token)) {
-            return ResponseEntity.status(400).body("Token is expired");
-        }
+    public ResponseEntity<?> getAllReviewsByProduct(@PathVariable Long productId) {
         List<ReviewDto> reviews = reviewService.getAllReviewsByProduct(productId);
         return ResponseEntity.ok(reviews);
+    }
+
+    @Operation(summary = "Отримати відповіді на відгук", description = "Повертає список всіх відповідей на конкретний відгук")
+    @GetMapping("/{reviewId}/replies")
+    public ResponseEntity<?> getRepliesForReview(@PathVariable Long reviewId) {
+        List<ReviewDto> replies = reviewService.getRepliesForReview(reviewId);
+        return ResponseEntity.ok(replies);
     }
 
     @Operation(summary = "Редагувати відгук", description = "Дозволяє автору змінити опис та рейтинг свого відгуку")
