@@ -40,6 +40,10 @@ public class OrderService {
     @Autowired
     private ProductRepository productRepository;
 
+    public List<Order> findAllNotCompletedOrders() {
+        return orderRepository.findByOrderStatus_NameIn(List.of("NEW", "PROCESSING", "SHIPPED"));
+    }
+    
     public List<Order> getOrdersBySeller(User seller) {
         return orderRepository.findByProductSeller(seller);
     }

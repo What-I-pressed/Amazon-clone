@@ -170,4 +170,27 @@ public class OrderController {
         Order updatedOrder = orderService.updateOrder(id, orderDto);
         return ResponseEntity.ok(new OrderDto(updatedOrder));
     }
+
+   @Operation(
+    summary = "Отримати всі незавершені замовлення (тільки для ADMIN)", description = "Повертає всі замовлення у статусах NEW, PROCESSING або SHIPPED")
+    @GetMapping("/not-completed")
+    public ResponseEntity<?> getNotCompletedOrders(@RequestParam String token) {
+        if (jwtUtil.isTokenExpired(token)) {
+            return ResponseEntity.status(400).body("Token is expired");
+        }
+
+        String role = jwtUtil.extractRole(token);
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(403).body("You are not authorized to view this resource!");
+        }
+
+        List<Order> activeOrders = orderService.findAllNotCompletedOrders();
+
+        return activeOrders.isEmpty()
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.ok(activeOrders.stream().map(OrderDto::new).collect(Collectors.toList()));
+    }
+
+
+
 }
