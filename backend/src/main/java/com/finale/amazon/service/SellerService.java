@@ -55,16 +55,16 @@ public class SellerService {
                 long totalOrders = orderRepository.countByProductSeller(seller);
 
                 long activeOrders = orderRepository.countByProductSellerAndOrderStatusNameIn(
-                        seller, List.of("Pending", "Processing", "Shipped"));
+                        seller, List.of("NEW", "PROCESSING", "SHIPPED"));
 
                 long completedOrders = orderRepository.countByProductSellerAndOrderStatusNameIn(
-                        seller, List.of("Delivered"));
+                        seller, List.of("DELIVERED"));
 
                 long cancelledOrders = orderRepository.countByProductSellerAndOrderStatusNameIn(
-                        seller, List.of("Cancelled"));
+                        seller, List.of("CANCELLED"));
 
                 double totalRevenue = orderRepository.findByProductSellerAndOrderStatusName(
-                        seller, "Delivered"
+                        seller, "DELIVERED"
                 ).stream().mapToDouble(order -> order.getPrice()).sum();
                 double customerFeedback = reviewRepository.findByProduct_seller_Username(seller.getUsername()).get().stream().mapToDouble(review -> review.getStars()).average().orElse(1.0);
                 long numOfReviews = reviewRepository.findByProduct_seller_Username(seller.getUsername()).get().stream().count();
