@@ -10,7 +10,6 @@ import { fetchCart } from "../api/cart";
 const Navbar: React.FC = () => {
   const [languageDropdown, setLanguageDropdown] = useState(false);
   const [accountDropdown, setAccountDropdown] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
@@ -91,7 +90,10 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <nav style={{ backgroundColor: "#434343" }} className="text-white py-4 relative">
+    <nav
+      style={{ backgroundColor: "#434343" }}
+      className="text-white py-4 relative sticky top-0 z-50"
+    >
       <div className="max-w-7xl mx-auto px-8 flex items-center gap-8">
         {/* Logo */}
         <div
@@ -104,19 +106,19 @@ const Navbar: React.FC = () => {
 
         {/* Search bar */}
         <div className="flex-grow ">
-          <div className="flex rounded-full overflow-visible max-w-md mx-auto h-10 relative" style={{ backgroundColor: "#A2A2A2" }}>
-            {/* Category dropdown */}
+          <div className="flex rounded-md overflow-visible max-w-md mx-auto h-10 relative" style={{ backgroundColor: "#A2A2A2" }}>
             <CategoryDropdown
               onSelect={(category) => {
-                setSelectedCategory(category);
-                console.log("Selected category:", category);
-                if (category === 'All') {
-                  setSelectedSubcategoryId(null);
-                  // Also clear subcategoryId from URL, keep query if present
+                setSelectedSubcategoryId(null);
+
+                if (category === "All") {
                   const params = new URLSearchParams(location.search);
-                  const q = params.get('query');
-                  navigate(q ? `/search?query=${encodeURIComponent(q)}` : '/search');
+                  const q = params.get("query");
+                  navigate(q ? `/search?query=${encodeURIComponent(q)}` : "/search");
+                  return;
                 }
+
+                navigate(`/search?category=${encodeURIComponent(category)}`);
               }}
               onSubcategorySelect={(subcategory) => {
                 // Redirect to search page filtered by selected subcategory ID (backend supports subcategoryId)
@@ -125,7 +127,6 @@ const Navbar: React.FC = () => {
               }}
             />
 
-            {/* Search input */}
             <input
               className="w-full px-3 text-white bg-transparent focus:outline-none placeholder-white text-sm hover:placeholder-gray-300 transition-colors duration-500 ease-in-out"
               placeholder="Nexora Search"
@@ -135,7 +136,6 @@ const Navbar: React.FC = () => {
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             />
 
-            {/* Search button */}
             <button
               className="px-3 py-2 rounded-md flex items-center justify-center transition-colors duration-300 ease-in-out hover:bg-[#343434] group focus:outline-none"
               style={{ backgroundColor: "#757575" }}
@@ -236,7 +236,7 @@ const Navbar: React.FC = () => {
             </div>
 
             <div
-              className={`absolute top-full right-0 mt-1 w-32 rounded-md shadow-lg z-50 overflow-hidden transition-all duration-300 ease-out transform ${accountDropdown ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
+              className={`absolute top-full right-0 mt-1 w-32  shadow-lg z-50 overflow-hidden transition-all duration-300 ease-out transform ${accountDropdown ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
                 }`}
               style={{ backgroundColor: "#757575" }}
             >
