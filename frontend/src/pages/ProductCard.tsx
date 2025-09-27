@@ -15,6 +15,7 @@ type ProductCardProps = {
   price: string; 
   oldPrice?: string; 
   discountPercent?: string; 
+  quantityInStock?: number;
   variant?: ProductCardVariant;
   className?: string;
 };
@@ -27,6 +28,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   price,
   oldPrice,
   discountPercent,
+  quantityInStock,
   variant = 'grid',
   className = "",
 }) => {
@@ -77,6 +79,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   const handleAddToCart = async () => {
     if (!id) return;
+    if (quantityInStock !== undefined && inCartQty >= quantityInStock) return;
     try {
       setAddingCart(true);
       await addToCartApi({ productId: Number(id), quantity: 1 });
@@ -129,12 +132,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
         {/* Button + Wishlist */}
         <div className="flex items-center gap-4 mt-auto pt-2">
           <button
-            onClick={(e) => { e.stopPropagation(); handleAddToCart(); }}
-            disabled={addingCart || !id}
-            className="flex-1 bg-[#282828] text-white rounded-3xl py-2.5 font-medium hover:opacity-90 transition disabled:opacity-50"
-          >
-            {addingCart ? "Adding..." : inCartQty > 0 ? `In cart (${inCartQty})` : "Add to cart"}
-          </button>
+          onClick={(e) => { e.stopPropagation(); handleAddToCart(); }}
+          disabled={addingCart || !id || (quantityInStock !== undefined && quantityInStock <= 0)}
+          className="flex-1 bg-[#282828] text-white rounded-3xl py-2.5 font-medium hover:opacity-90 transition disabled:opacity-50"
+        >
+          {quantityInStock !== undefined && quantityInStock <= 0
+            ? "Out of stock"
+            : addingCart
+              ? "Adding..."
+              : inCartQty > 0
+                ? `In cart (${inCartQty})`
+                : "Add to cart"}
+        </button>
+
           <button
             onClick={(e) => { e.stopPropagation(); addFavouriteOnce(); }}
             disabled={loadingFav || !id || liked}

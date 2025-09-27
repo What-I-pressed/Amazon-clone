@@ -372,6 +372,7 @@ export default function SellerProfile() {
                             price={price}
                             oldPrice={oldPrice}
                             discountPercent={discountBadge}
+                            quantityInStock={product.quantityInStock}
                           />
                         );
                       })()}

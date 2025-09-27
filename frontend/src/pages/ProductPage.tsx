@@ -52,6 +52,7 @@ const getDiscountMeta = (product: Product | null) => {
   const isBeforeEnd = endDate ? now <= endDate : true;
   const baselineLowerThanPrice = baselinePrice <= price;
 
+
   let status: "none" | "active" | "scheduled" | "finished" = "none";
 
   if (baselineLowerThanPrice || percent <= 0) {
@@ -93,6 +94,7 @@ const ProductPage: React.FC = () => {
   const [inCartQty, setInCartQty] = useState<number>(0);
   const [liked, setLiked] = useState(false);
   const [favouriteId, setFavouriteId] = useState<number | null>(null);
+  const isOutOfStock = (product?.quantityInStock ?? 0) <= 0;
 
   // Reviews state
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -312,6 +314,10 @@ const ProductPage: React.FC = () => {
 
   const handleAddToCart = async () => {
     if (!product?.id) return;
+
+    const maxAddable = (product.quantityInStock ?? 0) - inCartQty;
+    if (maxAddable <= 0) return;
+
     try {
       setAddingCart(true);
       await addToCartApi({ productId: Number(product.id), quantity: 1 });
@@ -486,10 +492,16 @@ const ProductPage: React.FC = () => {
           <div className="flex gap-3">
             <button
               onClick={handleAddToCart}
-              disabled={addingCart}
-              className="flex-1 bg-[#42A275] text-white rounded-3xl py-2.5 font-medium hover:opacity-90 transition"
+              disabled={addingCart || isOutOfStock}
+              className="flex-1 bg-[#42A275] text-white rounded-3xl py-2.5 font-medium hover:opacity-90 transition disabled:opacity-50"
             >
-              {addingCart ? "Adding..." : inCartQty > 0 ? `In cart (${inCartQty})` : "Add to cart"}
+              {isOutOfStock
+                ? "Out of stock"
+                : addingCart
+                  ? "Adding..."
+                  : inCartQty > 0
+                    ? `In cart (${inCartQty})`
+                    : "Add to cart"}
             </button>
            
           </div>

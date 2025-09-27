@@ -211,6 +211,8 @@ const SearchResults: React.FC = () => {
                       imageUrl={imgUrl}
                       title={product.name || ''}
                       price={`$${Number(product.price).toLocaleString()}`}
+                      quantityInStock={product.quantityInStock}
+
                     />
                   );
                 })()}
