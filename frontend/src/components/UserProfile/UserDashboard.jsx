@@ -68,6 +68,7 @@ export default function UserDashboard() {
             rating={item.rating}
             description={item.description}
             onAddToCart={() => console.log("Added to cart:", item.title)}
+            
           />
         ))}
       </div>
