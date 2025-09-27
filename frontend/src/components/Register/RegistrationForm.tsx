@@ -58,6 +58,11 @@ const RegistrationForm: React.FC = () => {
     }
   };
 
+  const handleGoogleSignup = () => {
+    // Initiates Spring Security OAuth2 login for Google
+    window.location.href = "http://localhost:8080/oauth2/authorization/google";
+  };
+
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Image */}
@@ -245,6 +250,23 @@ const RegistrationForm: React.FC = () => {
               Create Account
             </button>
           </form>
+
+          {/* Divider */}
+          <div className="flex items-center my-6">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="px-4 text-gray-500 text-sm">or</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
+
+          {/* Google Sign up/Login */}
+          <button
+            type="button"
+            onClick={handleGoogleSignup}
+            className="w-full h-[54px] border border-gray-300 rounded-[54px] flex items-center justify-center gap-3 hover:bg-gray-50 transition"
+          >
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+            <span className="text-gray-700 font-medium">Continue with Google</span>
+          </button>
         </div>
       </div>
     </div>

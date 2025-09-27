@@ -33,6 +33,11 @@
       }
     };
 
+    const handleGoogleLogin = () => {
+      // Initiates Spring Security OAuth2 login for Google
+      window.location.href = "http://localhost:8080/oauth2/authorization/google";
+    };
+
     return (
       <div className="min-h-screen w-full flex items-start justify-center bg-white pt-50">
         <div className="flex w-2/3 h-[70%] bg-white rounded-lg overflow-hidden transition-transform duration-1000 hover:scale-[1.01] border border-gray-300">
@@ -104,6 +109,23 @@
                   Login
                 </button>
               </form>
+
+              {/* Divider */}
+              <div className="flex items-center my-6">
+                <div className="flex-1 h-px bg-gray-200" />
+                <span className="px-4 text-gray-500 text-sm">or</span>
+                <div className="flex-1 h-px bg-gray-200" />
+              </div>
+
+              {/* Google Login */}
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                className="w-full h-[54px] border border-gray-300 rounded-[54px] flex items-center justify-center gap-3 hover:bg-gray-50 transition"
+              >
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+                <span className="text-gray-700 font-medium">Continue with Google</span>
+              </button>
 
               {/* Extra Links */}
               <div className="mt-8 flex justify-between text-sm text-gray-600">

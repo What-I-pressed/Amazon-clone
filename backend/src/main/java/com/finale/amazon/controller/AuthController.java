@@ -105,7 +105,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody UserLoginRequestDto user) {
         try {
-            User u = userService.authenticateUser(user.getEmail(), user.getPassword())
+            User u = userService.authenticateUser(user.getEmail().toLowerCase(), user.getPassword())
                     .orElseThrow(() -> new RuntimeException("Invalid email or password"));
     
             String token = jwtUtil.generateToken(u);
@@ -137,7 +137,7 @@ public class AuthController {
             // Create user with USER role
             UserRequestDto userRequest = new UserRequestDto();
             userRequest.setUsername(userDto.getUsername());
-            userRequest.setEmail(userDto.getEmail());
+            userRequest.setEmail(userDto.getEmail().toLowerCase());
             userRequest.setPassword(userDto.getPassword());
             userRequest.setName(userDto.getName());
             userRequest.setPhone(userDto.getPhone());
@@ -167,7 +167,7 @@ public class AuthController {
         try {
             UserRequestDto userRequest = new UserRequestDto();
             userRequest.setUsername(sellerDto.getUsername());
-            userRequest.setEmail(sellerDto.getEmail());
+            userRequest.setEmail(sellerDto.getEmail().toLowerCase());
             userRequest.setPassword(sellerDto.getPassword());
             userRequest.setName(sellerDto.getName());
             userRequest.setPhone(sellerDto.getPhone());

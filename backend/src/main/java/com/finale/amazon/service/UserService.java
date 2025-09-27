@@ -11,6 +11,7 @@ import com.finale.amazon.repository.UserRepository;
 import com.finale.amazon.security.JwtUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -87,10 +88,28 @@ public class UserService {
         }
     }
 
+    public User createByEmail(String email){
+        return userRepository.findByEmail(email).orElseGet(() -> {
+        User user = new User();
+        user.setEmail(email.toLowerCase());
+        user.setUsername(email.substring(0, email.indexOf("@")));
+        user.setBlocked(false);
+        user.setEmailVerified(true);
+        user.setPassword(slugService.generateRandomSlug(10));
+        user.setRole(roleRepository.findByName("CUSTOMER").get());
+        try {
+            return userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            return userRepository.findByEmail(email).orElseThrow();
+        }
+    });
+        
+    }
+
     public User createUser(UserRequestDto userRequestDto) {
         User user = new User();
         user.setUsername(userRequestDto.getUsername());
-        user.setEmail(userRequestDto.getEmail());
+        user.setEmail(userRequestDto.getEmail().toLowerCase());
         user.setDescription(userRequestDto.getDescription());
         user.setName(userRequestDto.getName());
         user.setPhone(userRequestDto.getPhone());
@@ -194,7 +213,7 @@ public class UserService {
                 existingUser.setDescription(userDetails.getDescription());
             }
             if (userDetails.getEmail() != null) {
-                existingUser.setEmail(userDetails.getEmail());
+                existingUser.setEmail(userDetails.getEmail().toLowerCase());
             }
             if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
                 existingUser.setPassword(hashPassword(userDetails.getPassword()));
@@ -371,6 +390,7 @@ public class UserService {
         if (updateRequest.getDescription() != null) {
             seller.setDescription(updateRequest.getDescription());
         }
+        updateRequest.setEmail(updateRequest.getEmail().toLowerCase());
         if (updateRequest.getEmail() != null && !updateRequest.getEmail().equals(seller.getEmail())) {
             if (userExistsByEmail(updateRequest.getEmail())) {
                 throw new RuntimeException("Email already exists: " + updateRequest.getEmail());
