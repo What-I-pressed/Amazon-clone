@@ -13,6 +13,13 @@ export const fetchFavourites = async (): Promise<FavouriteItem[]> => {
   return res.data;
 };
 
+// Fetch only product IDs in favourites for the current user
+export const fetchFavouriteProductIds = async (): Promise<number[]> => {
+  const token = getToken();
+  const res = await api.get<number[]>(`/favourite/ids/`, { params: { token } });
+  return res.data;
+};
+
 export const addFavourite = async (productId: number): Promise<number> => {
   const token = getToken();
   const res = await api.post<number>(`/favourite/add`, null, { params: { token, productId } });

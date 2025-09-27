@@ -105,7 +105,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody UserLoginRequestDto user) {
         try {
-            User u = userService.authenticateUser(user.getEmail(), user.getPassword())
+            User u = userService.authenticateUser(user.getEmail().toLowerCase(), user.getPassword())
                     .orElseThrow(() -> new RuntimeException("Invalid email or password"));
     
             String token = jwtUtil.generateToken(u);
@@ -137,13 +137,18 @@ public class AuthController {
             // Create user with USER role
             UserRequestDto userRequest = new UserRequestDto();
             userRequest.setUsername(userDto.getUsername());
-            userRequest.setEmail(userDto.getEmail());
+            userRequest.setEmail(userDto.getEmail().toLowerCase());
             userRequest.setPassword(userDto.getPassword());
             userRequest.setName(userDto.getName());
             userRequest.setPhone(userDto.getPhone());
             userRequest.setRoleName("CUSTOMER");
 
             User u = userService.createUser(userRequest);
+            // ensure user is marked as not verified (default false)
+            u.setEmailVerified(false);
+            userRepository.save(u);
+
+            // Send verification email
             String token = jwtUtil.generateToken(u);
             return ResponseEntity.ok(token);
         } catch (Exception e) {
@@ -162,18 +167,37 @@ public class AuthController {
         try {
             UserRequestDto userRequest = new UserRequestDto();
             userRequest.setUsername(sellerDto.getUsername());
-            userRequest.setEmail(sellerDto.getEmail());
+            userRequest.setEmail(sellerDto.getEmail().toLowerCase());
             userRequest.setPassword(sellerDto.getPassword());
             userRequest.setName(sellerDto.getName());
             userRequest.setPhone(sellerDto.getPhone());
             userRequest.setRoleName("SELLER");
 
             User u = userService.createUser(userRequest);
+            u.setEmailVerified(false);
+            userRepository.save(u);
+
             String token = jwtUtil.generateToken(u);
             return ResponseEntity.ok(token);
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Error registering seller: " + e.getMessage());
         }
+    }
+
+    @Operation(summary = "Перевірити статус верифікації email за адресою")
+    @GetMapping("/verification-status")
+    public ResponseEntity<Map<String, Object>> verificationStatus(@RequestParam String email) {
+        Optional<User> u = userService.getUserByEmail(email);
+        if (u.isEmpty()) {
+            Map<String, Object> res = new HashMap<>();
+            res.put("exists", false);
+            res.put("verified", false);
+            return ResponseEntity.ok(res);
+        }
+        Map<String, Object> res = new HashMap<>();
+        res.put("exists", true);
+        res.put("verified", u.get().isEmailVerified());
+        return ResponseEntity.ok(res);
     }
 
     // @PostMapping("/register")

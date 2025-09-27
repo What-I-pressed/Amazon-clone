@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addFavourite } from "../api/favourites";
 import { addToCart as addToCartApi } from "../api/cart";
-import { fetchFavourites } from "../api/favourites";
 import { fetchCart } from "../api/cart";
+import { AuthContext } from "../context/AuthContext";
 
 type ProductCardVariant = 'grid' | 'carousel';
 
@@ -33,6 +33,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   className = "",
 }) => {
   const navigate = useNavigate();
+  const auth = useContext(AuthContext);
   const [liked, setLiked] = useState(false);
   const [loadingFav, setLoadingFav] = useState(false);
   const [addingCart, setAddingCart] = useState(false);
@@ -43,18 +44,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
     const init = async () => {
       if (!id) return;
       try {
-        const [favs, cartItems] = await Promise.allSettled([
-          fetchFavourites(),
-          fetchCart(),
-        ]);
-        if (!mounted) return;
-        if (favs.status === 'fulfilled') {
-          const f = favs.value.find((it) => Number(it.product?.id) === Number(id));
-          if (f) { setLiked(true); } else { setLiked(false); }
+        // Use favourite product IDs from context for instant check
+        const favSet = auth?.favouriteProductIds;
+        if (favSet) {
+          setLiked(favSet.has(Number(id)));
         }
-        if (cartItems.status === 'fulfilled') {
-          const found = cartItems.value.find((ci) => Number(ci.product?.id) === Number(id));
+        // Load cart
+        try {
+          const cartItems = await fetchCart();
+          if (!mounted) return;
+          const found = cartItems.find((ci) => Number(ci.product?.id) === Number(id));
           setInCartQty(found ? (found.quantity || 0) : 0);
+        } catch {
+          // ignore
         }
       } catch {
         // ignore
@@ -62,7 +64,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     };
     init();
     return () => { mounted = false; };
-  }, [id]);
+  }, [id, auth?.favouriteProductIds]);
 
   const addFavouriteOnce = async () => {
     if (!id || liked) return; // cannot add if already liked
@@ -70,6 +72,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
       setLoadingFav(true);
       await addFavourite(Number(id));
       setLiked(true);
+      auth?.addFavouriteId(Number(id));
     } catch (e) {
       // optional: show toast
     } finally {

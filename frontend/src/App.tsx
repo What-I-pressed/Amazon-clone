@@ -7,6 +7,8 @@ import AppLayout from "./layout/AppLayout";
 // Auth
 import LoginForm from "./components/Login/LoginForm";
 import RegistrationForm from "./components/Register/RegistrationForm";
+import VerifyPending from "./pages/AuthPages/VerifyPending";
+import OAuth2Success from "./pages/OAuth2Success";
 
 // Other
 import NotFound from "./pages/OtherPage/NotFound";
@@ -84,6 +86,8 @@ export default function App() {
           <Route path="/search" element={<SearchResults />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegistrationForm />} />
+        <Route path="/verify-pending" element={<VerifyPending />} />
+        <Route path="/oauth2/success" element={<OAuth2Success />} />
         </Route>
 
         {/* Адмінка (з лейаутом) */}

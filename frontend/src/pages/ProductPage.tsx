@@ -142,20 +142,20 @@ const ProductPage: React.FC = () => {
         } catch {
           setInCartQty(0);
         }
-        // load favourite state for this product
+        // Use favourite product IDs from AuthContext for instant check
         try {
-          const favs = await fetchFavourites();
-          if (!isMounted) return;
-          const match = favs.find((f) => f.product?.id === productData.id);
-          if (match) {
-            setLiked(true);
-            setFavouriteId(match.id);
+          const favSet = auth?.favouriteProductIds;
+          if (favSet && productData.id != null) {
+            const isFav = favSet.has(Number(productData.id));
+            setLiked(isFav);
+            // We don't know favouriteId yet unless we fetch or we just created it
+            setFavouriteId(null);
           } else {
             setLiked(false);
             setFavouriteId(null);
           }
         } catch {
-          // ignore favourites load error silently
+          // ignore
         }
       } catch (e: unknown) {
         if (!isMounted) return;
@@ -337,12 +337,26 @@ const ProductPage: React.FC = () => {
         const createdId = await addFavourite(Number(product.id));
         setFavouriteId(createdId);
         setLiked(true);
+        // update global fav set
+        auth?.addFavouriteId(Number(product.id));
       } else {
-        if (favouriteId != null) {
-          await deleteFavourite(favouriteId);
+        let toDeleteId = favouriteId;
+        if (toDeleteId == null) {
+          // lazily fetch favourites to find the id for this product
+          try {
+            const favs = await fetchFavourites();
+            const match = favs.find((f) => f.product?.id === product.id);
+            toDeleteId = match?.id ?? null;
+          } catch {
+            // ignore
+          }
+        }
+        if (toDeleteId != null) {
+          await deleteFavourite(toDeleteId);
         }
         setFavouriteId(null);
         setLiked(false);
+        auth?.removeFavouriteId(Number(product.id));
       }
     } catch {
       // optionally show toast
