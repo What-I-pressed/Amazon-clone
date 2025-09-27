@@ -144,6 +144,11 @@ public class AuthController {
             userRequest.setRoleName("CUSTOMER");
 
             User u = userService.createUser(userRequest);
+            // ensure user is marked as not verified (default false)
+            u.setEmailVerified(false);
+            userRepository.save(u);
+
+            // Send verification email
             String token = jwtUtil.generateToken(u);
             return ResponseEntity.ok(token);
         } catch (Exception e) {
@@ -169,11 +174,30 @@ public class AuthController {
             userRequest.setRoleName("SELLER");
 
             User u = userService.createUser(userRequest);
+            u.setEmailVerified(false);
+            userRepository.save(u);
+
             String token = jwtUtil.generateToken(u);
             return ResponseEntity.ok(token);
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Error registering seller: " + e.getMessage());
         }
+    }
+
+    @Operation(summary = "Перевірити статус верифікації email за адресою")
+    @GetMapping("/verification-status")
+    public ResponseEntity<Map<String, Object>> verificationStatus(@RequestParam String email) {
+        Optional<User> u = userService.getUserByEmail(email);
+        if (u.isEmpty()) {
+            Map<String, Object> res = new HashMap<>();
+            res.put("exists", false);
+            res.put("verified", false);
+            return ResponseEntity.ok(res);
+        }
+        Map<String, Object> res = new HashMap<>();
+        res.put("exists", true);
+        res.put("verified", u.get().isEmailVerified());
+        return ResponseEntity.ok(res);
     }
 
     // @PostMapping("/register")

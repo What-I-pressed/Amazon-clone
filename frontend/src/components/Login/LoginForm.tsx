@@ -22,7 +22,14 @@
         await loginUser(token);
         navigate("/");
       } catch (err: any) {
-        setError(err.response?.data?.message || "Login failed");
+        const status = err.response?.status;
+        const serverError = err.response?.data?.error || err.response?.data?.message;
+        if (status === 403 && typeof serverError === "string" && serverError.toLowerCase().includes("not verified")) {
+          // redirect to verification pending with email
+          navigate(`/verify-pending?email=${encodeURIComponent(email)}`);
+          return;
+        }
+        setError(serverError || "Login failed");
       }
     };
 
