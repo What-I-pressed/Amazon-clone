@@ -12,6 +12,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
+import com.finale.amazon.entity.User;
 import com.finale.amazon.service.UserService;
 
 import java.io.IOException;
@@ -26,18 +27,19 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
     private JwtUtil jwtUtil;
     @Autowired
     private UserService userService;
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
-                                        HttpServletResponse response,
-                                        Authentication authentication) throws IOException {
+            HttpServletResponse response,
+            Authentication authentication) throws IOException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
         System.out.println("Boba");
-        String token = jwtUtil.generateToken(userService.getUserByEmail(email).orElseThrow(() -> new RuntimeException("There is no user with such email")));
-        response.setContentType("application/json");
-        response.getWriter().write("{\"token\":\"" + token + "\"}");
+        User user = userService.getUserByEmail(email).orElse(userService.createByEmail(email));
+        String token = jwtUtil.generateToken(user);
+        String redirectUrl = frontendUrl + "/oauth2/success?token=" + token;
+        response.sendRedirect(redirectUrl);
     }
 }
-
- 

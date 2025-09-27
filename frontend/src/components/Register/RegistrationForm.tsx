@@ -7,7 +7,9 @@ import { Link } from "react-router-dom";
 const RegistrationForm: React.FC = () => {
   const [formData, setFormData] = useState({
     fullName: "",
+    username: "",
     email: "",
+    phone: "",
     password: "",
     confirmPassword: "",
   });
@@ -40,13 +42,25 @@ const RegistrationForm: React.FC = () => {
     }
 
     try {
-      const res = await register(formData.fullName, formData.email, formData.password);
-      const token = res.data.token;
+      const res = await register({
+        role: "CUSTOMER",
+        username: formData.username || formData.email.split("@")[0],
+        name: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone || undefined,
+      });
+      const token: string = res.data; // backend returns raw token string
       await loginUser(token);
       navigate("/");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Registration failed");
+      setError(err.response?.data || err.message || "Registration failed");
     }
+  };
+
+  const handleGoogleSignup = () => {
+    // Initiates Spring Security OAuth2 login for Google
+    window.location.href = "http://localhost:8080/oauth2/authorization/google";
   };
 
   return (
@@ -112,6 +126,36 @@ const RegistrationForm: React.FC = () => {
                   required
                 />
               </div>
+            </div>
+
+            {/* Username */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Username
+              </label>
+              <input
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="Choose a username"
+              />
+            </div>
+
+            {/* Phone (optional) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Phone (optional)
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="e.g. +1234567890"
+              />
             </div>
 
             {/* Password and Confirm Password Row */}
@@ -206,6 +250,23 @@ const RegistrationForm: React.FC = () => {
               Create Account
             </button>
           </form>
+
+          {/* Divider */}
+          <div className="flex items-center my-6">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="px-4 text-gray-500 text-sm">or</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
+
+          {/* Google Sign up/Login */}
+          <button
+            type="button"
+            onClick={handleGoogleSignup}
+            className="w-full h-[54px] border border-gray-300 rounded-[54px] flex items-center justify-center gap-3 hover:bg-gray-50 transition"
+          >
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+            <span className="text-gray-700 font-medium">Continue with Google</span>
+          </button>
         </div>
       </div>
     </div>
