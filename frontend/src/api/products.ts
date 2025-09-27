@@ -7,7 +7,13 @@ const API_SELLER = "/api/seller";
 
 export async function fetchProducts(): Promise<Product[]> {
   try {
-    const res = await fetch(`${API_BASE}/page/0?size=100`);
+    const res = await fetch(`${API_BASE}/page/0?size=100`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({}),
+    });
     if (!res.ok) throw new Error("Не вдалося отримати список товарів");
     const pageData = await res.json();
     return pageData.content || [];

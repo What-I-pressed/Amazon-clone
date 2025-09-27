@@ -1,12 +1,79 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import ProductCard from './ProductCard';
+import { fetchProducts } from '../api/products';
+import { fetchCategories, type CategorySummary } from '../api/categories';
+import type { Product } from '../types/product';
+import AOS from 'aos';
+
+const CATEGORY_IMAGE_MATCHES = [
+  {
+    keywords: ['elect', 'tech', 'device', 'gadget'],
+    url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    keywords: ['fashion', 'cloth', 'apparel', 'style'],
+    url: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    keywords: ['home', 'furn', 'decor', 'living'],
+    url: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    keywords: ['beaut', 'cosmetic', 'skincare', 'makeup'],
+    url: 'https://images.unsplash.com/photo-1526045478516-99145907023c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    keywords: ['sport', 'fitness', 'outdoor', 'athlet'],
+    url: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    keywords: ['toy', 'kid', 'baby', 'play'],
+    url: 'https://images.unsplash.com/photo-1511452885600-a2a6fcb7c1b9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    keywords: ['book', 'literature', 'read', 'novel'],
+    url: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    keywords: ['grocery', 'food', 'kitchen', 'culinary'],
+    url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+  },
+];
+
+const FALLBACK_CATEGORY_IMAGES = [
+  'https://images.unsplash.com/photo-1491557345352-5929e343eb89?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1470337458703-46ad1756a187?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1514996937319-344454492b37?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1509042239860-f550ce710b93?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+];
+
+const getCategoryImage = (categoryName: string, index: number) => {
+  const lower = (categoryName || '').toLowerCase();
+  const match = CATEGORY_IMAGE_MATCHES.find(({ keywords }) =>
+    keywords.some(keyword => lower.includes(keyword))
+  );
+  if (match) {
+    return match.url;
+  }
+  return FALLBACK_CATEGORY_IMAGES[index % FALLBACK_CATEGORY_IMAGES.length];
+};
 
 const HomePage: React.FC = () => {
+  const navigate = useNavigate();
   const carouselRef = useRef<HTMLDivElement>(null);
   const [isScrolling, setIsScrolling] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const [popularProducts, setPopularProducts] = useState<Product[]>([]);
+  const [popularLoading, setPopularLoading] = useState<boolean>(false);
+  const [popularError, setPopularError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<CategorySummary[]>([]);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+  const [categoriesLoading, setCategoriesLoading] = useState<boolean>(true);
 
   // Reusable style objects
   const styles = {
@@ -69,25 +136,57 @@ const HomePage: React.FC = () => {
   );
 
   // Reusable component for category cards
-  const CategoryCard: React.FC<{ imageUrl: string; title: string; items: string[] }> = ({ imageUrl, title, items }) => (
-    <div className="flex flex-col items-center space-y-4">
-      <div className="w-41 h-41 rounded-full flex items-center justify-center overflow-hidden"
-           style={{ backgroundColor: styles.colors.categoryBg }}>
-        <img src={imageUrl} alt={title} className="max-w-full max-h-full object-contain object-center" />
+  const CategoryCard: React.FC<{
+    imageUrl: string;
+    title: string;
+    items: { id?: number; name: string }[];
+    animationDelay?: number;
+  }> = ({ imageUrl, title, items, animationDelay = 0 }) => (
+    <button
+      type="button"
+      onClick={() => navigate(`/search?category=${encodeURIComponent(title)}`)}
+      className="group flex flex-col items-center space-y-3 transition-transform duration-200 mt-4 hover:-translate-y-1 hover:scale-[1.01]"
+      data-aos="zoom-in"
+      data-aos-duration="600"
+      data-aos-delay={animationDelay}
+    >
+      <div
+        className="w-40 h-40 rounded-full flex items-center justify-center overflow-hidden bg-gray-50 transition-transform duration-200 group-hover:scale-[1.02]"
+        style={{ backgroundColor: styles.colors.categoryBg }}
+      >
+        <img
+          src={imageUrl}
+          alt={title}
+          className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
+        />
       </div>
-      <div className={styles.layout.textCenter}>
-        <h3 className={styles.typography.categoryTitle} style={{ color: styles.colors.categoryText }}>
+      <div className="w-full flex flex-col items-center space-y-1">
+        <h3 className={`${styles.typography.categoryTitle} transition-colors duration-200 text-center`}
+            style={{ color: styles.colors.categoryText }}>
           {title}
         </h3>
-        <div className="space-y-1">
+        <div className="w-full flex flex-col items-center space-y-1 text-sm">
           {items.map((item, idx) => (
-            <p key={idx} className={styles.typography.categorySubtext} style={{ color: styles.colors.categorySubtext }}>
-              {item}
-            </p>
+            <button
+              key={idx}
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                if (item.id) {
+                  navigate(`/search?subcategoryId=${item.id}`);
+                } else {
+                  navigate(`/search?subcategory=${encodeURIComponent(item.name)}`);
+                }
+              }}
+              className="text-center w-full transition duration-200 rounded-full px-3 py-1 hover:bg-gray-100/40 hover:text-gray-900"
+              style={{ color: styles.colors.categorySubtext }}
+            >
+              {item.name}
+            </button>
           ))}
         </div>
       </div>
-    </div>
+    </button>
   );
 
   // Reusable component for featured cards
@@ -96,106 +195,176 @@ const HomePage: React.FC = () => {
     title: string; 
     className?: string;
     titleSize?: string;
-  }> = ({ imageUrl, title, className = "h-60", titleSize = "text-xl" }) => (
-    <div className={`relative rounded-2xl overflow-hidden group cursor-pointer ${className}`}>
-      <img 
-        src={imageUrl}
-        alt={title}
-        className={`w-full h-full object-cover brightness-75 ${styles.hover.imageScale}`}
-      />
-      <div className="absolute bottom-5 left-5 max-w-xs">
-        <h3 className={`text-white font-poppins ${titleSize} leading-tight`}>
-          {title}
-        </h3>
+    categoryName?: string;
+    animationDelay?: number;
+  }> = ({ imageUrl, title, className = "h-60", titleSize = "text-xl", categoryName, animationDelay = 0 }) => {
+    const handleNavigate = () => {
+      if (categoryName) {
+        navigate(`/search?category=${encodeURIComponent(categoryName)}`);
+      }
+    };
+
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (!categoryName) return;
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        handleNavigate();
+      }
+    };
+
+    return (
+      <div
+        role={categoryName ? 'button' : undefined}
+        tabIndex={categoryName ? 0 : -1}
+        onClick={categoryName ? handleNavigate : undefined}
+        onKeyDown={categoryName ? handleKeyDown : undefined}
+        className={`relative rounded-2xl overflow-hidden group ${className} ${
+          categoryName ? 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/70 focus:ring-offset-2 focus:ring-offset-transparent' : ''
+        }`}
+        data-aos="fade-up"
+        data-aos-delay={animationDelay}
+      >
+        <img 
+          src={imageUrl}
+          alt={title}
+          className={`w-full h-full object-cover brightness-75 ${styles.hover.imageScale}`}
+        />
+        <div className="absolute bottom-5 left-5 max-w-xs">
+          <h3 className={`text-white font-poppins ${titleSize} leading-tight`}>
+            {title}
+          </h3>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Navigation items data
   const navItems = ['All', 'Sell', 'Best Sellers', "Today's Deals", 'Customer Service', 'Electronics', 'Fashion', 'New Releases', 'Nexora Pay'];
 
   // Categories data
-  const categories = [
-    {
-      imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80',
-      title: 'Furniture',
-      items: ['Sofas & Chairs', 'Tables & Storage', 'Bedroom Sets']
-    },
-    {
-      imageUrl: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80',
-      title: 'Electronics',
-      items: ['Smartphones', 'Laptops & PCs', 'Audio & TV']
-    },
-    {
-      imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80',
-      title: 'Fashion',
-      items: ["Men's Clothing", "Women's Wear", 'Accessories']
-    },
-    {
-      imageUrl: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80',
-      title: 'Home & Garden',
-      items: ['Kitchen Tools', 'Garden & Patio', 'Home Decor']
-    },
-    {
-      imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80',
-      title: 'Sports',
-      items: ['Fitness Equipment', 'Outdoor Sports', 'Athletic Wear']
-    },
-    {
-      imageUrl: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80',
-      title: 'Books',
-      items: ['Fiction & Literature', 'Educational', 'Self-Help']
+  const resolvedCategories = useMemo(() => {
+    if (!categories.length) {
+      return [];
     }
-  ];
+
+    return categories.slice(0, 6).map((category, idx) => {
+      const subcategories = category.subcategories.slice(0, 3);
+      const items = subcategories.map((sub) => ({ id: sub.id, name: sub.name }));
+
+      return {
+        imageUrl: getCategoryImage(category.name, idx),
+        title: category.name,
+        items,
+      };
+    });
+  }, [categories]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    const loadCategories = async () => {
+      setCategoriesLoading(true);
+      setCategoriesError(null);
+      try {
+        const result = await fetchCategories();
+        if (ignore) return;
+
+        setCategories(result);
+        if (!result.length) {
+          setCategoriesError('No categories available yet.');
+        }
+      } catch (error) {
+        if (!ignore) {
+          setCategoriesError('Unable to load categories. Please try again later.');
+        }
+      } finally {
+        if (!ignore) {
+          setCategoriesLoading(false);
+        }
+      }
+    };
+
+    loadCategories();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   // Featured cards data
-  const featuredCardsGrid1 = [
-    {
-      imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      title: 'Shop Fashion for less',
-      className: 'lg:row-span-2 h-128',
-      titleSize: 'text-2xl'
-    },
-    {
-      imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      title: 'Refresh your space'
-    },
-    {
-      imageUrl: 'https://images.unsplash.com/photo-1445205170230-053b83016050?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      title: 'Fashion trends you like'
-    },
-    {
-      imageUrl: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      title: 'Easy updates for elevated spaces',
-      className: 'lg:row-span-2 h-128',
-      titleSize: 'text-2xl'
-    }
-  ];
+  const featureCardBase = useMemo(
+    () => [
+      {
+        imageUrl: 'https://images.unsplash.com/photo-1521335629791-ce4aec67dd47?auto=format&fit=crop&w=800&q=80',
+        fallbackTitle: 'Statement fashion picks',
+        className: 'lg:row-span-2 h-128',
+        titleSize: 'text-2xl'
+      },
+      {
+        imageUrl: 'https://images.unsplash.com/photo-1493666438817-866a91353ca9?auto=format&fit=crop&w=800&q=80',
+        fallbackTitle: 'Refresh your space'
+      },
+      {
+        imageUrl: 'https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?auto=format&fit=crop&w=800&q=80',
+        fallbackTitle: 'Tech that inspires'
+      },
+      {
+        imageUrl: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80',
+        fallbackTitle: 'Easy updates for elevated spaces',
+        className: 'lg:row-span-2 h-128',
+        titleSize: 'text-2xl'
+      },
+      {
+        imageUrl: 'https://images.unsplash.com/photo-1503454510643-66c5ca1e1e3d?auto=format&fit=crop&w=800&q=80',
+        fallbackTitle: 'Playtime essentials'
+      },
+      {
+        imageUrl: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80',
+        fallbackTitle: 'Travel-ready finds'
+      },
+      {
+        imageUrl: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80',
+        fallbackTitle: 'Beauty bestsellers',
+        className: 'lg:row-span-2 h-128',
+        titleSize: 'text-2xl'
+      },
+      {
+        imageUrl: 'https://images.unsplash.com/photo-1518544889280-48c8e8e01e15?auto=format&fit=crop&w=800&q=80',
+        fallbackTitle: 'Timeless accessories'
+      },
+      {
+        imageUrl: 'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=800&q=80',
+        fallbackTitle: 'Top category deals'
+      }
+    ],
+    []
+  );
 
-  const featuredCardsGrid2 = [
-    {
-      imageUrl: 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      title: 'Toys for all ages'
-    },
-    {
-      imageUrl: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      title: 'Most-loved travel essentials'
-    },
-    {
-      imageUrl: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      title: 'Level up your beauty routine',
-      className: 'lg:row-span-2 h-128',
-      titleSize: 'text-2xl'
-    },
-    {
-      imageUrl: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      title: 'Most-loved watches'
-    },
-    {
-      imageUrl: 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      title: 'Deals on top categories'
+  const featuredCategoryCards = useMemo(() => {
+    if (!categories.length) {
+      return featureCardBase.map((card) => ({
+        imageUrl: card.imageUrl,
+        title: card.fallbackTitle,
+        className: card.className,
+        titleSize: card.titleSize,
+        categoryName: undefined,
+      }));
     }
-  ];
+
+    return featureCardBase.map((card, idx) => {
+      const sourceCategory = categories[idx % categories.length];
+      return {
+        imageUrl: card.imageUrl,
+        title: sourceCategory?.name ?? card.fallbackTitle,
+        className: card.className,
+        titleSize: card.titleSize,
+        categoryName: sourceCategory?.name,
+      };
+    });
+  }, [categories, featureCardBase]);
+
+  const featuredCardsGrid1 = featuredCategoryCards.slice(0, 4);
+  const featuredCardsGrid2 = featuredCategoryCards.slice(4, 9);
 
   const updateScrollButtons = () => {
     if (carouselRef.current) {
@@ -280,61 +449,93 @@ const HomePage: React.FC = () => {
     },
   ];
 
-  const popularProducts = [
-    {
-      id: 201,
-      imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      title: 'Double Bed & Side Tables',
-      oldPrice: '$230.00',
-      price: '$200.00',
-      discountPercent: '-13%',
-    },
-    {
-      id: 202,
-      imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      title: 'Modern Sofa Set',
-      oldPrice: '$450.00',
-      price: '$360.00',
-      discountPercent: '-20%',
-    },
-    {
-      id: 203,
-      imageUrl: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      title: 'Dining Table Set',
-      oldPrice: '$320.00',
-      price: '$272.00',
-      discountPercent: '-15%',
-    },
-    {
-      id: 204,
-      imageUrl: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      title: 'Office Chair',
-      oldPrice: '$180.00',
-      price: '$162.00',
-      discountPercent: '-10%',
-    },
-    {
-      id: 205,
-      imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      title: 'Coffee Table',
-      oldPrice: '$200.00',
-      price: '$150.00',
-      discountPercent: '-25%',
-    },
-    {
-      id: 206,
-      imageUrl: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      title: 'Bookshelf',
-      oldPrice: '$280.00',
-      price: '$230.00',
-      discountPercent: '-18%',
-    },
-  ];
+  const formatPrice = (price?: number | null) => {
+    if (price === undefined || price === null) {
+      return '';
+    }
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 2,
+    }).format(price);
+  };
+
+  const toProductCardProps = (product: Product) => {
+    const imageUrl = product.pictures?.[0]?.url
+      ? `http://localhost:8080/${product.pictures[0].url}`
+      : 'https://via.placeholder.com/400x400?text=No+Image';
+
+    const hasDiscount = product.priceWithoutDiscount && product.priceWithoutDiscount > product.price;
+    const discountPercent = hasDiscount && product.priceWithoutDiscount
+      ? Math.round(((product.priceWithoutDiscount - product.price) / product.priceWithoutDiscount) * 100)
+      : null;
+
+    return {
+      id: product.id,
+      slug: product.slug,
+      imageUrl,
+      title: product.name,
+      price: formatPrice(product.price),
+      oldPrice: hasDiscount ? formatPrice(product.priceWithoutDiscount) : undefined,
+      discountPercent: discountPercent ? `-${discountPercent}%` : undefined,
+    } as const;
+  };
+
+  useEffect(() => {
+    let ignore = false;
+
+    const loadPopularProducts = async () => {
+      setPopularLoading(true);
+      setPopularError(null);
+      try {
+        const products = await fetchProducts();
+        if (ignore) return;
+
+        const sorted = [...products]
+          .sort((a, b) => (b.views ?? 0) - (a.views ?? 0))
+          .slice(0, 10);
+
+        setPopularProducts(sorted);
+        setTimeout(() => {
+          updateScrollButtons();
+        }, 0);
+      } catch (error) {
+        if (!ignore) {
+          setPopularError('Unable to load popular products right now. Please try again later.');
+        }
+      } finally {
+        if (!ignore) {
+          setPopularLoading(false);
+        }
+      }
+    };
+
+    loadPopularProducts();
+
+    return () => {
+      ignore = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!popularLoading) {
+      updateScrollButtons();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [popularProducts, popularLoading]);
+
+  useEffect(() => {
+    AOS.refreshHard();
+  }, [categories, popularProducts]);
 
   return (
     <div className="w-full min-h-screen bg-white">
       {/* Navigation Bar */}
-      <div className={`w-full h-14 ${styles.layout.flexCenter}`} style={{ backgroundColor: styles.colors.primary }}>
+      <div
+        className={`w-full h-14 ${styles.layout.flexCenter}`}
+        style={{ backgroundColor: styles.colors.primary }}
+      >
         <div className="flex items-center gap-4 h-12">
           {navItems.map((item) => (
             <NavButton key={item}>{item}</NavButton>
@@ -384,9 +585,33 @@ const HomePage: React.FC = () => {
       <div className={styles.layout.section}>
         <div className={styles.layout.container}>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {categories.map((category, idx) => (
-              <CategoryCard key={idx} {...category} />
-            ))}
+            {categoriesError ? (
+              <div className="col-span-full text-center text-gray-500 text-sm">
+                {categoriesError}
+              </div>
+            ) : categoriesLoading ? (
+              Array.from({ length: 6 }).map((_, idx) => (
+                <div key={`category-skeleton-${idx}`} className="flex flex-col items-center space-y-4 animate-pulse">
+                  <div className="w-41 h-41 rounded-full bg-gray-100" />
+                  <div className="w-24 h-4 bg-gray-100 rounded" />
+                  <div className="w-16 h-3 bg-gray-100 rounded" />
+                  <div className="w-20 h-3 bg-gray-100 rounded" />
+                </div>
+              ))
+            ) : resolvedCategories.length === 0 ? (
+              Array.from({ length: 6 }).map((_, idx) => (
+                <div key={`category-skeleton-${idx}`} className="flex flex-col items-center space-y-4 animate-pulse">
+                  <div className="w-41 h-41 rounded-full bg-gray-100" />
+                  <div className="w-24 h-4 bg-gray-100 rounded" />
+                  <div className="w-16 h-3 bg-gray-100 rounded" />
+                  <div className="w-20 h-3 bg-gray-100 rounded" />
+                </div>
+              ))
+            ) : (
+              resolvedCategories.map((category, idx) => (
+                <CategoryCard key={`${category.title}-${idx}`} {...category} animationDelay={idx * 40} />
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -394,7 +619,7 @@ const HomePage: React.FC = () => {
       {/* Featured Collections Section */}
       <div className={styles.layout.sectionLarge}>
         <div className={styles.layout.container}>
-          <div className="text-center mb-12 max-w-2xl mx-auto">
+          <div className="text-center mb-12 max-w-2xl mx-auto" data-aos="fade-up">
             <h2 className={styles.typography.sectionTitle} style={{ color: styles.colors.mediumGray }}>
               View Our Range Of Categories
             </h2>
@@ -405,24 +630,24 @@ const HomePage: React.FC = () => {
 
           {/* Featured Cards Grid 1 */}
           <div className="grid lg:grid-cols-3 gap-8 mb-8">
-            <FeatureCard {...featuredCardsGrid1[0]} />
+            <FeatureCard {...featuredCardsGrid1[0]} animationDelay={0} />
             <div className="space-y-8">
-              <FeatureCard {...featuredCardsGrid1[1]} />
-              <FeatureCard {...featuredCardsGrid1[2]} />
+              <FeatureCard {...featuredCardsGrid1[1]} animationDelay={60} />
+              <FeatureCard {...featuredCardsGrid1[2]} animationDelay={120} />
             </div>
-            <FeatureCard {...featuredCardsGrid1[3]} />
+            <FeatureCard {...featuredCardsGrid1[3]} animationDelay={90} />
           </div>
 
           {/* Featured Cards Grid 2 */}
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="space-y-8">
-              <FeatureCard {...featuredCardsGrid2[0]} />
-              <FeatureCard {...featuredCardsGrid2[1]} />
+              <FeatureCard {...featuredCardsGrid2[0]} animationDelay={0} />
+              <FeatureCard {...featuredCardsGrid2[1]} animationDelay={80} />
             </div>
-            <FeatureCard {...featuredCardsGrid2[2]} />
+            <FeatureCard {...featuredCardsGrid2[2]} animationDelay={140} />
             <div className="space-y-8">
-              <FeatureCard {...featuredCardsGrid2[3]} />
-              <FeatureCard {...featuredCardsGrid2[4]} />
+              <FeatureCard {...featuredCardsGrid2[3]} animationDelay={60} />
+              <FeatureCard {...featuredCardsGrid2[4]} animationDelay={160} />
             </div>
           </div>
         </div>
@@ -431,7 +656,7 @@ const HomePage: React.FC = () => {
       {/* Featured Products Section */}
       <div className={styles.layout.sectionLarge}>
         <div className={styles.layout.container}>
-          <div className="flex flex-col lg:flex-row lg:items-start gap-8 mb-12">
+          <div className="flex flex-col lg:flex-row lg:items-start gap-8 mb-12" data-aos="fade-up">
             <div className="lg:w-1/3">
               <h2 className="text-4xl font-bold mb-4 text-center lg:text-left" style={{ color: styles.colors.mediumGray }}>
                 Featured Products
@@ -446,14 +671,16 @@ const HomePage: React.FC = () => {
 
           <div className="-mx-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 px-">
             {featuredProducts.map((p, idx) => (
-              <ProductCard key={`featured-${idx}`} {...p} variant="grid" />
+              <div key={`featured-${idx}`} data-aos="fade-up" data-aos-delay={idx * 60}>
+                <ProductCard {...p} variant="grid" />
+              </div>
             ))}
           </div>
         </div>
       </div>
 
       {/* Call to Action Section */}
-      <div className="w-full py-60 relative overflow-hidden">
+      <div className="w-full py-60 relative overflow-hidden" data-aos="fade-up">
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{ 
@@ -464,7 +691,7 @@ const HomePage: React.FC = () => {
         
         <div className={`relative z-10 ${styles.layout.container} px-8`}>
           <div className="flex flex-col lg:flex-row items-center gap-16">
-            <div className="lg:w-1/2 space-y-6">
+            <div className="lg:w-1/2 space-y-6" data-aos="fade-right">
               <h2 className="text-5xl lg:text-5xl font-bold text-white leading-tight">
                 Have a Look at Our Unique Selling Propositions
               </h2>
@@ -481,7 +708,7 @@ const HomePage: React.FC = () => {
               </div>
             </div>
 
-            <div className="lg:w-1/2 space-y-8">
+            <div className="lg:w-1/2 space-y-8" data-aos="fade-left">
               <h3 className="text-xl text-white mb-8">
                 Discover why customers choose us over the competition. We combine innovation, reliability, and customer satisfaction to deliver unmatched value.
               </h3>
@@ -509,7 +736,7 @@ const HomePage: React.FC = () => {
       {/* Popular Products Carousel Section */}
       <div className="w-full py-16 bg-white">
         <div className={`${styles.layout.container} px-8`}>
-          <div className="flex items-center justify-between mb-12">
+          <div className="flex items-center justify-between mb-12" data-aos="fade-up">
             <div>
               <h2 className="text-4xl font-bold mb-4" style={{ color: styles.colors.mediumGray }}>
                 Popular products
@@ -545,15 +772,37 @@ const HomePage: React.FC = () => {
           <div className="relative">
             <div ref={carouselRef} className="overflow-x-auto scrollbar-hide relative">
               <div className="flex gap-6 pb-4" style={{ width: 'max-content' }}>
-                {popularProducts.map((p, idx) => (
-                  <div 
-                    key={`popular-${idx}`}
-                    className={`carousel-item transform transition-all duration-500 ${styles.hover.scale} ${styles.hover.shadow}`}
-                    style={{ animationDelay: `${idx * 0.1}s` }}
-                  >
-                    <ProductCard {...p} variant="carousel" />
+                {popularLoading ? (
+                  Array.from({ length: 4 }).map((_, idx) => (
+                    <div
+                      key={`popular-loading-${idx}`}
+                      className="w-72 h-80 rounded-3xl bg-gray-100 animate-pulse"
+                    />
+                  ))
+                ) : popularError ? (
+                  <div className="min-h-48 flex items-center justify-center px-8 text-sm text-gray-500">
+                    {popularError}
                   </div>
-                ))}
+                ) : popularProducts.length === 0 ? (
+                  <div className="min-h-48 flex items-center justify-center px-8 text-sm text-gray-500">
+                    No popular products yet.
+                  </div>
+                ) : (
+                  popularProducts.map((product, idx) => {
+                    const cardProps = toProductCardProps(product);
+                    return (
+                      <div
+                        key={`popular-${product.id ?? idx}`}
+                        className="carousel-item transform transition-all duration-500"
+                        style={{ animationDelay: `${idx * 0.1}s` }}
+                        data-aos="fade-up"
+                        data-aos-delay={idx * 80}
+                      >
+                        <ProductCard {...cardProps} variant="carousel" />
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>

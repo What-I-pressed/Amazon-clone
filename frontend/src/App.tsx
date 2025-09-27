@@ -1,5 +1,8 @@
+import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ScrollToTop } from "./components/common/ScrollToTop";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 // Layout
 import AppLayout from "./layout/AppLayout";
@@ -54,6 +57,27 @@ import CustomerDashboard from "./pages/Customer/Dashboard";
 import CustomerEditProfile from "./pages/Customer/Edit";
 
 export default function App() {
+  useEffect(() => {
+    AOS.init({
+      duration: 700,
+      easing: "ease-out",
+      once: true,
+      startEvent: "load",
+      offset: 60,
+      mirror: false,
+    });
+
+    const handleLoad = () => {
+      AOS.refresh();
+    };
+
+    window.addEventListener("load", handleLoad);
+
+    return () => {
+      window.removeEventListener("load", handleLoad);
+    };
+  }, []);
+
   return (
     <Router>
       <ScrollToTop />
@@ -65,16 +89,16 @@ export default function App() {
           <Route path="/catalog" element={<CatalogPage />} />
           <Route path="/product/:slug" element={<ProductPage />} />
           <Route path="seller">
-            <Route path=":slug" element={<SellerProfile />} /> 
-            <Route path="dashboard" element={<SellerDashboard />} /> 
-            <Route path="edit" element={<SellerEditProfile />} /> 
+            <Route path=":slug" element={<SellerProfile />} />
+            <Route path="dashboard" element={<SellerDashboard />} />
+            <Route path="edit" element={<SellerEditProfile />} />
             <Route path="orders" element={<SellerOrdersPage />} />
             <Route path="products/create" element={<CreateProductPage />} />
             <Route path="products/:id/pictures" element={<UploadProductPictures />} />
           </Route>
           <Route path="customer">
-            <Route path="dashboard" element={<CustomerDashboard />} /> 
-            <Route path="edit" element={<CustomerEditProfile />} /> 
+            <Route path="dashboard" element={<CustomerDashboard />} />
+            <Route path="edit" element={<CustomerEditProfile />} />
           </Route>
 
           <Route path="/cart" element={<CartPage />} />
