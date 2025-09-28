@@ -1,6 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+type FooterLinkTarget =
+  | string
+  | {
+      pathname?: string;
+      hash?: string;
+      search?: string;
+    };
+
 const AppFooter = () => {
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
@@ -10,9 +18,17 @@ const AppFooter = () => {
     console.log("Subscribing email:", email);
   };
 
-  const handleNavigate = (path: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
+  const resolveHref = (to: FooterLinkTarget) => {
+    if (typeof to === "string") return to;
+    const pathname = to.pathname ?? "";
+    const search = to.search ?? "";
+    const hash = to.hash ?? "";
+    return `${pathname}${search}${hash}` || "#";
+  };
+
+  const handleNavigate = (to: FooterLinkTarget) => (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
-    navigate(path);
+    navigate(to);
   };
 
   return (
@@ -70,37 +86,37 @@ const AppFooter = () => {
               {
                 title: "Products",
                 links: [
-                  { label: "For Home & Kitchen", path: "/search?category=Home%20%26%20Kitchen" },
-                  { label: "Electronics", path: "/search?category=electronics" },
+                  { label: "For Home & Kitchen", to: "/search?category=Home%20%26%20Kitchen" },
+                  { label: "Electronics", to: "/search?category=electronics" },
                 ],
               },
               {
                 title: "Legal Pages",
                 links: [
-                  { label: "Privacy Policy", path: "/privacy-policy" },
-                  { label: "Terms & Conditions", path: "/terms" },
-                  { label: "Refund Policy", path: "/refund-policy" },
-                  { label: "Shipping Info", path: "/shipping-info" },
-                  { label: "Contact Us", path: "/contact" },
+                  { label: "Privacy Policy", to: "/privacy-policy" },
+                  { label: "Terms & Conditions", to: "/terms" },
+                  { label: "Refund Policy", to: "/refund-policy" },
+                  { label: "Shipping Info", to: "/shipping-info" },
+                  { label: "Contact Us", to: "/contact" },
                 ],
               },
               {
                 title: "SUPPORT",
                 links: [
-                  { label: "FAQ", path: "/faq" },
-                  { label: "Customer Service", path: "/support" },
-                  { label: "Returns & Exchanges", path: "/returns" },
-                  { label: "Warranty", path: "/warranty" },
+                  { label: "FAQ", to: { pathname: "/", hash: "#support" } },
+                  { label: "Customer Service", to: { pathname: "/", hash: "#support" } },
+                  { label: "Returns & Exchanges", to: { pathname: "/", hash: "#support" } },
+                  { label: "Warranty", to: { pathname: "/", hash: "#support" } },
                 ],
               },
               {
                 title: "ABOUT",
                 links: [
-                  { label: "Our Story", path: "/about" },
-                  { label: "Sustainability", path: "/sustainability" },
-                  { label: "Careers", path: "/careers" },
-                  { label: "Blog", path: "/blog" },
-                  { label: "Partnerships", path: "/partnerships" },
+                  { label: "Our Story", to: { pathname: "/", hash: "#support" } },
+                  { label: "Sustainability", to: { pathname: "/", hash: "#support" } },
+                  { label: "Careers", to: { pathname: "/", hash: "#support" } },
+                  { label: "Blog", to: { pathname: "/", hash: "#support" } },
+                  { label: "Partnerships", to: { pathname: "/", hash: "#support" } },
                 ],
               },
             ].map(({ title, links }, idx) => (
@@ -112,12 +128,12 @@ const AppFooter = () => {
                   {title}
                 </h3>
                 <ul className="space-y-3">
-                  {links.map(({ label, path }, i) => (
+                  {links.map(({ label, to }, i) => (
                     <li key={i}>
                       <a
-                        href={path}
+                        href={resolveHref(to)}
                         className="text-base text-white hover:text-[#888888] transition-colors duration-200"
-                        onClick={handleNavigate(path)}
+                        onClick={handleNavigate(to)}
                       >
                         {label}
                       </a>

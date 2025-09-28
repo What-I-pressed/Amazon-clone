@@ -178,11 +178,13 @@ const ProductPage: React.FC = () => {
   }, [product]);
 
   const displayedThumbnails = useMemo(() => {
-    // Always show 2 thumbnails
+    if (images.length <= 3) {
+      return images;
+    }
     return images.slice(0, 2);
   }, [images]);
 
-  const extraImagesCount = images.length > 2 ? images.length - 2 : 0;
+  const extraImagesCount = images.length > 3 ? images.length - 3 : 0;
 
   // Reload reviews function
   const loadReviews = useCallback(async () => {
@@ -416,13 +418,14 @@ const ProductPage: React.FC = () => {
                 />
               </button>
             ))}
-            {/* Always show button as 3rd item with 3:4 ratio */}
-            <button
-              onClick={() => openLightbox(2)}
-              className="w-full flex-1 aspect-[3/4] rounded-md overflow-hidden bg-gray-100 flex items-center justify-center text-sm font-medium"
-            >
-              +{extraImagesCount > 0 ? extraImagesCount : images.length > 0 ? 1 : 0}
-            </button>
+            {extraImagesCount > 0 && (
+              <button
+                onClick={() => openLightbox(2)}
+                className="w-full flex-1 aspect-[3/4] rounded-md overflow-hidden bg-gray-100 flex items-center justify-center text-sm font-medium"
+              >
+                +{extraImagesCount}
+              </button>
+            )}
           </div>
           
           {/* Main image container */}
