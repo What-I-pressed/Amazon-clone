@@ -8,6 +8,8 @@ import com.finale.amazon.entity.Subcategory;
 
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 public class CharacteristicSpecification {
     public static Specification<CharacteristicValue> belongToSubcategory(Long subcategoryId){
@@ -23,5 +25,23 @@ public class CharacteristicSpecification {
 
             return cb.equal(subs.get("id"), subcategoryId);
         };
+    }
+
+    public static Specification<CharacteristicValue> hasProductName(String name) {
+        return (root, query, cb) -> cb.like(
+            root.join("product").get("name"), "%" + name.toLowerCase() + "%"
+        );
+    }
+
+    public static Specification<CharacteristicValue> hasProductCategory(Long categoryId) {
+        return (root, query, cb) -> cb.equal(
+            root.join("product").get("category").get("id"), categoryId
+        );
+    }
+
+    public static Specification<CharacteristicValue> hasProductSubcategory(Long subcategoryId) {
+        return (root, query, cb) -> cb.equal(
+            root.join("product").get("subcategory").get("id"), subcategoryId
+        );
     }
 }
