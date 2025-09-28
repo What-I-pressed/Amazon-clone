@@ -103,7 +103,7 @@ const CartPage: React.FC = () => {
         <div className="border rounded-2xl p-10 text-center">
           <div className="text-lg font-semibold mb-1">Ваш кошик порожній</div>
           <div className="text-[#585858] mb-4">Додайте товари до кошика, щоб продовжити оформлення</div>
-          <a href="/catalog" className="inline-block px-5 py-2 rounded-full bg-[#151515] text-white hover:bg-[#2a2a2a]">Перейти в каталог</a>
+          <a href="/search" className="inline-block px-5 py-2 rounded-full bg-[#151515] text-white hover:bg-[#2a2a2a]">Перейти в каталог</a>
         </div>
       </div>
     );
