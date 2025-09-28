@@ -42,6 +42,8 @@ public class ProductService {
     @Autowired
     private CharacteristicTypeRepository characteristicTypeRepository;
     @Autowired
+    private CharacteristicService characteristicService;
+    @Autowired
     private UserRepository userRepository;
     @Autowired
     private PictureRepository pictureRepository;

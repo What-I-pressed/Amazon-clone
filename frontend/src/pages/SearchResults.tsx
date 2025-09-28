@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, SlidersHorizontal, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { searchProductsWithFilter, type ProductFilterDto } from '../api/search';
-import { fetchProducts } from '../api/products';
 import ProductCard from './ProductCard';
 import type { Product } from '../types/product';
 import ProductFilters, { type ProductFiltersState } from '../components/filters/ProductFilters';
@@ -173,6 +172,11 @@ const SearchResults: React.FC = () => {
   const subcategoryIdStr = query.get('subcategoryId');
   const subcategoryId = subcategoryIdStr ? Number(subcategoryIdStr) : undefined;
   const categoryName = query.get('category') || '';
+  const activeCategoryId = useMemo(() => {
+    if (!categoryName) return undefined;
+    const match = categoryBreakdown.find((e) => e.category === categoryName);
+    return match?.categoryId;
+  }, [categoryBreakdown, categoryName]);
 
   // Load saved filters on first mount (persist across reloads)
   useEffect(() => {
@@ -241,41 +245,39 @@ const SearchResults: React.FC = () => {
       return;
     }
 
-    let ignore = false;
-    const loadByCategory = async () => {
+    const controller = new AbortController();
+    const timeout = setTimeout(async () => {
       setLoading(true);
       setError(null);
       try {
-        const allProducts = await fetchProducts();
-        if (ignore) return;
-
-        const normalized = categoryName.trim().toLowerCase();
-        const filtered = allProducts.filter((product) => {
-          const productCategory = product.categoryName?.toLowerCase();
-          return productCategory === normalized;
-        });
-        setProducts(filtered);
+        const payload: ProductFilterDto = {
+          name: undefined,
+          categoryId: activeCategoryId ?? undefined,
+          subcategoryId: subcategoryId ?? undefined,
+          lowerPriceBound: filters.lowerPriceBound ?? undefined,
+          upperPriceBound: filters.upperPriceBound ?? undefined,
+          characteristics: filters.characteristics ?? undefined,
+        };
+        const sort = filters.sortField && filters.sortDir ? `${filters.sortField},${filters.sortDir}` : undefined;
+        const results = await searchProductsWithFilter(payload, 0, 100, controller.signal, sort);
+        setProducts(results.content || []);
         setVisibleCount(24);
-      } catch (err) {
-        if (!ignore) {
-          console.error(err);
-          setError('Failed to fetch products for the selected category.');
-        }
+      } catch (err: any) {
+        if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') return;
+        console.error(err);
+        setError('Failed to fetch products for the selected category.');
       } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
-    };
-
-    loadByCategory();
+    }, 200);
 
     return () => {
-      ignore = true;
+      clearTimeout(timeout);
+      controller.abort();
     };
-  }, [categoryName]);
+  }, [categoryName, activeCategoryId, subcategoryId, applyKey, filters.lowerPriceBound, filters.upperPriceBound, filters.characteristics, filters.sortField, filters.sortDir]);
 
-  const handleCategorySummaryClick = useCallback((categoryLabel: string, categoryId?: number) => {
+  const handleCategorySummaryClick = useCallback((categoryLabel: string) => {
     const params = new URLSearchParams(location.search);
     params.delete('subcategoryId');
     params.delete('subcategory');
@@ -352,11 +354,11 @@ const SearchResults: React.FC = () => {
                                 <span
                                   role="link"
                                   tabIndex={0}
-                                  onClick={() => handleCategorySummaryClick(entry.category, entry.categoryId)}
+                                  onClick={() => handleCategorySummaryClick(entry.category)}
                                   onKeyDown={(event) => {
                                     if (event.key === 'Enter' || event.key === ' ') {
                                       event.preventDefault();
-                                      handleCategorySummaryClick(entry.category, entry.categoryId);
+                                      handleCategorySummaryClick(entry.category);
                                     }
                                   }}
                                   className="text-base font-medium text-[#3F3F3F] hover:underline cursor-pointer"
@@ -421,6 +423,9 @@ const SearchResults: React.FC = () => {
             <ProductFilters
               initial={filters}
               onChange={handleFiltersChange}
+              searchName={searchTerm}
+              subcategoryId={subcategoryId}
+              categoryId={activeCategoryId}
             />
             <div className="mt-6 flex gap-3">
               <button

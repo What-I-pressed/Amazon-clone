@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { getCustomCharacteristicsResilient } from "../../api/characteristics";
 
 export type CharacteristicsSelection = Record<string, string | null>; // { [typeName]: value }
 
@@ -13,12 +14,16 @@ export interface ProductFiltersState {
 interface ProductFiltersProps {
   initial?: ProductFiltersState;
   onChange: (state: ProductFiltersState) => void;
+  // Context to fetch available characteristics
+  searchName?: string;
+  subcategoryId?: number;
+  categoryId?: number;
 }
 
-const ProductFilters: React.FC<ProductFiltersProps> = ({ initial, onChange }) => {
+const ProductFilters: React.FC<ProductFiltersProps> = ({ initial, onChange, searchName, subcategoryId, categoryId }) => {
   const [priceMinInput, setPriceMinInput] = useState<string>(initial?.lowerPriceBound?.toString() ?? '');
   const [priceMaxInput, setPriceMaxInput] = useState<string>(initial?.upperPriceBound?.toString() ?? '');
-  const [availableCharacteristics] = useState<Record<string, string[]>>({});
+  const [availableCharacteristics, setAvailableCharacteristics] = useState<Record<string, string[]>>({});
   const [selectedCharacteristics, setSelectedCharacteristics] = useState<CharacteristicsSelection>(initial?.characteristics ?? {} as CharacteristicsSelection);
   const [sortField, setSortField] = useState<'price' | 'avgRating' | 'views' | null>(initial?.sortField ?? null);
   const [sortDir, setSortDir] = useState<'asc' | 'desc' | null>(initial?.sortDir ?? null);
@@ -26,8 +31,48 @@ const ProductFilters: React.FC<ProductFiltersProps> = ({ initial, onChange }) =>
   const [appliedPriceMax, setAppliedPriceMax] = useState<string>(initial?.upperPriceBound?.toString() ?? '');
   const skipNotifyRef = useRef(false);
 
-  // Note: characteristics and sellers used to depend on subcategory.
-  // Categories were removed, so we skip fetching and leave these empty for now.
+  // Load available characteristics whenever search context changes
+  useEffect(() => {
+    let ignore = false;
+    const controller = new AbortController();
+    const timeout = setTimeout(async () => {
+      try {
+        const payload = {
+          name: searchName ?? undefined,
+          categoryId: categoryId ?? undefined,
+          subcategoryId: subcategoryId ?? undefined,
+        };
+        // If neither categoryId nor subcategoryId nor name present, skip fetch
+        if (!payload.name && payload.categoryId == null && payload.subcategoryId == null) {
+          setAvailableCharacteristics({});
+          return;
+        }
+        const data = await getCustomCharacteristicsResilient(payload);
+        if (ignore) return;
+        setAvailableCharacteristics(data || {});
+        // prune selections that are no longer available
+        setSelectedCharacteristics((prev) => {
+          const next: CharacteristicsSelection = {};
+          for (const [type, val] of Object.entries(prev)) {
+            if (!val) continue;
+            const options = data?.[type] ?? [];
+            if (options.includes(val)) {
+              next[type] = val;
+            }
+          }
+          return next;
+        });
+      } catch (e) {
+        console.warn('Failed to load custom characteristics', e);
+        if (!ignore) setAvailableCharacteristics({});
+      }
+    }, 200);
+    return () => {
+      ignore = true;
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [searchName, subcategoryId, categoryId]);
 
   useEffect(() => {
     // Programmatic initialization from parent; avoid notifying parent
@@ -47,28 +92,25 @@ const ProductFilters: React.FC<ProductFiltersProps> = ({ initial, onChange }) =>
     return () => clearTimeout(t);
   }, [initial]);
 
-  // Notify parent on changes (debounced)
+  // Notify parent on changes (no debounce to ensure Apply uses freshest state)
   useEffect(() => {
     if (skipNotifyRef.current) return;
     const cleanChars = Object.fromEntries(
       Object.entries(selectedCharacteristics).filter(([_, v]) => v !== null && v.trim() !== '')
     );
-    
+
     const lowerPriceBound = priceMinInput ? (isNaN(parseFloat(priceMinInput)) ? null : parseFloat(priceMinInput)) : null;
     const upperPriceBound = priceMaxInput ? (isNaN(parseFloat(priceMaxInput)) ? null : parseFloat(priceMaxInput)) : null;
 
-    const handle = setTimeout(() => {
-      setAppliedPriceMin(priceMinInput);
-      setAppliedPriceMax(priceMaxInput);
-      onChange({
-        lowerPriceBound,
-        upperPriceBound,
-        characteristics: Object.keys(cleanChars).length ? (cleanChars as Record<string, string>) : null,
-        sortField: sortField ?? null,
-        sortDir: sortDir ?? null,
-      });
-    }, 300);
-    return () => clearTimeout(handle);
+    setAppliedPriceMin(priceMinInput);
+    setAppliedPriceMax(priceMaxInput);
+    onChange({
+      lowerPriceBound,
+      upperPriceBound,
+      characteristics: Object.keys(cleanChars).length ? (cleanChars as Record<string, string>) : null,
+      sortField: sortField ?? null,
+      sortDir: sortDir ?? null,
+    });
   }, [priceMinInput, priceMaxInput, selectedCharacteristics, sortField, sortDir, onChange]);
 
   return (
@@ -115,12 +157,28 @@ const ProductFilters: React.FC<ProductFiltersProps> = ({ initial, onChange }) =>
         </div>
       </div>
 
-      {Object.keys(availableCharacteristics).length > 0 && (
-        <div className="space-y-4">
+      <div className="space-y-4">
+        <div className="flex justify-between items-center mb-1">
           <h3 className="text-lg font-semibold">Characteristics</h3>
-          {Object.entries(availableCharacteristics).map(([typeName, values]) => (
+          {Object.keys(selectedCharacteristics).length > 0 ? (
+            <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+              Applied: {Object.keys(selectedCharacteristics).length}
+            </span>
+          ) : null}
+        </div>
+        {Object.keys(availableCharacteristics).length === 0 ? (
+          <p className="text-sm text-gray-500">No characteristics available for the current search. Try selecting a subcategory or a more specific query.</p>
+        ) : (
+          Object.entries(availableCharacteristics).map(([typeName, values]) => (
             <div key={typeName}>
-              <div className="text-sm font-medium text-gray-800 mb-1">{typeName}</div>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="text-sm font-medium text-gray-800">{typeName}</div>
+                {selectedCharacteristics[typeName] ? (
+                  <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">
+                    {selectedCharacteristics[typeName]}
+                  </span>
+                ) : null}
+              </div>
               <div className="flex flex-wrap gap-2">
                 {values.map((val) => {
                   const active = selectedCharacteristics[typeName] === val;
@@ -145,9 +203,9 @@ const ProductFilters: React.FC<ProductFiltersProps> = ({ initial, onChange }) =>
                 })}
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
 
       {/* Sellers section removed (depends on categories/subcategory) */}
 
