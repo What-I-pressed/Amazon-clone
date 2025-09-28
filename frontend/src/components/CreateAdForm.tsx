@@ -26,7 +26,7 @@ type SubcategoryOption = {
 };
 
 const inputBaseClass =
-  "w-full bg-[#F8F8F8] border border-[#DFDFDF] rounded-full px-7 py-3.5 text-base text-gray-700 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-0 focus:border-[#DFDFDF] hover:bg-white focus:bg-white";
+  "w-full bg-[#F8F8F8] border border-[#DFDFDF] rounded-full px-7 py-3.5 text-base text-[#454545] placeholder:text-[#989898] transition-colors focus:outline-none focus:ring-0 focus:border-[#DFDFDF] hover:bg-white focus:bg-white";
 
 export default function CreateAdForm() {
   const navigate = useNavigate();
@@ -286,8 +286,8 @@ export default function CreateAdForm() {
       <div className="space-y-8">
         <section className="space-y-6 rounded-3xl border border-[#E4E4E7] bg-white p-8">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Product photos</h2>
-            <p className="text-base text-gray-500 mt-1">
+            <h2 className="text-xl font-semibold text-[#151515]">Product photos</h2>
+            <p className="text-base text-[#838383] mt-1">
               Upload product images. The first image will be used as the cover photo.
             </p>
           </div>
@@ -298,7 +298,7 @@ export default function CreateAdForm() {
             onDragLeave={onDragLeave}
             className={`rounded-3xl border-2 border-dashed px-8 py-14 text-center transition-all ${
               isDragActive
-                ? "border-gray-900 bg-white"
+                ? "border-[#151515] bg-white"
                 : "border-[#DFDFDF] bg-[#F8F8F8]"
             }`}
           >
@@ -306,7 +306,7 @@ export default function CreateAdForm() {
               <div className="w-14 h-14 rounded-full bg-white border border-[#DFDFDF] flex items-center justify-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-7 w-7 text-gray-500"
+                  className="h-7 w-7 text-[#838383]"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -320,10 +320,10 @@ export default function CreateAdForm() {
                 </svg>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-[#454545]">
                   Drag & drop files here or choose manually
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-[#838383]">
                   JPG, PNG, WEBP formats up to 10 MB each
                 </p>
               </div>
@@ -348,12 +348,12 @@ export default function CreateAdForm() {
           {previews.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold text-gray-700">
+                <h3 className="text-base font-semibold text-[#454545]">
                   Selected files ({previews.length})
                 </h3>
                 <button
                   type="button"
-                  className="text-sm font-medium text-gray-500 hover:text-gray-700"
+                  className="text-sm font-medium text-[#838383] hover:text-[#454545]"
                   onClick={() => setFiles([])}
                 >
                   Clear list
@@ -375,15 +375,15 @@ export default function CreateAdForm() {
                         />
                       </div>
                       <div>
-                        <p className="text-base font-medium text-gray-800 truncate max-w-[240px]">
+                        <p className="text-base font-medium text-[#2a2a2a] truncate max-w-[240px]">
                           {preview.name}
                         </p>
-                        <p className="text-sm text-gray-500">{formatFileSize(preview.size)}</p>
+                        <p className="text-sm text-[#838383]">{formatFileSize(preview.size)}</p>
                       </div>
                     </div>
                     <button
                       type="button"
-                      className="text-sm font-medium text-gray-500 hover:text-gray-800"
+                      className="text-sm font-medium text-[#838383] hover:text-[#2a2a2a]"
                       onClick={() => removeFile(index)}
                     >
                       Remove
@@ -396,7 +396,7 @@ export default function CreateAdForm() {
 
           {messages.length > 0 && (
             <div className="rounded-2xl border border-[#E4E4E7] bg-gray-50 px-4 py-3">
-              <h3 className="text-base font-semibold text-gray-700 mb-3">Upload status</h3>
+              <h3 className="text-base font-semibold text-[#454545] mb-3">Upload status</h3>
               <ul className="space-y-1 text-base">
                 {messages.map((message, index) => (
                   <li
@@ -416,15 +416,15 @@ export default function CreateAdForm() {
         </section>
         <section className="space-y-6 rounded-3xl border border-[#E4E4E7] bg-white p-8">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Product details</h2>
-            <p className="text-base text-gray-500 mt-1">
+            <h2 className="text-xl font-semibold text-[#151515]">Product details</h2>
+            <p className="text-base text-[#838383] mt-1">
               Provide the essential product information. Fields marked with * are required.
             </p>
           </div>
 
           <div className="space-y-4">
             <label className="block space-y-2">
-              <span className="text-sm text-gray-600">Product name*</span>
+              <span className="text-sm text-[#585858]">Product name*</span>
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
@@ -434,7 +434,7 @@ export default function CreateAdForm() {
             </label>
 
             <label className="block space-y-2">
-              <span className="text-sm text-gray-600">Price*</span>
+              <span className="text-sm text-[#585858]">Price*</span>
               <input
                 value={price}
                 onChange={(event) => setPrice(event.target.value)}
@@ -448,7 +448,7 @@ export default function CreateAdForm() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <label className="block space-y-2">
-                <span className="text-sm text-gray-600">Stock quantity*</span>
+                <span className="text-sm text-[#585858]">Stock quantity*</span>
                 <input
                   value={quantityInStock}
                   onChange={(event) => setQuantityInStock(event.target.value)}
@@ -460,7 +460,7 @@ export default function CreateAdForm() {
               </label>
 
               <label className="block space-y-2">
-                <span className="text-sm text-gray-600">Category*</span>
+                <span className="text-sm text-[#585858]">Category*</span>
                 <select
                   value={categoryName}
                   onChange={(event) => {
@@ -483,7 +483,7 @@ export default function CreateAdForm() {
             </div>
 
             <label className="block space-y-2">
-              <span className="text-sm text-gray-600">Subcategory</span>
+              <span className="text-sm text-[#585858]">Subcategory</span>
               <select
                 value={subcategoryName}
                 onChange={(event) => setSubcategoryName(event.target.value)}
@@ -500,12 +500,12 @@ export default function CreateAdForm() {
             </label>
 
             <label className="block space-y-2">
-              <span className="text-sm text-gray-600">Description</span>
+              <span className="text-sm text-[#585858]">Description</span>
               <textarea
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 placeholder="Tell more about your product"
-                className="w-full bg-[#F8F8F8] border border-[#DFDFDF] rounded-3xl px-7 py-5 text-base text-gray-700 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-0 focus:border-[#DFDFDF] hover:bg-white focus:bg-white min-h-[160px]"
+                className="w-full bg-[#F8F8F8] border border-[#DFDFDF] rounded-3xl px-7 py-5 text-base text-[#454545] placeholder:text-[#989898] transition-colors focus:outline-none focus:ring-0 focus:border-[#DFDFDF] hover:bg-white focus:bg-white min-h-[160px]"
               />
             </label>
           </div>

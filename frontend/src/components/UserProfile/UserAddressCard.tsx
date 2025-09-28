@@ -13,46 +13,46 @@ export default function UserAddressCard() {
   };
   return (
     <>
-      <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
+      <div className="p-5 border border-[#e7e7e7] rounded-2xl dark:border-[#2a2a2a] lg:p-6">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h4 className="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">
+            <h4 className="text-lg font-semibold text-[#2a2a2a] dark:text-white/90 lg:mb-6">
               Address
             </h4>
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
               <div>
-                <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                <p className="mb-2 text-xs leading-normal text-[#838383] dark:text-[#989898]">
                   Country
                 </p>
-                <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                <p className="text-sm font-medium text-[#2a2a2a] dark:text-white/90">
                   United States.
                 </p>
               </div>
 
               <div>
-                <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                <p className="mb-2 text-xs leading-normal text-[#838383] dark:text-[#989898]">
                   City/State
                 </p>
-                <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                <p className="text-sm font-medium text-[#2a2a2a] dark:text-white/90">
                   Phoenix, Arizona, United States.
                 </p>
               </div>
 
               <div>
-                <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                <p className="mb-2 text-xs leading-normal text-[#838383] dark:text-[#989898]">
                   Postal Code
                 </p>
-                <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                <p className="text-sm font-medium text-[#2a2a2a] dark:text-white/90">
                   ERT 2489
                 </p>
               </div>
 
               <div>
-                <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                <p className="mb-2 text-xs leading-normal text-[#838383] dark:text-[#989898]">
                   TAX ID
                 </p>
-                <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                <p className="text-sm font-medium text-[#2a2a2a] dark:text-white/90">
                   AS4568384
                 </p>
               </div>
@@ -61,7 +61,7 @@ export default function UserAddressCard() {
 
           <button
             onClick={openModal}
-            className="flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-white hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200 lg:inline-flex lg:w-auto"
+            className="flex w-full items-center justify-center gap-2 rounded-full border border-[#dadada] bg-white px-4 py-3 text-sm font-medium text-[#454545] shadow-theme-xs hover:bg-white hover:text-[#2a2a2a] dark:border-[#454545] dark:bg-[#2a2a2a] dark:text-[#989898] dark:hover:bg-white/[0.03] dark:hover:text-[#e7e7e7] lg:inline-flex lg:w-auto"
           >
             <svg
               className="fill-current"
@@ -83,12 +83,12 @@ export default function UserAddressCard() {
         </div>
       </div>
       <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] m-4">
-        <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
+        <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-[#151515] lg:p-11">
           <div className="px-2 pr-14">
-            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
+            <h4 className="mb-2 text-2xl font-semibold text-[#2a2a2a] dark:text-white/90">
               Edit Address
             </h4>
-            <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
+            <p className="mb-6 text-sm text-[#838383] dark:text-[#989898] lg:mb-7">
               Update your details to keep your profile up-to-date.
             </p>
           </div>

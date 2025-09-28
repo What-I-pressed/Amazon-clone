@@ -39,8 +39,8 @@ const Dashboard: React.FC = () => {
       {/* Блок налаштувань */}
       <div className="bg-white shadow rounded-xl p-4 mb-6">
         <h2 className="text-lg font-semibold mb-2">Налаштування акаунту</h2>
-        <button className="bg-gray-200 px-4 py-2 rounded-lg mr-2">Змінити пароль</button>
-        <button className="bg-gray-200 px-4 py-2 rounded-lg">Редагувати профіль</button>
+        <button className="bg-[#e7e7e7] px-4 py-2 rounded-lg mr-2">Змінити пароль</button>
+        <button className="bg-[#e7e7e7] px-4 py-2 rounded-lg">Редагувати профіль</button>
       </div>
 
       {/* Кнопка виходу */}

@@ -59,20 +59,22 @@ export default function CategoryDropdown({ onSelect, onSubcategorySelect }: Cate
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        <span className="font-medium tracking-wide">{selected}</span>
+        <span className="font-medium tracking-wide max-w-[8rem] truncate text-left">
+          {selected}
+        </span>
         <span className="material-icons ml-1 transition-transform duration-300" style={{ lineHeight: 1, transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>arrow_drop_down</span>
       </button>
 
       {isOpen && (
         <div 
-          className="absolute top-full left-0 mt-3 rounded-3xl shadow-2xl z-[9999] flex border border-[#757575]/25 animate-[fadeIn_0.18s_ease-out]"
-          style={{ backgroundColor: "#FFFFFF" }}
+          className="absolute top-full left-0 mt-3 rounded-3xl shadow-2xl z-[9999] flex border border-white/10 animate-[fadeIn_0.18s_ease-out]"
+          style={{ backgroundColor: "rgba(67, 67, 67, 0.99)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}
           onMouseLeave={() => setActiveCategory(null)}
         >
           {/* Main Categories Panel */}
-          <div className="w-64 border-r border-[#757575]/25 bg-white rounded-l-3xl py-2">
+          <div className="w-64 border-r border-white/10 rounded-l-3xl py-2">
             <button
-              className="w-full text-left px-4 py-2 text-[#343434] text-sm font-bold transition-all duration-200 hover:bg-[#343434] hover:text-white"
+              className="w-full rounded-lg text-left px-4 py-2 text-white text-sm font-semibold uppercase tracking-wide transition-all duration-200 hover:bg-white/15 hover:translate-x-1"
               onClick={() => handleSelect("All")}
             >
               All Categories
@@ -84,7 +86,7 @@ export default function CategoryDropdown({ onSelect, onSubcategorySelect }: Cate
                   <button
                     key={category}
                     type="button"
-                    className={`w-full text-left px-4 py-2 text-[#343434] text-sm cursor-pointer flex justify-between items-center transition-all duration-200 ${isActive ? 'bg-[#757575]/15' : ''} hover:bg-[#343434] hover:text-white`}
+                    className={`w-full rounded-lg text-left px-4 py-2 text-sm text-white cursor-pointer flex justify-between items-center transition-all duration-200 ${isActive ? 'bg-white/15' : ''} hover:bg-white/15 hover:translate-x-1`}
                     onMouseEnter={() => setActiveCategory(category)}
                     onClick={() => handleSelect(category)}
                   >
@@ -97,16 +99,16 @@ export default function CategoryDropdown({ onSelect, onSubcategorySelect }: Cate
           </div>
 
           {/* Subcategories Panel */}
-          <div className="w-64 px-4 py-4 bg-white rounded-r-3xl" key={activeCategory}>
+          <div className="w-64 px-4 py-4 rounded-r-3xl" key={activeCategory}>
             {activeCategory && categories[activeCategory] ? (
               <div className="flex flex-col gap-2">
-                <div className="text-xs uppercase tracking-[0.3em] text-[#757575] pb-1">
+                <div className="text-xs uppercase tracking-[0.3em] text-white/60 pb-1">
                   {activeCategory}
                 </div>
                 {categories[activeCategory].map((subcategory) => (
                   <button
                     key={subcategory.id}
-                    className="w-full text-left px-3 py-2 text-[#343434] text-sm rounded-lg transition-all duration-200 hover:bg-[#757575]/15 hover:translate-x-1"
+                    className="w-full text-left px-3 py-2 text-sm text-white rounded-lg transition-all duration-200 hover:bg-white/15 hover:translate-x-1"
                     onClick={() => {
                       handleSelect(subcategory.name);
                       if (onSubcategorySelect && activeCategory) {
@@ -119,7 +121,7 @@ export default function CategoryDropdown({ onSelect, onSubcategorySelect }: Cate
                 ))}
               </div>
             ) : (
-              <div className="p-3 text-xs text-[#aaaaaa]">Hover over a category to see subcategories.</div>
+              <div className="p-3 text-xs text-white/60">Hover over a category to see subcategories.</div>
             )}
           </div>
         </div>

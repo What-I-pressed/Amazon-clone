@@ -48,7 +48,7 @@ export default function UserDashboard() {
           <button
             key={tab}
             className={`px-4 py-2 rounded ${
-              activeTab === tab ? "bg-blue-500 text-white" : "bg-gray-200"
+              activeTab === tab ? "bg-blue-500 text-white" : "bg-[#e7e7e7]"
             }`}
             onClick={() => setActiveTab(tab as any)}
           >

@@ -5,7 +5,7 @@ export default function ThreeColumnImageGrid() {
         <img
           src="/images/grid-image/image-04.png"
           alt=" grid"
-          className="border border-gray-200 rounded-xl dark:border-gray-800"
+          className="border border-[#e7e7e7] rounded-xl dark:border-[#2a2a2a]"
         />
       </div>
 
@@ -13,7 +13,7 @@ export default function ThreeColumnImageGrid() {
         <img
           src="/images/grid-image/image-05.png"
           alt=" grid"
-          className="border border-gray-200 rounded-xl dark:border-gray-800"
+          className="border border-[#e7e7e7] rounded-xl dark:border-[#2a2a2a]"
         />
       </div>
 
@@ -21,7 +21,7 @@ export default function ThreeColumnImageGrid() {
         <img
           src="/images/grid-image/image-06.png"
           alt=" grid"
-          className="border border-gray-200 rounded-xl dark:border-gray-800"
+          className="border border-[#e7e7e7] rounded-xl dark:border-[#2a2a2a]"
         />
       </div>
     </div>

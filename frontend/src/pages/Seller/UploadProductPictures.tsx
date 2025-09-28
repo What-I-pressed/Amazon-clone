@@ -92,25 +92,25 @@ const UploadProductPictures: React.FC = () => {
       )}
 
       <div
-        className="bg-white p-6 rounded-xl border border-dashed border-gray-300 text-center hover:border-brand-500 transition"
+        className="bg-white p-6 rounded-xl border border-dashed border-[#dadada] text-center hover:border-brand-500 transition"
         onDrop={onDrop}
         onDragOver={onDragOver}
       >
         <div className="mx-auto flex flex-col items-center gap-3">
           <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-[#838383]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 7.5 12 3m0 0L7.5 7.5M12 3v13.5" />
             </svg>
           </div>
           <div>
             <p className="font-medium">Перетягніть зображення сюди</p>
-            <p className="text-sm text-gray-500">або</p>
+            <p className="text-sm text-[#838383]">або</p>
           </div>
-          <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-900 text-white cursor-pointer hover:bg-gray-800">
+          <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#151515] text-white cursor-pointer hover:bg-[#2a2a2a]">
             <input className="hidden" type="file" accept="image/*" multiple onChange={onFileChange} />
             Обрати файли
           </label>
-          <p className="text-xs text-gray-500">Підтримуються JPG, PNG, WEBP. До 10 МБ кожне</p>
+          <p className="text-xs text-[#838383]">Підтримуються JPG, PNG, WEBP. До 10 МБ кожне</p>
         </div>
       </div>
 
@@ -129,11 +129,11 @@ const UploadProductPictures: React.FC = () => {
             {previews.map((p, idx) => (
               <div key={idx} className="group relative rounded-lg border bg-white overflow-hidden">
                 <img src={p.url} alt={p.name} className="aspect-square object-cover w-full" />
-                <div className="p-2 text-xs text-gray-700 truncate">{p.name}</div>
+                <div className="p-2 text-xs text-[#454545] truncate">{p.name}</div>
                 <button
                   type="button"
                   onClick={() => removeAt(idx)}
-                  className="absolute top-2 right-2 bg-white/90 hover:bg-white text-gray-700 rounded-full p-1 shadow"
+                  className="absolute top-2 right-2 bg-white/90 hover:bg-white text-[#454545] rounded-full p-1 shadow"
                   title="Видалити"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">

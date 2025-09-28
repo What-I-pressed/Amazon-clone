@@ -6,7 +6,7 @@ import { AuthContext } from "../../context/AuthContext";
 import type { Seller } from "../../types/seller";
 import type { Product } from "../../types/product";
 import ProductCard from "../ProductCard";
-import { ChevronDown, SlidersHorizontal, X } from "lucide-react";
+import { ChevronDown, SlidersHorizontal, X, Star } from "lucide-react";
 
 const createEmptyEditForm = () => ({
   name: "",
@@ -415,6 +415,13 @@ export default function SellerProfile() {
     ? seller.stats.completedOrders.toLocaleString()
     : "—";
 
+  const averageRating = seller.stats && typeof seller.stats.avgFeedback === "number"
+    ? seller.stats.avgFeedback
+    : (typeof seller.rating === "number" ? seller.rating : null);
+  const reviewsCount = seller.stats && typeof seller.stats.reviewsCount === "number"
+    ? seller.stats.reviewsCount
+    : null;
+
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-[1332px] mx-auto py-8 px-6">
@@ -442,6 +449,21 @@ export default function SellerProfile() {
               {seller.description && (
                 <p className="text-base text-[#666] mt-2">{seller.description}</p>
               )}
+              {averageRating !== null ? (
+                <div className="mt-3 flex items-center gap-3 text-sm text-[#4D4D4D]">
+                  <div className="flex items-center gap-1">
+                    <Star
+                      className={averageRating > 0 ? "w-5 h-5 text-[#F5A524] fill-[#F5A524]" : "w-5 h-5 text-[#dadada]"}
+                    />
+                    <span className="font-semibold text-[#333]">{averageRating.toFixed(1)}</span>
+                  </div>
+                  {reviewsCount !== null ? (
+                    <span className="text-xs text-[#777]">
+                      {reviewsCount.toLocaleString()} review{reviewsCount === 1 ? "" : "s"}
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
             <div className="flex flex-col items-start lg:items-end">
               <span className="text-xs uppercase tracking-wide text-[#9B9B9B]">Completed Orders</span>
@@ -467,7 +489,6 @@ export default function SellerProfile() {
               <div className="border border-[#E2E2E2] bg-white">
                 <div className="px-8 pt-10 pb-8 space-y-8">
                   <div className="flex items-center gap-5">
-                    <span className="block h-[28px] w-[3px] bg-[#2C2C2C]" aria-hidden="true" />
                     <h2 className="text-2xl tracking-wide text-[#2C2C2C]">Categories</h2>
                   </div>
 
@@ -542,20 +563,20 @@ export default function SellerProfile() {
                         );
                       })
                     ) : (
-                      <p className="text-xs text-gray-500">Categories will populate once products load.</p>
+                      <p className="text-xs text-[#838383]">Categories will populate once products load.</p>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div className="p-6 border border-gray-200 rounded-sm bg-white">
+              <div className="p-6 border border-[#e7e7e7] rounded-sm bg-white">
                 <div className="lg:hidden flex justify-end mb-4">
                   <button onClick={() => setShowFilters(false)} className="p-2">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
                 <div className="space-y-3 text-sm text-[#4F4F4F]">
-                  <p className="font-medium text-sm text-[#2C2C2C] mb-3">Price Range</p>
+                  <p className="text-xl text-[#2C2C2C] mb-3">Price Range</p>
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
@@ -568,7 +589,7 @@ export default function SellerProfile() {
                         }
                       }}
                       placeholder="Min"
-                      className="w-24 border rounded px-2 py-1 text-sm"
+                      className="w-24 border rounded-xl px-2 py-1 text-sm"
                     />
                     <span>-</span>
                     <input
@@ -582,7 +603,7 @@ export default function SellerProfile() {
                         }
                       }}
                       placeholder="Max"
-                      className="w-24 border rounded px-2 py-1 text-sm"
+                      className="w-24 border rounded-xl px-2 py-1 text-sm"
                     />
                   </div>
                   <div className="flex gap-2 mt-4">
@@ -613,8 +634,6 @@ export default function SellerProfile() {
                 <div>
                   <h2 className="text-4xl font-semibold">All items</h2>
                   <p className="text-[#4D4D4D] text-sm">{summaryText}</p>
-                  <div className="border-t border-[#e0e0e0] my-3"></div>
-                  <p className="text-[#a8a8a8] text-sm">All items below are created and listed by the same seller. Explore more from this author</p>
                 </div>
                 <div className="flex items-center gap-3 self-start md:self-auto" ref={sortMenuRef}>
                   <div className="relative">
@@ -649,7 +668,7 @@ export default function SellerProfile() {
                       </div>
                     ) : null}
                   </div>
-                  <button onClick={() => setShowFilters(true)} className="lg:hidden p-2 rounded-md border border-gray-200 text-[#4F4F4F] hover:text-[#1F1F1F]">
+                  <button onClick={() => setShowFilters(true)} className="lg:hidden p-2 rounded-md border border-[#e7e7e7] text-[#4F4F4F] hover:text-[#1F1F1F]">
                     <SlidersHorizontal className="w-5 h-5" />
                   </button>
                 </div>
@@ -660,7 +679,7 @@ export default function SellerProfile() {
               {filteredProducts.map((product) => (
                 <div key={product.id} className="relative">
                   {editingProduct?.id === product.id ? (
-                    <div className="border border-gray-300 rounded-lg p-4 bg-white">
+                    <div className="border border-[#dadada] rounded-lg p-4 bg-white">
                       <div className="mb-4">
                         <img
                           src={
@@ -677,13 +696,13 @@ export default function SellerProfile() {
                           type="text"
                           value={editForm.name}
                           onChange={(e) => updateEditForm("name", e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-[#dadada] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="Product name"
                         />
                         <textarea
                           value={editForm.description}
                           onChange={(e) => updateEditForm("description", e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                          className="w-full px-3 py-2 border border-[#dadada] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                           rows={3}
                           placeholder="Product description"
                         />
@@ -691,7 +710,7 @@ export default function SellerProfile() {
                           type="number"
                           value={editForm.price}
                           onChange={(e) => updateEditForm("price", parseFloat(e.target.value) || 0)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-[#dadada] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="Price"
                           step="0.01"
                           min="0"
@@ -700,33 +719,33 @@ export default function SellerProfile() {
                           type="number"
                           value={editForm.priceWithoutDiscount}
                           onChange={(e) => updateEditForm("priceWithoutDiscount", parseFloat(e.target.value) || 0)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-[#dadada] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="Price without discount"
                           step="0.01"
                           min="0"
                         />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <label className="flex flex-col text-sm text-gray-600">
+                          <label className="flex flex-col text-sm text-[#585858]">
                             Discount start
                             <input
                               type="date"
                               value={editForm.discountLaunchDate}
                               onChange={(e) => updateEditForm("discountLaunchDate", e.target.value)}
-                              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="mt-1 w-full px-3 py-2 border border-[#dadada] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                           </label>
-                          <label className="flex flex-col text-sm text-gray-600">
+                          <label className="flex flex-col text-sm text-[#585858]">
                             Discount end
                             <input
                               type="date"
                               value={editForm.discountExpirationDate}
                               onChange={(e) => updateEditForm("discountExpirationDate", e.target.value)}
-                              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="mt-1 w-full px-3 py-2 border border-[#dadada] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                           </label>
                         </div>
-                        <p className="text-sm text-gray-500">
-                          Current discount: <span className="font-semibold text-gray-700">{editForm.discountPercentage.toFixed(2)}%</span>
+                        <p className="text-sm text-[#838383]">
+                          Current discount: <span className="font-semibold text-[#454545]">{editForm.discountPercentage.toFixed(2)}%</span>
                         </p>
                         <div className="flex gap-2">
                           <button
@@ -737,7 +756,7 @@ export default function SellerProfile() {
                           </button>
                           <button
                             onClick={handleCancelEdit}
-                            className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                            className="flex-1 px-4 py-2 bg-[#585858] text-white rounded-md hover:bg-[#454545] transition-colors"
                           >
                             Cancel
                           </button>
@@ -805,7 +824,7 @@ export default function SellerProfile() {
                 <button
                   onClick={handleLoadMore}
                   disabled={loadingMore}
-                  className="px-6 py-3 bg-[#282828] text-white font-medium rounded-full hover:bg-[#3A3A3A] transition-colors disabled:bg-gray-400"
+                  className="px-6 py-3 bg-[#282828] text-white font-medium rounded-full hover:bg-[#3A3A3A] transition-colors disabled:bg-[#989898]"
                 >
                   {loadingMore ? "Loading..." : "Load More"}
                 </button>

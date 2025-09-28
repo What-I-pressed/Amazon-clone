@@ -42,7 +42,7 @@ import { Eye, EyeOff } from "lucide-react";
 
     return (
       <div className="min-h-screen w-full flex items-start justify-center bg-white pt-24">
-        <div className="flex w-2/3 h-[70%] bg-white rounded-lg overflow-hidden border border-gray-300">
+        <div className="flex w-2/3 h-[70%] bg-white rounded-lg overflow-hidden border border-[#dadada]">
           {/* Left Panel - Image */}
           <div className="w-1/2 hidden md:block">
             <img
@@ -57,8 +57,8 @@ import { Eye, EyeOff } from "lucide-react";
             <div className="w-full max-w-md animate-fadeIn">
               {/* Header */}
               <div className="mb-10">
-                <h1 className="text-4xl font-bold text-gray-800 mb-3">Sign In</h1>
-                <p className="text-gray-600 text-base">
+                <h1 className="text-4xl font-bold text-[#2a2a2a] mb-3">Sign In</h1>
+                <p className="text-[#585858] text-base">
                   Don&apos;t have an account?{" "}
                   <Link
                     to="/register"
@@ -79,27 +79,27 @@ import { Eye, EyeOff } from "lucide-react";
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-8">
                 <div>
-                  <label className="block text-base font-medium text-gray-700 mb-2">
+                  <label className="block text-base font-medium text-[#454545] mb-2">
                     Email
                   </label>
                   <input
                     type="email"
                     placeholder="Enter your email"
-                    className="w-full h-[60px] px-5 border border-[#dedfe1] rounded-[60px] bg-white text-gray-700 placeholder-[#939393] focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent transition-all duration-200"
+                    className="w-full h-[60px] px-5 border border-[#dedfe1] rounded-[60px] bg-white text-[#454545] placeholder-[#939393] focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent transition-all duration-200"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-base font-medium text-gray-700 mb-2">
+                  <label className="block text-base font-medium text-[#454545] mb-2">
                     Password
                   </label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
-                      className="w-full h-[60px] pr-14 pl-5 border border-[#dedfe1] rounded-[60px] bg-white text-gray-700 placeholder-[#939393] focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent transition-all duration-200"
+                      className="w-full h-[60px] pr-14 pl-5 border border-[#dedfe1] rounded-[60px] bg-white text-[#454545] placeholder-[#939393] focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent transition-all duration-200"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -107,7 +107,7 @@ import { Eye, EyeOff } from "lucide-react";
                     <button
                       type="button"
                       onClick={() => setShowPassword((prev) => !prev)}
-                      className="absolute inset-y-0 right-4 flex items-center text-gray-500 hover:text-gray-700"
+                      className="absolute inset-y-0 right-4 flex items-center text-[#838383] hover:text-[#454545]"
                       aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -124,23 +124,23 @@ import { Eye, EyeOff } from "lucide-react";
 
               {/* Divider */}
               <div className="flex items-center my-6">
-                <div className="flex-1 h-px bg-gray-200" />
-                <span className="px-4 text-gray-500 text-sm">or</span>
-                <div className="flex-1 h-px bg-gray-200" />
+                <div className="flex-1 h-px bg-[#e7e7e7]" />
+                <span className="px-4 text-[#838383] text-sm">or</span>
+                <div className="flex-1 h-px bg-[#e7e7e7]" />
               </div>
 
               {/* Google Login */}
               <button
                 type="button"
                 onClick={handleGoogleLogin}
-                className="w-full h-[54px] border border-gray-300 rounded-[54px] flex items-center justify-center gap-3 hover:bg-gray-50 transition"
+                className="w-full h-[54px] border border-[#dadada] rounded-[54px] flex items-center justify-center gap-3 hover:bg-gray-50 transition"
               >
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-                <span className="text-gray-700 font-medium">Continue with Google</span>
+                <span className="text-[#454545] font-medium">Continue with Google</span>
               </button>
 
               {/* Extra Links */}
-              <div className="mt-8 flex justify-between text-sm text-gray-600">
+              <div className="mt-8 flex justify-between text-sm text-[#585858]">
                 <Link
                   to="/forgot-password"
                   className="hover:text-green-600 transition-colors duration-200"

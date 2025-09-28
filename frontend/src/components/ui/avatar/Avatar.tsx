@@ -43,7 +43,7 @@ const Avatar: React.FC<AvatarProps> = ({
       {/* Status Indicator */}
       {status !== "none" && (
         <span
-          className={`absolute bottom-0 right-0 rounded-full border-[1.5px] border-white dark:border-gray-900 ${
+          className={`absolute bottom-0 right-0 rounded-full border-[1.5px] border-white dark:border-[#151515] ${
             statusSizeClasses[size]
           } ${statusColorClasses[status] || ""}`}
         ></span>

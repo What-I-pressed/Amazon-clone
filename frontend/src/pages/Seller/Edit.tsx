@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, type ChangeEvent } from "react";
 import type { Product } from "../../types/product";
 import type { Seller } from "../../types/seller";
 import { fetchSellerProfile, fetchSellerProducts, updateSellerProfile, fetchSellerStats } from "../../api/seller";
@@ -15,6 +15,7 @@ const SellerEditProfile = () => {
   const [surname, setSurname] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState("+380");
   const [description, setDescription] = useState("");
   const [avatar, setAvatar] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
@@ -26,11 +27,6 @@ const SellerEditProfile = () => {
   const [language, setLanguage] = useState("uk");
   const [timezone, setTimezone] = useState("Europe/Kiev");
 
-  // Address states
-  const [shippingAddress, setShippingAddress] = useState("");
-  const [state, setState] = useState("");
-  const [zipCode, setZipCode] = useState("");
-
   // Password states
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -39,28 +35,64 @@ const SellerEditProfile = () => {
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const inputBaseClass =
-    "w-full bg-[#F8F8F8] border border-[#DFDFDF] rounded-full px-7 py-3.5 text-base text-gray-700 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-0 focus:border-[#DFDFDF] hover:bg-white focus:bg-white";
+    "w-full bg-[#F8F8F8] border border-[#DFDFDF] rounded-full px-7 py-3.5 text-base text-[#454545] placeholder:text-[#989898] transition-colors focus:outline-none focus:ring-0 focus:border-[#CFCFCF] hover:bg-[#FCFCFC] focus:bg-white";
   
   const inputArea =
-    "w-full bg-[#F8F8F8] border border-[#DFDFDF] rounded-3xl px-7 py-5 text-base text-gray-700 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-0 focus:border-[#DFDFDF] hover:bg-white focus:bg-white min-h-[160px] resize-none";
+    "w-full bg-[#F8F8F8] border border-[#DFDFDF] rounded-3xl px-7 py-5 text-base text-[#454545] placeholder:text-[#989898] transition-colors focus:outline-none focus:ring-0 focus:border-[#CFCFCF] hover:bg-[#FCFCFC] focus:bg-white min-h-[160px] resize-none";
 
   const buttonClass =
-    "px-12 py-3 bg-[#282828] text-white font-medium rounded-full hover:bg-[#3A3A3A] disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
+    "px-12 py-3 bg-[#42A275] text-white font-semibold rounded-full hover:bg-[#369167] disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
+
+  const formatLocalNumber = (value: string, code: string) => {
+    const digits = value.replace(/\D/g, "");
+
+    if (code === "+380") {
+      const trimmed = digits.slice(0, 9);
+      const parts = [
+        trimmed.slice(0, 2),
+        trimmed.slice(2, 5),
+        trimmed.slice(5, 7),
+        trimmed.slice(7, 9),
+      ].filter(Boolean);
+      return parts.join(" ");
+    }
+
+    // Default formatting (USA +1)
+    const trimmed = digits.slice(0, 10);
+    const parts = [
+      trimmed.slice(0, 3),
+      trimmed.slice(3, 6),
+      trimmed.slice(6, 10),
+    ].filter(Boolean);
+    return parts.join(" ");
+  };
+
+  const handlePhoneInput = (value: string, code: string) => {
+    setPhone(formatLocalNumber(value, code));
+  };
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [profile, prods] = await Promise.all([
-          fetchSellerProfile(),
-          fetchSellerProducts(0, 100).catch(() => ({ content: [] as Product[] })),
-        ]);
+        const profile = await fetchSellerProfile();
 
-        // Optionally fetch stats separately if not included in profile
+        // Load stats if not embedded in profile
         let stats = profile.stats;
         if (!stats) {
           try {
             stats = await fetchSellerStats();
-          } catch {}
+          } catch (statsError) {
+            console.warn("[SellerEditProfile] Failed to load seller stats", statsError);
+          }
+        }
+
+        // Load seller products using seller ID
+        let sellerProducts: Product[] = [];
+        try {
+          const productsResponse = await fetchSellerProducts(profile.id, 0, 100);
+          sellerProducts = productsResponse.content ?? [];
+        } catch (productsError) {
+          console.warn("[SellerEditProfile] Failed to load seller products", productsError);
         }
 
         setSeller({ ...profile, stats });
@@ -72,7 +104,7 @@ const SellerEditProfile = () => {
         setDescription(profile.description || "");
         // Handle both base64 and file path URLs
         if (profile.url) {
-          if (profile.url.startsWith('data:')) {
+          if (profile.url.startsWith("data:")) {
             // Base64 image
             setAvatar(profile.url);
           } else {
@@ -82,17 +114,21 @@ const SellerEditProfile = () => {
         } else {
           setAvatar("");
         }
-        setProducts(prods.content || []);
+        setProducts(sellerProducts);
         setLoading(false);
       } catch (e: any) {
-        setError(e?.message || "Не вдалося завантажити профіль продавця");
+        setError(e?.message || "Failed to load seller profile");
         setLoading(false);
       }
     };
     loadData();
   }, []);
 
-  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    setPhone((prev) => formatLocalNumber(prev, countryCode));
+  }, [countryCode]);
+
+  const handleAvatarUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !seller) return;
 
@@ -114,7 +150,7 @@ const SellerEditProfile = () => {
       
       setSeller(prev => prev ? { ...prev, url: uploadedUrl } : null);
     } catch (err: any) {
-      setError(err?.message || "Не вдалося завантажити аватар");
+      setError(err?.message || "Failed to upload avatar");
     } finally {
       setSaving(false);
     }
@@ -132,7 +168,7 @@ const SellerEditProfile = () => {
       });
       setSeller((prev) => ({ ...(prev as Seller), ...updated }));
     } catch (e: any) {
-      setError(e?.message || "Не вдалося оновити профіль продавця");
+      setError(e?.message || "Failed to update seller profile");
     } finally {
       setSaving(false);
     }
@@ -142,7 +178,7 @@ const SellerEditProfile = () => {
     setSaving(true);
     setTimeout(() => {
       setSaving(false);
-      alert("Налаштування збережено!");
+      alert("Settings saved!");
     }, 1000);
   };
 
@@ -158,7 +194,7 @@ const SellerEditProfile = () => {
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
-      alert("Паролі не співпадають!");
+      alert("Passwords do not match!");
       return;
     }
     // TODO: implement password change API when available
@@ -173,32 +209,40 @@ const SellerEditProfile = () => {
 
   if (loading)
     return (
-      <div className="flex justify-center items-center h-64 text-gray-600">
-        Завантаження профілю...
+      <div className="flex justify-center items-center h-64 text-[#585858]">
+        Loading profile...
       </div>
     );
 
   if (error)
     return (
-      <div className="text-red-500 text-center mt-4">Помилка: {error}</div>
+      <div className="text-red-500 text-center mt-4">Error: {error}</div>
     );
 
   if (!seller)
     return (
-      <div className="text-gray-500 text-center mt-4">Профіль не знайдено</div>
+      <div className="text-[#838383] text-center mt-4">Profile not found</div>
     );
+
+  const ratingValue =
+    typeof seller.rating === "number"
+      ? seller.rating
+      : typeof seller.stats?.avgFeedback === "number"
+      ? seller.stats.avgFeedback
+      : null;
+  const formattedRating = ratingValue !== null ? `${ratingValue.toFixed(1)}/5` : "Not rated yet";
+  const totalOrders = seller.stats?.totalOrders ?? 0;
 
   return (
     <div className="min-h-screen bg-white py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Налаштування профілю
+          <h1 className="text-3xl font-bold text-[#151515] mb-2">
+            Profile Settings
           </h1>
-          <p className="text-gray-600">
-            Керуйте своїм профілем продавця, налаштуваннями акаунту та товарами
-            в одному місці.
+          <p className="text-[#585858]">
+            Manage your seller profile, account preferences, and products in one place.
           </p>
         </div>
 
@@ -207,17 +251,17 @@ const SellerEditProfile = () => {
           <div className="space-y-8">
             {/* Profile Information */}
             <div className="border-b border-[#DFDFDF] pb-8 mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                Основна інформація
+              <h2 className="text-2xl font-semibold text-[#151515] mb-6">
+                Basic Information
               </h2>
 
               {/* Avatar */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Аватар
+                <label className="block text-sm font-medium text-[#454545] mb-3">
+                  Avatar
                 </label>
                 <div className="flex items-center space-x-4">
-                  <div className="w-20 h-20 bg-gray-400 rounded-full flex items-center justify-center overflow-hidden">
+                  <div className="w-20 h-20 bg-[#989898] rounded-full flex items-center justify-center overflow-hidden">
                     {avatar ? (
                       <img
                         src={avatar}
@@ -246,27 +290,27 @@ const SellerEditProfile = () => {
               {/* Name Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ім'я *
+                  <label className="block text-sm font-semibold text-[#454545] mb-2">
+                    First Name *
                   </label>
                   <input
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     className={inputBaseClass}
-                    placeholder="Введіть ім'я"
+                    placeholder="Enter first name"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Прізвище *
+                  <label className="block text-sm font-semibold text-[#454545] mb-2">
+                    Last Name
                   </label>
                   <input
                     type="text"
                     value={surname}
                     onChange={(e) => setSurname(e.target.value)}
                     className={inputBaseClass}
-                    placeholder="Введіть прізвище"
+                    placeholder="Enter last name"
                   />
                 </div>
               </div>
@@ -274,8 +318,8 @@ const SellerEditProfile = () => {
               {/* Email & Phone */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email адреса *
+                  <label className="block text-sm font-medium text-[#454545] mb-2">
+                    Email Address *
                   </label>
                   <input
                     type="email"
@@ -286,35 +330,44 @@ const SellerEditProfile = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Номер телефону
+                  <label className="block text-sm font-medium text-[#454545] mb-2">
+                    Phone Number
                   </label>
                   <div className="flex">
-                    <div className="flex items-center px-4 py-4 border border-r-0 border-[#DFDFDF] rounded-l-full bg-[#DFDFDF]">
-                      <span className="text-lg mr-2">🇺🇦</span>
-                    </div>
+                    <select
+                      value={countryCode}
+                      onChange={(e) => setCountryCode(e.target.value)}
+                      className="w-32 rounded-l-full px-4 py-4 bg-[#F8F8F8] border border-[#DFDFDF] border-r-0 text-[#454545] focus:outline-none focus:ring-0 focus:border-[#CFCFCF] hover:bg-[#FCFCFC] focus:bg-white transition-colors text-sm"
+                      aria-label="Country code"
+                    >
+                      <option value="+380">🇺🇦 +380</option>
+                      <option value="+1">🇺🇸 +1</option>
+                    </select>
                     <input
                       type="tel"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="flex-1 px-6 py-4 bg-[#DFDFDF] border border-[#DFDFDF] rounded-r-full placeholder-gray-500 focus:outline-none hover:border-gray-400 focus:bg-white transition-colors"
-                      placeholder="+380 97 123 4567"
+                      onChange={(e) => handlePhoneInput(e.target.value, countryCode)}
+                      className="flex-1 px-6 py-4 bg-[#F8F8F8] border border-[#DFDFDF] rounded-r-full placeholder-[#838383] focus:outline-none focus:ring-0 focus:border-[#CFCFCF] hover:bg-[#FCFCFC] focus:bg-white transition-colors tracking-wide"
+                      placeholder={countryCode === "+380" ? "97 123 45 67" : "123 456 7890"}
                     />
                   </div>
+                  <p className="mt-2 text-sm text-[#838383]">
+                    Full number: {countryCode} {phone.replace(/\s/g, "")}
+                  </p>
                 </div>
               </div>
 
               {/* Description */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Опис магазину
+                <label className="block text-sm font-medium text-[#454545] mb-2">
+                  Store Description
                 </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={4}
                   className={inputArea}
-                  placeholder="Опишіть ваш магазин або бізнес..."
+                  placeholder="Describe your store or business..."
                 />
               </div>
 
@@ -324,21 +377,21 @@ const SellerEditProfile = () => {
                   disabled={saving}
                   className={buttonClass}
                 >
-                  {saving ? "Збереження..." : "Зберегти профіль"}
+                  {saving ? "Saving..." : "Save Profile"}
                 </button>
               </div>
             </div>
 
             {/* Change Password */}
             <div className="border-b border-[#DFDFDF] pb-8 mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                Зміна паролю
+              <h2 className="text-2xl font-semibold text-[#151515] mb-6">
+                Change Password
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Новий пароль
+                  <label className="block text-sm font-medium text-[#454545] mb-2">
+                    New Password
                   </label>
                   <input
                     type="password"
@@ -349,8 +402,8 @@ const SellerEditProfile = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Підтвердити пароль
+                  <label className="block text-sm font-medium text-[#454545] mb-2">
+                    Confirm Password
                   </label>
                   <input
                     type="password"
@@ -368,56 +421,10 @@ const SellerEditProfile = () => {
                   disabled={saving || !newPassword || !confirmPassword}
                   className={buttonClass}
                 >
-                  {saving ? "Збереження..." : "Змінити пароль"}
+                  {saving ? "Saving..." : "Change Password"}
                 </button>
               </div>
             </div>
-
-            {/* Address */}
-            <div className="border-b border-[#DFDFDF] pb-8 mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                Адреса
-              </h2>
-
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Адреса доставки
-                </label>
-                <textarea
-                  value={shippingAddress}
-                  onChange={(e) => setShippingAddress(e.target.value)}
-                  placeholder="Ваша адреса"
-                  rows={4}
-                  className={inputArea}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Область
-                  </label>
-                  <input
-                    type="text"
-                    value={state}
-                    onChange={(e) => setState(e.target.value)}
-                    placeholder="Область"
-                    className={inputBaseClass}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Поштовий індекс
-                  </label>
-                  <input
-                    type="text"
-                    value={zipCode}
-                    onChange={(e) => setZipCode(e.target.value)}
-                    placeholder="Поштовий індекс"
-                    className={inputBaseClass}
-                  />
-                </div>
-              </div>
 
               <div className="flex justify-center">
                 <button
@@ -425,22 +432,22 @@ const SellerEditProfile = () => {
                   disabled={saving}
                   className={buttonClass}
                 >
-                  {saving ? "Збереження..." : "Зберегти адресу"}
+                  {saving ? "Saving..." : "Save Address"}
                 </button>
               </div>
             </div>
 
             {/* Account Settings */}
             <div className="border-b border-[#DFDFDF] pb-8 mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                Налаштування акаунту
+              <h2 className="text-xl font-semibold text-[#151515] mb-6">
+                Account Settings
               </h2>
 
               <div className="space-y-6">
                 {/* Notifications */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-800 mb-4">
-                    Сповіщення
+                  <h3 className="text-md font-medium text-[#2a2a2a] mb-4">
+                    Notifications
                   </h3>
                   <div className="space-y-4">
                     <label className="flex items-center">
@@ -450,8 +457,8 @@ const SellerEditProfile = () => {
                         onChange={(e) => setEmailNotifications(e.target.checked)}
                         className="h-4 w-4 text-[#282828] focus:ring-[#282828] border-[#DFDFDF] rounded"
                       />
-                      <span className="ml-3 text-sm text-gray-700">
-                        Email сповіщення
+                      <span className="ml-3 text-sm text-[#454545]">
+                        Email Notifications
                       </span>
                     </label>
                     <label className="flex items-center">
@@ -461,8 +468,8 @@ const SellerEditProfile = () => {
                         onChange={(e) => setSmsNotifications(e.target.checked)}
                         className="h-4 w-4 text-[#282828] focus:ring-[#282828] border-[#DFDFDF] rounded"
                       />
-                      <span className="ml-3 text-sm text-gray-700">
-                        SMS сповіщення
+                      <span className="ml-3 text-sm text-[#454545]">
+                        SMS Notifications
                       </span>
                     </label>
                     <label className="flex items-center">
@@ -472,8 +479,8 @@ const SellerEditProfile = () => {
                         onChange={(e) => setAutoReply(e.target.checked)}
                         className="h-4 w-4 text-[#282828] focus:ring-[#282828] border-[#DFDFDF] rounded"
                       />
-                      <span className="ml-3 text-sm text-gray-700">
-                        Автовідповіді
+                      <span className="ml-3 text-sm text-[#454545]">
+                        Auto Replies
                       </span>
                     </label>
                   </div>
@@ -482,21 +489,21 @@ const SellerEditProfile = () => {
                 {/* Language & Timezone */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Мова
+                    <label className="block text-sm font-medium text-[#454545] mb-2">
+                      Language
                     </label>
                     <select
                       value={language}
                       onChange={(e) => setLanguage(e.target.value)}
                       className={inputBaseClass}
                     >
-                      <option value="uk">Українська</option>
+                      <option value="uk">Ukrainian</option>
                       <option value="en">English</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Часовий пояс
+                    <label className="block text-sm font-medium text-[#454545] mb-2">
+                      Timezone
                     </label>
                     <select
                       value={timezone}
@@ -517,7 +524,7 @@ const SellerEditProfile = () => {
                   disabled={saving}
                   className={buttonClass}
                 >
-                  {saving ? "Збереження..." : "Зберегти налаштування"}
+                  {saving ? "Saving..." : "Save Settings"}
                 </button>
               </div>
             </div>     
@@ -526,74 +533,34 @@ const SellerEditProfile = () => {
             <div className="space-y-8">
               {/* Account Info */}
               <div className="border-b border-[#DFDFDF] pb-8 mb-8">
-                <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                  Інформація про акаунт
+                <h2 className="text-lg font-semibold text-[#151515] mb-6">
+                  Account Information
                 </h2>
-                <p className="text-gray-600 mb-2">
-                  ID: <span className="font-mono">{seller.id}</span>
+                <p className="text-[#585858] mb-2">Email: {seller.email}</p>
+                <p className="text-[#585858] mb-2">Rating: {formattedRating}</p>
+                <p className="text-[#585858] mb-2">
+                  Products: {products.length}
                 </p>
-                <p className="text-gray-600 mb-2">Email: {seller.email}</p>
-                <p className="text-gray-600 mb-2">Рейтинг: {seller.rating}/5</p>
-                <p className="text-gray-600 mb-2">
-                  Товарів: {products.length}
+                <p className="text-[#585858]">
+                  Orders: {totalOrders}
                 </p>
-                <p className="text-gray-600">
-                  Замовлень: {seller.stats?.totalOrders ?? 0}
-                </p>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="border-b border-[#DFDFDF] pb-8 mb-8">
-                <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                  Швидкі дії
-                </h2>
-                <div className="flex flex-wrap gap-4">
-                  <button
-                    onClick={() => alert("Товар додано")}
-                    className={buttonClass}
-                  >
-                    Додати товар
-                  </button>
-                  <button
-                    onClick={() => alert("Звіт згенеровано")}
-                    className={buttonClass}
-                  >
-                    Згенерувати звіт
-                  </button>
-                  <button
-                    onClick={() => alert("Імпорт даних...")}
-                    className={buttonClass}
-                  >
-                    Імпортувати дані
-                  </button>
-                </div>
               </div>
 
               {/* Danger Zone */}
               <div className="pb-8">
-                <h2 className="text-lg font-semibold text-red-600 mb-6">
-                  Небезпечна зона
-                </h2>
                 <div className="space-y-4">
                   <button
-                    onClick={() => alert("Акаунт деактивовано")}
-                    className="px-12 py-3 bg-red-600 text-white font-medium rounded-full hover:bg-red-700 transition-colors"
+                    onClick={() => alert("Account deleted")}
+                    className="px-6 py-2 text-red-500 rounded-full hover: transition-colors duration-200 hover:text-red-600"
                   >
-                    Деактивувати акаунт
-                  </button>
-                  <button
-                    onClick={() => alert("Акаунт видалено")}
-                    className="px-12 py-3 bg-red-700 text-white font-medium rounded-full hover:bg-red-800 transition-colors"
-                  >
-                    Видалити акаунт
+                    Delete Account
                   </button>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div> 
-    </div>
+      </div>
   );
 };
 

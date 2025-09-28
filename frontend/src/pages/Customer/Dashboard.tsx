@@ -27,7 +27,7 @@ const CustomerDashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-800"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2a2a2a]"></div>
       </div>
     );
   }
@@ -43,10 +43,10 @@ const CustomerDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100 text-black">
       {/* Header */}
-      <div className="bg-gray-200 shadow-sm border-b border-gray-300">
+      <div className="bg-[#e7e7e7] shadow-sm border-b border-[#dadada]">
         <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
           <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center text-white font-bold text-xl">
+            <div className="w-16 h-16 bg-[#2a2a2a] rounded-full flex items-center justify-center text-white font-bold text-xl">
               {customer?.username ? customer.username.charAt(0).toUpperCase() : ''}
             </div>
             <div>
@@ -56,7 +56,7 @@ const CustomerDashboard: React.FC = () => {
           <div className="flex space-x-3">
             <Link
               to={`/customer/edit`}
-              className="px-4 py-2 text-sm font-medium bg-gray-300 rounded-lg hover:bg-gray-400 transition"
+              className="px-4 py-2 text-sm font-medium bg-[#dadada] rounded-lg hover:bg-[#989898] transition"
             >
               Налаштування
             </Link>
@@ -66,15 +66,15 @@ const CustomerDashboard: React.FC = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-300 hover:shadow-lg transition-all duration-300">
+        <div className="bg-white rounded-lg shadow-md p-6 border border-[#dadada] hover:shadow-lg transition-all duration-300">
           <h2 className="text-lg font-semibold mb-4">Інформація про покупця</h2>
           <div className="space-y-3">
             <div className="flex justify-between hover:bg-gray-100 px-2 py-1 rounded transition">
-              <span className="text-gray-700">Email:</span>
+              <span className="text-[#454545]">Email:</span>
               <span className="font-medium">{customer?.email}</span>
             </div>
             <div className="flex justify-between hover:bg-gray-100 px-2 py-1 rounded transition">
-              <span className="text-gray-700">Телефон:</span>
+              <span className="text-[#454545]">Телефон:</span>
               <span className="font-medium">{customer?.phone || 'Не вказано'}</span>
             </div>
           </div>

@@ -447,7 +447,7 @@ const SearchResults: React.FC = () => {
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[400px]">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#151515]"></div>
     </div>
   );
   if (error) return (
@@ -455,7 +455,7 @@ const SearchResults: React.FC = () => {
   );
   if (!loading && products.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[400px] text-gray-500">No products found.</div>
+      <div className="flex items-center justify-center min-h-[400px] text-[#838383]">No products found.</div>
     );
   }
 
@@ -468,7 +468,6 @@ const SearchResults: React.FC = () => {
           <div className="border border-[#E2E2E2] bg-white">
             <div className="px-8 pt-10 pb-8 space-y-8">
               <div className="flex items-center gap-5">
-                <span className="block h-[28px] w-[3px] bg-[#2C2C2C]" aria-hidden="true" />
                 <h2 className="text-2xl tracking-wide text-[#2C2C2C]">Categories</h2>
               </div>
 
@@ -543,13 +542,13 @@ const SearchResults: React.FC = () => {
                     );
                   })
                 ) : (
-                  <p className="text-xs text-gray-500">Filters will populate when products load.</p>
+                  <p className="text-xs text-[#838383]">Filters will populate when products load.</p>
                 )}
               </div>
             </div>
           </div>
 
-          <div className="p-6 border border-gray-200 rounded-sm bg-white">
+          <div className="p-6 border border-[#e7e7e7] rounded-sm bg-white">
             <div className="lg:hidden flex justify-end mb-4">
               <button onClick={() => setShowFilters(false)} className="p-2">
                 <X className="w-5 h-5" />
@@ -591,13 +590,13 @@ const SearchResults: React.FC = () => {
         <div className="flex-1 px-6 py-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-[#151515]">
               {categoryName ? `${categoryName} Products` : 'All Items'}
             </h1>
             {categoryName ? (
-              <p className="text-sm text-gray-500 mt-1">Showing products in the "{categoryName}" category.</p>
+              <p className="text-sm text-[#838383] mt-1">Showing products in the "{categoryName}" category.</p>
             ) : searchTerm ? (
-              <p className="text-sm text-gray-500 mt-1">Search results for: "{searchTerm}"</p>
+              <p className="text-sm text-[#838383] mt-1">Search results for: "{searchTerm}"</p>
             ) : null}
           </div>
           <div className="flex items-center gap-3 self-start md:self-auto">
@@ -633,13 +632,13 @@ const SearchResults: React.FC = () => {
                 </div>
               ) : null}
             </div>
-            <button onClick={() => setShowFilters(true)} className="lg:hidden p-2 rounded-md border border-gray-200 text-[#4F4F4F] hover:text-[#1F1F1F]">
+            <button onClick={() => setShowFilters(true)} className="lg:hidden p-2 rounded-md border border-[#e7e7e7] text-[#4F4F4F] hover:text-[#1F1F1F]">
               <SlidersHorizontal className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        <p className="text-sm text-gray-600 mb-12">
+        <p className="text-sm text-[#585858] mb-12">
           Showing {displayedProducts.length} of {totalDisplayCount} item(s)
         </p>
 
@@ -691,7 +690,7 @@ const SearchResults: React.FC = () => {
                     })()}
                   </motion.div>
                   {divider ? (
-                    <div className="col-span-full border-t border-gray-200 mt-4 mb-2" aria-hidden="true" />
+                    <div className="col-span-full border-t border-[#e7e7e7] mt-4 mb-2" aria-hidden="true" />
                   ) : null}
                 </React.Fragment>
               );
@@ -706,7 +705,7 @@ const SearchResults: React.FC = () => {
           <button
             onClick={loadMore}
             disabled={loadingMore}
-            className="px-6 py-3 bg-[#282828] text-white font-medium rounded-full hover:bg-[#3A3A3A] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="px-6 py-3 bg-[#282828] text-white font-medium rounded-full hover:bg-[#3A3A3A] transition-colors disabled:bg-[#989898] disabled:cursor-not-allowed"
           >
             {loadingMore ? 'Loading…' : 'Load More'}
           </button>

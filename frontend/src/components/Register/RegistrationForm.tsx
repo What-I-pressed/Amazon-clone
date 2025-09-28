@@ -70,7 +70,7 @@ const RegistrationForm: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full flex items-start justify-center bg-white pt-24 pb-24">
-      <div className="flex w-2/3 h-[70%] bg-white rounded-lg overflow-hidden border border-gray-300">
+      <div className="flex w-2/3 h-[70%] bg-white rounded-lg overflow-hidden border border-[#dadada]">
         {/* Left Panel - Image */}
         <div className="w-1/2 hidden md:block">
           <div
@@ -87,8 +87,8 @@ const RegistrationForm: React.FC = () => {
           <div className="w-full max-w-md animate-fadeIn">
             {/* Header */}
             <div className="mb-10">
-              <h1 className="text-4xl font-bold text-gray-800 mb-3">Create Account</h1>
-              <p className="text-gray-600 text-base">
+              <h1 className="text-4xl font-bold text-[#2a2a2a] mb-3">Create Account</h1>
+              <p className="text-[#585858] text-base">
                 Already have an account?{" "}
                 <Link to="/login" className="text-[#42A275] hover:underline transition-colors duration-200">
                   Sign in here.
@@ -108,7 +108,7 @@ const RegistrationForm: React.FC = () => {
             {/* Full Name and Email Row */}
             <div className="flex flex-col gap-4 md:flex-row">
               <div className="flex-1">
-                <label className="block text-base font-medium text-gray-700 mb-2">
+                <label className="block text-base font-medium text-[#454545] mb-2">
                   Full name
                 </label>
                 <input
@@ -116,13 +116,13 @@ const RegistrationForm: React.FC = () => {
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleChange}
-                  className="w-full h-[56px] px-5 border border-[#dedfe1] rounded-[60px] bg-white text-gray-700 placeholder-[#939393] focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent transition-all duration-200"
+                  className="w-full h-[56px] px-5 border border-[#dedfe1] rounded-[60px] bg-white text-[#454545] placeholder-[#939393] focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent transition-all duration-200"
                   placeholder="Enter your full name"
                   required
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-base font-medium text-gray-700 mb-2">
+                <label className="block text-base font-medium text-[#454545] mb-2">
                   Email
                 </label>
                 <input
@@ -130,7 +130,7 @@ const RegistrationForm: React.FC = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full h-[56px] px-5 border border-[#dedfe1] rounded-[60px] bg-white text-gray-700 placeholder-[#939393] focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent transition-all duration-200"
+                  className="w-full h-[56px] px-5 border border-[#dedfe1] rounded-[60px] bg-white text-[#454545] placeholder-[#939393] focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent transition-all duration-200"
                   placeholder="Enter your email"
                   required
                 />
@@ -139,7 +139,7 @@ const RegistrationForm: React.FC = () => {
 
             {/* Username */}
             <div>
-              <label className="block text-base font-medium text-gray-700 mb-2">
+              <label className="block text-base font-medium text-[#454545] mb-2">
                 Username
               </label>
               <input
@@ -147,14 +147,14 @@ const RegistrationForm: React.FC = () => {
                 name="username"
                 value={formData.username}
                 onChange={handleChange}
-                className="w-full h-[56px] px-5 border border-[#dedfe1] rounded-[60px] bg-white text-gray-700 placeholder-[#939393] focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent transition-all duration-200"
+                className="w-full h-[56px] px-5 border border-[#dedfe1] rounded-[60px] bg-white text-[#454545] placeholder-[#939393] focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent transition-all duration-200"
                 placeholder="Choose a username"
               />
             </div>
 
             {/* Phone (optional) */}
             <div>
-              <label className="block text-base font-medium text-gray-700 mb-2">
+              <label className="block text-base font-medium text-[#454545] mb-2">
                 Phone (optional)
               </label>
               <input
@@ -162,7 +162,7 @@ const RegistrationForm: React.FC = () => {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full h-[56px] px-5 border border-[#dedfe1] rounded-[60px] bg-white text-gray-700 placeholder-[#939393] focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent transition-all duration-200"
+                className="w-full h-[56px] px-5 border border-[#dedfe1] rounded-[60px] bg-white text-[#454545] placeholder-[#939393] focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent transition-all duration-200"
                 placeholder="e.g. +1234567890"
               />
             </div>
@@ -170,7 +170,7 @@ const RegistrationForm: React.FC = () => {
             {/* Password and Confirm Password Row */}
             <div className="flex flex-col gap-4 md:flex-row">
               <div className="flex-1">
-                <label className="block text-base font-medium text-gray-700 mb-2">
+                <label className="block text-base font-medium text-[#454545] mb-2">
                   Password
                 </label>
                 <div className="relative">
@@ -179,14 +179,14 @@ const RegistrationForm: React.FC = () => {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    className="w-full h-[56px] pr-14 pl-5 border border-[#dedfe1] rounded-[60px] bg-white text-gray-700 placeholder-[#939393] focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent transition-all duration-200"
+                    className="w-full h-[56px] pr-14 pl-5 border border-[#dedfe1] rounded-[60px] bg-white text-[#454545] placeholder-[#939393] focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent transition-all duration-200"
                     placeholder="Enter your password"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-4 flex items-center text-gray-500 hover:text-gray-700"
+                    className="absolute inset-y-0 right-4 flex items-center text-[#838383] hover:text-[#454545]"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -194,7 +194,7 @@ const RegistrationForm: React.FC = () => {
                 </div>
               </div>
               <div className="flex-1">
-                <label className="block text-base font-medium text-gray-700 mb-2">
+                <label className="block text-base font-medium text-[#454545] mb-2">
                   Confirm Password
                 </label>
                 <div className="relative">
@@ -203,14 +203,14 @@ const RegistrationForm: React.FC = () => {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className="w-full h-[56px] pr-14 pl-5 border border-[#dedfe1] rounded-[60px] bg-white text-gray-700 placeholder-[#939393] focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent transition-all duration-200"
+                    className="w-full h-[56px] pr-14 pl-5 border border-[#dedfe1] rounded-[60px] bg-white text-[#454545] placeholder-[#939393] focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent transition-all duration-200"
                     placeholder="Confirm your password"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-4 flex items-center text-gray-500 hover:text-gray-700"
+                    className="absolute inset-y-0 right-4 flex items-center text-[#838383] hover:text-[#454545]"
                     aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                   >
                     {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -226,9 +226,9 @@ const RegistrationForm: React.FC = () => {
                 id="terms"
                 checked={termsAccepted}
                 onChange={(e) => setTermsAccepted(e.target.checked)}
-                className="mt-1 h-5 w-5 text-[#42A275] focus:ring-[#42A275] border-gray-300 rounded"
+                className="mt-1 h-5 w-5 text-[#42A275] focus:ring-[#42A275] border-[#dadada] rounded"
               />
-              <label htmlFor="terms" className="text-sm text-gray-600">
+              <label htmlFor="terms" className="text-sm text-[#585858]">
                 I have read and agreed to the{" "}
                 <a href="#" className="text-[#42A275] hover:underline transition-colors duration-200">Terms of Service</a> and{" "}
                 <a href="#" className="text-[#42A275] hover:underline transition-colors duration-200">Privacy Policy</a>
@@ -249,34 +249,34 @@ const RegistrationForm: React.FC = () => {
                   onClick={() => setRegisterAsSeller((prev) => !prev)}
                   className={`min-w-[200px] whitespace-nowrap h-[60px] px-6 rounded-[60px] border text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                     registerAsSeller
-                      ? "border-gray-900 bg-gray-900 text-white focus:ring-gray-300"
-                      : "border-gray-300 text-gray-700 hover:border-gray-400 focus:ring-gray-300"
+                      ? "border-[#151515] bg-[#151515] text-white focus:ring-[#dadada]"
+                      : "border-[#dadada] text-[#454545] hover:border-[#989898] focus:ring-[#dadada]"
                   }`}
                 >
                   {registerAsSeller ? "Want to be a customer?" : "Want to be a seller?"}
                 </button>
               </div>
-              <p className="text-xs text-gray-500">
-                You will be registered as a <span className="font-semibold text-gray-700">{registerAsSeller ? "seller" : "customer"}</span> account.
+              <p className="text-xs text-[#838383]">
+                You will be registered as a <span className="font-semibold text-[#454545]">{registerAsSeller ? "seller" : "customer"}</span> account.
               </p>
             </div>
           </form>
 
             {/* Divider */}
             <div className="flex items-center my-6">
-              <div className="flex-1 h-px bg-gray-200" />
-              <span className="px-4 text-gray-500 text-sm">or</span>
-              <div className="flex-1 h-px bg-gray-200" />
+              <div className="flex-1 h-px bg-[#e7e7e7]" />
+              <span className="px-4 text-[#838383] text-sm">or</span>
+              <div className="flex-1 h-px bg-[#e7e7e7]" />
             </div>
 
             {/* Google Sign up/Login */}
             <button
               type="button"
               onClick={handleGoogleSignup}
-              className="w-full h-[54px] border border-gray-300 rounded-[54px] flex items-center justify-center gap-3 hover:bg-gray-50 transition"
+              className="w-full h-[54px] border border-[#dadada] rounded-[54px] flex items-center justify-center gap-3 hover:bg-gray-50 transition"
             >
               <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-              <span className="text-gray-700 font-medium">Continue with Google</span>
+              <span className="text-[#454545] font-medium">Continue with Google</span>
             </button>
           </div>
         </div>

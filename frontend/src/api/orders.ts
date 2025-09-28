@@ -91,3 +91,60 @@ export async function updateOrder(id: string, data: Partial<Order>): Promise<Ord
         throw error;
     }
 }
+
+// Admin-specific API functions
+export async function fetchAllOrdersAdmin(): Promise<Order[]> {
+    const token = getToken();
+    const res = await api.get("/orders/not-completed", { params: { token } });
+    return Array.isArray(res.data) ? res.data : [];
+}
+
+export async function fetchCompletedOrders(): Promise<Order[]> {
+    const token = getToken();
+    const res = await api.get("/orders/completed", { params: { token } });
+    return Array.isArray(res.data) ? res.data : [];
+}
+
+export async function fetchActiveOrders(): Promise<Order[]> {
+    const token = getToken();
+    const res = await api.get("/orders/active", { params: { token } });
+    return Array.isArray(res.data) ? res.data : [];
+}
+
+// Order status update functions
+export async function setOrderStatusProcessing(orderId: number): Promise<void> {
+    const token = getToken();
+    await api.put(`/orders/status/process`, { orderId }, { params: { token } });
+}
+
+export async function setOrderStatusShipped(orderId: number): Promise<void> {
+    const token = getToken();
+    await api.put(`/orders/status/ship`, { orderId }, { params: { token } });
+}
+
+export async function setOrderStatusDelivered(orderId: number): Promise<void> {
+    const token = getToken();
+    await api.put(`/orders/status/deliver`, { orderId }, { params: { token } });
+}
+
+export async function confirmOrder(orderId: number): Promise<void> {
+    const token = getToken();
+    await api.put(`/orders/status/confirm`, { orderId }, { params: { token } });
+}
+
+export async function cancelOrder(orderId: number): Promise<void> {
+    const token = getToken();
+    await api.put(`/orders/status/cancel`, { orderId }, { params: { token } });
+}
+
+export async function updateOrderAdmin(orderId: number, data: Partial<Order>): Promise<Order> {
+    const token = getToken();
+    const res = await api.put(`/orders/${orderId}`, data, { params: { token } });
+    return res.data;
+}
+
+export async function fetchOrderByIdAdmin(orderId: number): Promise<Order> {
+    const token = getToken();
+    const res = await api.get(`/orders/${orderId}`, { params: { token } });
+    return res.data;
+}

@@ -99,19 +99,19 @@ const OrdersPage: React.FC = () => {
     <div className="max-w-6xl mx-auto p-6 min-h-screen">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Order History</h1>
-        <p className="text-gray-600">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.</p>
+        <h1 className="text-2xl font-bold text-[#151515] mb-2">Order History</h1>
+        <p className="text-[#585858]">Here you will see your order history</p>
       </div>
 
-      {loading && <div className="text-center py-8"><p className="text-gray-600">Завантаження...</p></div>}
+      {loading && <div className="text-center py-8"><p className="text-[#585858]">Завантаження...</p></div>}
       {error && <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6"><p className="text-red-700">{error}</p></div>}
-      {!loading && orders.length === 0 && <div className="text-center py-8"><p className="text-gray-600">У вас поки немає замовлень.</p></div>}
+      {!loading && orders.length === 0 && <div className="text-center py-8"><p className="text-[#585858]">У вас поки немає замовлень.</p></div>}
 
       {/* Table */}
       {!loading && orders.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           {/* Table Header */}
-          <div className="bg-gray-400 text-white">
+          <div className="bg-[#989898] text-white">
             <div className="grid grid-cols-6 gap-4 px-6 py-3 text-sm font-medium">
               <div>Order no</div>
               <div>Status</div>
@@ -122,7 +122,7 @@ const OrdersPage: React.FC = () => {
           </div>
 
           {/* Table Body */}
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-[#e7e7e7]">
             {orders.map((order: any) => {
               return (
                 <div
@@ -134,7 +134,7 @@ const OrdersPage: React.FC = () => {
                 >
                   {/* Order no */}
                   <div className="flex items-center">
-                    <span className="text-sm font-medium text-gray-900">{order.id}</span>
+                    <span className="text-sm font-medium text-[#151515]">{order.id}</span>
                   </div>
 
 
@@ -149,8 +149,8 @@ const OrdersPage: React.FC = () => {
                   {/* Tracking ID */}
                   <div className="flex items-center">
                     <div className="flex items-center gap-1">
-                      <span className="text-sm text-gray-900">{order.id}78</span>
-                      <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <span className="text-sm text-[#151515]">{order.id}78</span>
+                      <svg className="w-3 h-3 text-[#989898]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                       </svg>
                     </div>
@@ -158,14 +158,14 @@ const OrdersPage: React.FC = () => {
 
                   {/* Delivery Date */}
                   <div className="flex items-center">
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-[#585858]">
                       {order.orderDate ? new Date(order.orderDate).toLocaleDateString() : '-'}
                     </span>
                   </div>
 
                   {/* Price */}
                   <div className="flex items-center justify-end">
-                    <span className="text-sm font-semibold text-gray-900">
+                    <span className="text-sm font-semibold text-[#151515]">
                       ${typeof order.totalPrice === 'number' ? Number(order.totalPrice).toFixed(2) : '0.00'}
                     </span>
                   </div>
@@ -190,7 +190,7 @@ const OrdersPage: React.FC = () => {
               )}
               {selectedOrder && !selectedOrder.error && (
                 <div className="space-y-3">
-                  <div className="text-sm text-gray-600">ID: {selectedOrder.id}</div>
+                  <div className="text-sm text-[#585858]">ID: {selectedOrder.id}</div>
                   {selectedOrder.orderStatus && (
                     <div className="text-sm">Статус: {selectedOrder.orderStatus}</div>
                   )}
@@ -223,11 +223,11 @@ const OrdersPage: React.FC = () => {
                               <div className="min-w-0">
                                 <div className="font-medium truncate text-base">{productMap[Number(it?.productId)]?.name || `Товар #${it?.productId ?? idx+1}`}</div>
                                 {typeof it?.totalPrice === 'number' && (
-                                  <div className="text-sm text-gray-600">Сума позиції: {Number(it.totalPrice).toFixed(2)} грн</div>
+                                  <div className="text-sm text-[#585858]">Сума позиції: {Number(it.totalPrice).toFixed(2)} грн</div>
                                 )}
                               </div>
                             </div>
-                            <div className="text-sm text-gray-700 whitespace-nowrap">x{Number(it?.quantity || 0)}</div>
+                            <div className="text-sm text-[#454545] whitespace-nowrap">x{Number(it?.quantity || 0)}</div>
                           </li>
                         ))}
                       </ul>

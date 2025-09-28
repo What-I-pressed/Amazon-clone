@@ -19,14 +19,14 @@ const DropzoneComponent: React.FC = () => {
   });
   return (
     <ComponentCard title="Dropzone">
-      <div className="transition border border-gray-300 border-dashed cursor-pointer dark:hover:border-brand-500 dark:border-gray-700 rounded-xl hover:border-brand-500">
+      <div className="transition border border-[#dadada] border-dashed cursor-pointer dark:hover:border-brand-500 dark:border-[#454545] rounded-xl hover:border-brand-500">
         <form
           {...getRootProps()}
-          className={`dropzone rounded-xl   border-dashed border-gray-300 p-7 lg:p-10
+          className={`dropzone rounded-xl   border-dashed border-[#dadada] p-7 lg:p-10
         ${
           isDragActive
-            ? "border-brand-500 bg-gray-100 dark:bg-gray-800"
-            : "border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-900"
+            ? "border-brand-500 bg-gray-100 dark:bg-[#2a2a2a]"
+            : "border-[#dadada] bg-white dark:border-[#454545] dark:bg-[#151515]"
         }
       `}
           id="demo-upload"
@@ -37,7 +37,7 @@ const DropzoneComponent: React.FC = () => {
           <div className="dz-message flex flex-col items-center m-0!">
             {/* Icon Container */}
             <div className="mb-[22px] flex justify-center">
-              <div className="flex h-[68px] w-[68px]  items-center justify-center rounded-full bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-400">
+              <div className="flex h-[68px] w-[68px]  items-center justify-center rounded-full bg-[#e7e7e7] text-[#454545] dark:bg-[#2a2a2a] dark:text-[#989898]">
                 <svg
                   className="fill-current"
                   width="29"
@@ -55,11 +55,11 @@ const DropzoneComponent: React.FC = () => {
             </div>
 
             {/* Text Content */}
-            <h4 className="mb-3 font-semibold text-gray-800 text-theme-xl dark:text-white/90">
+            <h4 className="mb-3 font-semibold text-[#2a2a2a] text-theme-xl dark:text-white/90">
               {isDragActive ? "Drop Files Here" : "Drag & Drop Files Here"}
             </h4>
 
-            <span className=" text-center mb-5 block w-full max-w-[290px] text-sm text-gray-700 dark:text-gray-400">
+            <span className=" text-center mb-5 block w-full max-w-[290px] text-sm text-[#454545] dark:text-[#989898]">
               Drag and drop your PNG, JPG, WebP, SVG images here or browse
             </span>
 

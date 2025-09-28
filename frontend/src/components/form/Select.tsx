@@ -31,10 +31,10 @@ const Select: React.FC<SelectProps> = ({
 
   return (
     <select
-      className={`h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${
+      className={`h-11 w-full appearance-none rounded-lg border border-[#dadada] bg-transparent px-4 py-2.5 pr-11 text-sm shadow-theme-xs placeholder:text-[#989898] focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-[#454545] dark:bg-[#151515] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${
         selectedValue
-          ? "text-gray-800 dark:text-white/90"
-          : "text-gray-400 dark:text-gray-400"
+          ? "text-[#2a2a2a] dark:text-white/90"
+          : "text-[#989898] dark:text-[#989898]"
       } ${className}`}
       value={selectedValue}
       onChange={handleChange}
@@ -43,7 +43,7 @@ const Select: React.FC<SelectProps> = ({
       <option
         value=""
         disabled
-        className="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
+        className="text-[#454545] dark:bg-[#151515] dark:text-[#989898]"
       >
         {placeholder}
       </option>
@@ -52,7 +52,7 @@ const Select: React.FC<SelectProps> = ({
         <option
           key={option.value}
           value={option.value}
-          className="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
+          className="text-[#454545] dark:bg-[#151515] dark:text-[#989898]"
         >
           {option.label}
         </option>

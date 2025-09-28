@@ -1,11 +1,18 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const AppFooter = () => {
   const [email, setEmail] = useState("");
+  const navigate = useNavigate();
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Subscribing email:", email);
+  };
+
+  const handleNavigate = (path: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    navigate(path);
   };
 
   return (
@@ -15,10 +22,9 @@ const AppFooter = () => {
 
       <div className="py-18 px-8">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-light mb-2 text-white">
-            Subscribe To Your Newsletter To Stay Updated
+          <h2 className="text-3xl font-light mb-8 text-white">
+            Subscribe to Stay Updated About Discounts
           </h2>
-          <p className="text-2xl font-light mb-8 text-white">About Discounts</p>
 
           <form onSubmit={handleSubscribe} className="max-w-md mx-auto">
             <div className="relative">
@@ -58,55 +64,43 @@ const AppFooter = () => {
       </div>
 
 
-        <div className="max-w-7xl mx-auto px-8 py-12">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
+        <div className="max-w-7xl mx-auto px-8 pt-12 pb-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
               {
                 title: "Products",
                 links: [
-                  "Lorem Ipsum",
-                  "Lorem Ipsum",
-                  "Lorem Ipsum",
+                  { label: "For Home & Kitchen", path: "/search?category=Home%20%26%20Kitchen" },
+                  { label: "Electronics", path: "/search?category=electronics" },
                 ],
               },
               {
                 title: "Legal Pages",
                 links: [
-                  "Lorem Ipsum Text",
-                  "Lorem Ipsum Text",
-                  "Lorem Ipsum Text",
-                  "Lorem Ipsum",
-                  "Lorem Ipsum",
+                  { label: "Privacy Policy", path: "/privacy-policy" },
+                  { label: "Terms & Conditions", path: "/terms" },
+                  { label: "Refund Policy", path: "/refund-policy" },
+                  { label: "Shipping Info", path: "/shipping-info" },
+                  { label: "Contact Us", path: "/contact" },
                 ],
               },
               {
-                title: "Products",
+                title: "SUPPORT",
                 links: [
-                  "Lorem Ipsum",
-                  "Lorem Ipsum",
-                  "Lorem Ipsum",
-                  "Lorem Ipsum",
-                  "Lorem Ipsum",
+                  { label: "FAQ", path: "/faq" },
+                  { label: "Customer Service", path: "/support" },
+                  { label: "Returns & Exchanges", path: "/returns" },
+                  { label: "Warranty", path: "/warranty" },
                 ],
               },
               {
-                title: "Products",
+                title: "ABOUT",
                 links: [
-                  "Lorem Ipsum",
-                  "Lorem Ipsum",
-                  "Lorem Ipsum",
-                  "Lorem Ipsum",
-                  "Lorem Ipsum",
-                ],
-              },
-              {
-                title: "Legal Pages",
-                links: [
-                  "Lorem Ipsum Text",
-                  "Lorem Ipsum Text",
-                  "Lorem Ipsum Text",
-                  "Lorem Ipsum",
-                  "Lorem Ipsum",
+                  { label: "Our Story", path: "/about" },
+                  { label: "Sustainability", path: "/sustainability" },
+                  { label: "Careers", path: "/careers" },
+                  { label: "Blog", path: "/blog" },
+                  { label: "Partnerships", path: "/partnerships" },
                 ],
               },
             ].map(({ title, links }, idx) => (
@@ -118,13 +112,14 @@ const AppFooter = () => {
                   {title}
                 </h3>
                 <ul className="space-y-3">
-                  {links.map((link, i) => (
+                  {links.map(({ label, path }, i) => (
                     <li key={i}>
                       <a
-                        href="#"
+                        href={path}
                         className="text-base text-white hover:text-[#888888] transition-colors duration-200"
+                        onClick={handleNavigate(path)}
                       >
-                        {link}
+                        {label}
                       </a>
                     </li>
                   ))}

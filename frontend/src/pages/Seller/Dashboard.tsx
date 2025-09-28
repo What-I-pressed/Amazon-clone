@@ -62,7 +62,7 @@ const SellerDashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-800"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2a2a2a]"></div>
       </div>
     );
   }
@@ -103,17 +103,17 @@ const SellerDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen text-black">
+    <div className="min-h-screen text-black bg-[#f5f5f7]">
       {/* Header */}
-      <div className="bg-gray-200 border-b border-gray-300">
-        <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center text-white font-bold text-xl">
+      <div className="bg-[#e7e7e7] border-b border-[#dadada] shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 py-8 flex justify-between items-center">
+          <div className="flex items-center space-x-5">
+            <div className="w-20 h-20 bg-[#2a2a2a] rounded-full flex items-center justify-center text-white font-bold text-2xl">
               {seller?.username ? seller.username.charAt(0).toUpperCase() : ''}
             </div>
             <div>
-              <h1 className="text-2xl font-bold">{seller?.username || 'Продавець'}</h1>
-              <p className="text-gray-700">
+              <h1 className="text-3xl font-bold text-[#151515]">{seller?.username || 'Продавець'}</h1>
+              <p className="text-[#454545] text-lg">
                 Рейтинг: {stats?.avgFeedback ? stats.avgFeedback.toFixed(2) : "—"}/5 ⭐
               </p>
             </div>
@@ -122,13 +122,13 @@ const SellerDashboard: React.FC = () => {
           <div className="flex space-x-3">
             <Link
               to={`/seller/edit`}
-              className="px-4 py-2 text-sm font-medium bg-gray-300 rounded-lg hover:bg-gray-400 transition"
+              className="px-5 py-3 text-sm font-semibold bg-[#dadada] rounded-lg hover:bg-[#989898] transition"
             >
               Налаштування
             </Link>
             <Link
               to={`/seller/products/create`}
-              className="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-lg hover:bg-black transition"
+              className="px-5 py-3 text-sm font-semibold text-white bg-[#151515] rounded-lg hover:bg-black transition"
             >
               + Додати товар
             </Link>
@@ -137,9 +137,9 @@ const SellerDashboard: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* Main content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-8">
           <SellerStatsCard
             totalRevenue={stats?.totalRevenue ?? 0}
             avgFeedback={stats?.avgFeedback ?? 0}
@@ -153,90 +153,82 @@ const SellerDashboard: React.FC = () => {
           />
 
           {/* Quick Actions */}
-          <div className="bg-white rounded-2xl -sm p-6 border border-gray-200">
-            <h2 className="text-lg font-semibold mb-4">Швидкі дії</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Link to="/seller/products/create" className="flex items-center p-4 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
-                <div className="w-10 h-10 bg-gray-800 text-white rounded-lg flex items-center justify-center mr-3">+</div>
+          <div className="bg-white rounded-3xl shadow-sm p-8 border border-[#e7e7e7]">
+            <h2 className="text-xl font-semibold mb-5 text-[#151515]">Швидкі дії</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
+              <Link to="/seller/products/create" className="flex items-center p-5 bg-gray-100 rounded-xl hover:bg-[#e7e7e7] transition">
+                <div className="w-12 h-12 bg-[#2a2a2a] text-white rounded-xl flex items-center justify-center mr-4 text-xl">+</div>
                 <div>
-                  <h3 className="font-medium">Додати товар</h3>
-                  <p className="text-sm text-gray-600">Створити новий товар</p>
+                  <h3 className="text-lg font-medium text-[#151515]">Додати товар</h3>
+                  <p className="text-sm text-[#585858]">Створити новий товар</p>
                 </div>
               </Link>
 
-              <Link to="/seller/orders" className="flex items-center p-4 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
-                <div className="w-10 h-10 bg-gray-700 text-white rounded-lg flex items-center justify-center mr-3">📦</div>
+              <Link to="/seller/orders" className="flex items-center p-5 bg-gray-100 rounded-xl hover:bg-[#e7e7e7] transition">
+                <div className="w-12 h-12 bg-[#454545] text-white rounded-xl flex items-center justify-center mr-4 text-lg">📦</div>
                 <div>
-                  <h3 className="font-medium">Замовлення</h3>
-                  <p className="text-sm text-gray-600">Переглянути замовлення</p>
-                </div>
-              </Link>
-
-              <Link to="/seller/reviews" className="flex items-center p-4 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
-                <div className="w-10 h-10 bg-gray-600 text-white rounded-lg flex items-center justify-center mr-3">⭐</div>
-                <div>
-                  <h3 className="font-medium">Відгуки</h3>
-                  <p className="text-sm text-gray-600">Відповісти на відгуки</p>
+                  <h3 className="text-lg font-medium text-[#151515]">Замовлення</h3>
+                  <p className="text-sm text-[#585858]">Переглянути замовлення</p>
                 </div>
               </Link>
             </div>
           </div>
           {/* Reviews & Replies */}
-          <div className="bg-[#F8F8F8] rounded-2xl border p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Відгуки покупців</h2>
-              <span className="text-sm text-gray-500">Загалом: {reviews.length}</span>
+          <div className="bg-[#F8F8F8] rounded-3xl border p-8 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-[#151515]">Відгуки покупців</h2>
+              <span className="text-sm text-[#838383]">Загалом: {reviews.length}</span>
             </div>
 
             {replyError && (
-              <div className="mb-3 rounded bg-red-100 text-red-700 px-3 py-2 text-sm">
+              <div className="mb-4 rounded bg-red-100 text-red-700 px-4 py-3 text-sm">
                 {replyError}
               </div>
             )}
             {replySuccess && (
-              <div className="mb-3 rounded bg-green-100 text-green-700 px-3 py-2 text-sm">
+              <div className="mb-4 rounded bg-green-100 text-green-700 px-4 py-3 text-sm">
                 {replySuccess}
               </div>
             )}
 
             {flattenReviews.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
+              <div className="text-center text-[#838383] py-12 text-lg">
                 Наразі немає відгуків для ваших товарів.
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {flattenReviews.map(({ review, replies }) => (
-                  <div key={review.id} className="border rounded-xl p-4 bg-white -sm">
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <div className="font-medium flex-1 text-gray-900">
+                  <div key={review.id} className="border rounded-2xl p-5 bg-white shadow-sm">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="font-medium flex-1 text-[#151515] text-lg">
                         {review.username ?? "User"}
                       </div>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-[#838383]">
                         {new Date(review.date).toLocaleString("uk-UA")}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 mb-2">
+                    <div className="flex items-center gap-1 mb-3">
                       {Array.from({ length: 5 }).map((_, idx) => (
                         <Star
                           key={idx}
                           size={16}
-                          className={idx < (review.stars || 0) ? "text-yellow-500 fill-yellow-500" : "text-gray-300"}
+                          className={idx < (review.stars || 0) ? "text-yellow-500 fill-yellow-500" : "text-[#dadada]"}
                         />
                       ))}
                     </div>
-                    <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">{review.description}</p>
+                    <p className="text-[#2a2a2a] whitespace-pre-wrap leading-relaxed">{review.description}</p>
 
                     {replies.length > 0 && (
-                      <div className="mt-3 ml-6 pl-4 border-l-2 border-gray-200 space-y-3">
+                      <div className="mt-4 ml-6 pl-4 border-l-2 border-[#e7e7e7] space-y-3">
                         {replies.map((reply) => (
-                          <div key={reply.id} className="bg-gray-50 rounded-lg p-3">
-                            <div className="flex items-start justify-between gap-2 mb-1">
-                              <div className="font-medium text-sm text-gray-700">{reply.username ?? "User"}</div>
-                              <span className="text-xs text-gray-500">
+                          <div key={reply.id} className="bg-gray-50 rounded-xl p-4">
+                            <div className="flex items-start justify_between gap-2 mb-1">
+                              <div className="font-medium text-sm text-[#454545]">{reply.username ?? "User"}</div>
+                              <span className="text-xs text-[#838383]">
                                 {new Date(reply.date).toLocaleString("uk-UA")}
                               </span>
                             </div>
-                            <p className="text-gray-700 text-sm whitespace-pre-line leading-relaxed">{reply.description}</p>
+                            <p className="text-[#454545] text-sm whitespace-pre-line leading-relaxed">{reply.description}</p>
                           </div>
                         ))}
                       </div>
@@ -244,24 +236,24 @@ const SellerDashboard: React.FC = () => {
 
                     <div className="mt-4">
                       {replyingReviewId === review.id ? (
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           <textarea
-                            className="w-full border rounded-lg p-2 text-sm bg-white"
-                            rows={3}
+                            className="w-full border rounded-xl p-3 text-sm bg-white"
+                            rows={4}
                             value={replyText}
                             onChange={(e) => setReplyText(e.target.value)}
                             placeholder="Напишіть відповідь на відгук"
                           />
                           <div className="flex items-center gap-3">
                             <button
-                              className="px-4 py-2 text-sm font-semibold text-white bg-gray-900 rounded-md hover:bg-black transition disabled:bg-gray-500"
+                              className="px-5 py-3 text-sm font-semibold text-white bg-[#151515] rounded-lg hover:bg-black transition disabled:bg-[#838383]"
                               onClick={() => handleReply(review.id)}
                               disabled={isSubmittingReply}
                             >
                               {isSubmittingReply ? "Відправлення..." : "Відповісти"}
                             </button>
                             <button
-                              className="text-sm text-gray-500 hover:text-gray-700"
+                              className="text-sm text-[#838383] hover:text-[#454545]"
                               onClick={() => {
                                 setReplyingReviewId(null);
                                 setReplyText("");
@@ -274,7 +266,7 @@ const SellerDashboard: React.FC = () => {
                         </div>
                       ) : (
                         <button
-                          className="mt-2 text-sm font-medium text-gray-600 hover:text-gray-900"
+                          className="mt-2 text-sm font-medium text-[#585858] hover:text-[#151515]"
                           onClick={() => {
                             setReplyingReviewId(review.id);
                             setReplyText("");
@@ -294,9 +286,9 @@ const SellerDashboard: React.FC = () => {
         </div>
 
         {/* Right Column */}
-        <div className="bg-white rounded-2xl -sm p-6 border border-gray-200 h-fit">
-          <h2 className="text-lg font-semibold mb-4">Інформація про продавця</h2>
-          <div className="space-y-3">
+        <div className="bg-white rounded-3xl shadow-sm p-8 border border-[#e7e7e7] h-fit">
+          <h2 className="text-xl font-semibold mb-5 text-[#151515]">Інформація про продавця</h2>
+          <div className="space-y-4">
             <InfoRow label="Замовлень всього:" value={stats?.totalOrders ?? 0} />
             <InfoRow label="Активні:" value={stats?.activeOrders ?? 0} />
             <InfoRow label="Виконані:" value={stats?.completedOrders ?? 0} />
@@ -312,7 +304,7 @@ const SellerDashboard: React.FC = () => {
 
 const InfoRow: React.FC<{ label: string; value?: string | number }> = ({ label, value }) => (
   <div className="flex justify-between hover:bg-gray-100 px-2 py-1 rounded transition">
-    <span className="text-gray-700">{label}</span>
+    <span className="text-[#454545]">{label}</span>
     <span className="font-medium">{value ?? 0}</span>
   </div>
 );

@@ -13,6 +13,7 @@ const CustomerEditProfile = () => {
   const [surname, setSurname] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState("+380");
   const [avatar, setAvatar] = useState("");
 
   // Settings states
@@ -29,16 +30,41 @@ const CustomerEditProfile = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const inputBase =
-    "w-full px-6 py-4 border placeholder-gray-500 focus:outline-none transition-colors";
-  const inputNormal =
-    inputBase +
-    " bg-[#DFDFDF] border-[#DFDFDF] rounded-full hover:border-gray-400 focus:bg-white";
+  const inputBaseClass =
+    "w-full bg-[#F8F8F8] border border-[#DFDFDF] rounded-full px-7 py-3.5 text-base text-[#454545] placeholder:text-[#989898] transition-colors focus:outline-none focus:ring-0 focus:border-[#CFCFCF] hover:bg-[#FCFCFC] focus:bg-white";
+
   const inputArea =
-    "w-full px-6 py-4 border rounded-2xl placeholder-gray-500 focus:outline-none transition-colors resize-none bg-[#DFDFDF] border-[#DFDFDF] hover:border-gray-400 focus:bg-white";
+    "w-full bg-[#F8F8F8] border border-[#DFDFDF] rounded-3xl px-7 py-5 text-base text-[#454545] placeholder:text-[#989898] transition-colors focus:outline-none focus:ring-0 focus:border-[#CFCFCF] hover:bg-[#FCFCFC] focus:bg-white min-h-[160px] resize-none";
 
   const buttonClass =
-    "px-12 py-3 bg-[#282828] text-white font-medium rounded-full hover:bg-[#3A3A3A] disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
+    "px-12 py-3 bg-[#42A275] text-white font-semibold rounded-full hover:bg-[#369167] disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
+
+  const formatLocalNumber = (value: string, code: string) => {
+    const digits = value.replace(/\D/g, "");
+
+    if (code === "+380") {
+      const trimmed = digits.slice(0, 9);
+      const parts = [
+        trimmed.slice(0, 2),
+        trimmed.slice(2, 5),
+        trimmed.slice(5, 7),
+        trimmed.slice(7, 9),
+      ].filter(Boolean);
+      return parts.join(" ");
+    }
+
+    const trimmed = digits.slice(0, 10);
+    const parts = [
+      trimmed.slice(0, 3),
+      trimmed.slice(3, 6),
+      trimmed.slice(6, 10),
+    ].filter(Boolean);
+    return parts.join(" ");
+  };
+
+  const handlePhoneInput = (value: string, code: string) => {
+    setPhone(formatLocalNumber(value, code));
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -51,11 +77,12 @@ const CustomerEditProfile = () => {
         setFirstName(nameParts[0] || "");
         setSurname(nameParts.slice(1).join(" ") || "");
         setEmail(profile.email || "");
-        setPhone(profile.phone || "");
+        setCountryCode(profile.phone?.startsWith("+1") ? "+1" : "+380");
+        setPhone(formatLocalNumber(profile.phone?.replace(/^\+\d+\s?/, "") || "", profile.phone?.startsWith("+1") ? "+1" : "+380"));
         setAvatar(profile.avatar || "");
         setLoading(false);
       } catch (e: any) {
-        setError(e?.message || "Не вдалося завантажити профіль покупця");
+        setError(e?.message || "Failed to load customer profile");
         setLoading(false);
       }
     };
@@ -74,7 +101,7 @@ const CustomerEditProfile = () => {
       });
       setCustomer(updated);
     } catch (e: any) {
-      setError(e?.message || "Не вдалося оновити профіль покупця");
+      setError(e?.message || "Failed to update customer profile");
     } finally {
       setSaving(false);
     }
@@ -84,7 +111,7 @@ const CustomerEditProfile = () => {
     setSaving(true);
     setTimeout(() => {
       setSaving(false);
-      alert("Налаштування збережено!");
+      alert("Settings saved!");
     }, 1000);
   };
 
@@ -99,7 +126,7 @@ const CustomerEditProfile = () => {
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
-      alert("Паролі не співпадають!");
+      alert("Passwords do not match!");
       return;
     }
     // TODO: implement password change API when available
@@ -112,21 +139,25 @@ const CustomerEditProfile = () => {
     }
   };
 
+  useEffect(() => {
+    setPhone((prev) => formatLocalNumber(prev, countryCode));
+  }, [countryCode]);
+
   if (loading)
     return (
-      <div className="flex justify-center items-center h-64 text-gray-600">
-        Завантаження профілю...
+      <div className="flex justify-center items-center h-64 text-[#585858]">
+        Loading profile...
       </div>
     );
 
   if (error)
     return (
-      <div className="text-red-500 text-center mt-4">Помилка: {error}</div>
+      <div className="text-red-500 text-center mt-4">Error: {error}</div>
     );
 
   if (!customer)
     return (
-      <div className="text-gray-500 text-center mt-4">Профіль не знайдено</div>
+      <div className="text-[#838383] text-center mt-4">Profile not found</div>
     );
 
   return (
@@ -134,11 +165,11 @@ const CustomerEditProfile = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Налаштування профілю
+          <h1 className="text-3xl font-bold text-[#151515] mb-2">
+            Profile Settings
           </h1>
-          <p className="text-gray-600">
-            Керуйте своїм профілем покупця та налаштуваннями акаунту.
+          <p className="text-[#585858]">
+            Manage your customer profile and account preferences in one place.
           </p>
         </div>
 
@@ -147,17 +178,17 @@ const CustomerEditProfile = () => {
           <div className="space-y-8">
             {/* Profile Information */}
             <div className="border-b border-[#DFDFDF] pb-8 mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                Основна інформація
+              <h2 className="text-lg font-semibold text-[#151515] mb-6">
+                Basic Information
               </h2>
 
               {/* Avatar */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Аватар
+                <label className="block text-sm font-medium text-[#454545] mb-3">
+                  Avatar
                 </label>
                 <div className="flex items-center space-x-4">
-                  <div className="w-20 h-20 bg-gray-400 rounded-full flex items-center justify-center overflow-hidden">
+                  <div className="w-20 h-20 bg-[#989898] rounded-full flex items-center justify-center overflow-hidden">
                     {avatar ? (
                       <img
                         src={avatar}
@@ -171,7 +202,7 @@ const CustomerEditProfile = () => {
                     )}
                   </div>
                   <div>
-                    <input type="file" accept="image/*" className={inputNormal} />
+                    <input type="file" accept="image/*" className={inputBaseClass} />
                   </div>
                 </div>
               </div>
@@ -179,27 +210,27 @@ const CustomerEditProfile = () => {
               {/* Name Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ім'я *
+                  <label className="block text-sm font-semibold text-[#454545] mb-2">
+                    First Name*
                   </label>
                   <input
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className={inputNormal}
-                    placeholder="Введіть ім'я"
+                    className={inputBaseClass}
+                    placeholder="Enter first name"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Прізвище *
+                  <label className="block text-sm font-semibold text-[#454545] mb-2">
+                    Last Name
                   </label>
                   <input
                     type="text"
                     value={surname}
                     onChange={(e) => setSurname(e.target.value)}
-                    className={inputNormal}
-                    placeholder="Введіть прізвище"
+                    className={inputBaseClass}
+                    placeholder="Enter last name"
                   />
                 </div>
               </div>
@@ -207,33 +238,42 @@ const CustomerEditProfile = () => {
               {/* Email & Phone */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email адреса *
+                  <label className="block text-sm font-medium text-[#454545] mb-2">
+                    Email Address *
                   </label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className={inputNormal}
+                    className={inputBaseClass}
                     placeholder="your@email.com"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Номер телефону
+                  <label className="block text-sm font-medium text-[#454545] mb-2">
+                    Phone Number
                   </label>
                   <div className="flex">
-                    <div className="flex items-center px-4 py-4 border border-r-0 border-[#DFDFDF] rounded-l-full bg-[#DFDFDF]">
-                      <span className="text-lg mr-2">🇺🇦</span>
-                    </div>
+                    <select
+                      value={countryCode}
+                      onChange={(e) => setCountryCode(e.target.value)}
+                      className="w-32 rounded-l-full px-4 py-4 bg-[#F8F8F8] border border-[#DFDFDF] border-r-0 text-[#454545] focus:outline-none focus:ring-0 focus:border-[#CFCFCF] hover:bg-[#FCFCFC] focus:bg-white transition-colors text-sm"
+                      aria-label="Country code"
+                    >
+                      <option value="+380">🇺🇦 +380</option>
+                      <option value="+1">🇺🇸 +1</option>
+                    </select>
                     <input
                       type="tel"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="flex-1 px-6 py-4 bg-[#DFDFDF] border border-[#DFDFDF] rounded-r-full placeholder-gray-500 focus:outline-none hover:border-gray-400 focus:bg-white transition-colors"
-                      placeholder="+380 97 123 4567"
+                      onChange={(e) => handlePhoneInput(e.target.value, countryCode)}
+                      className="flex-1 px-6 py-4 bg-[#F8F8F8] border border-[#DFDFDF] rounded-r-full placeholder-[#838383] focus:outline-none focus:ring-0 focus:border-[#CFCFCF] hover:bg-[#FCFCFC] focus:bg-white transition-colors tracking-wide"
+                      placeholder={countryCode === "+380" ? "97 123 45 67" : "123 456 7890"}
                     />
                   </div>
+                  <p className="mt-2 text-sm text-[#838383]">
+                    Full number: {countryCode} {phone.replace(/\s/g, "")}
+                  </p>
                 </div>
               </div>
 
@@ -243,40 +283,40 @@ const CustomerEditProfile = () => {
                   disabled={saving}
                   className={buttonClass}
                 >
-                  {saving ? "Збереження..." : "Зберегти профіль"}
+                  {saving ? "Saving..." : "Save Profile"}
                 </button>
               </div>
             </div>
 
             {/* Change Password */}
             <div className="border-b border-[#DFDFDF] pb-8 mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                Зміна паролю
+              <h2 className="text-2xl font-semibold text-[#151515] mb-6">
+                Change Password
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Новий пароль
+                  <label className="block text-sm font-medium text-[#454545] mb-2">
+                    New Password
                   </label>
                   <input
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="••••••••••••••••"
-                    className={inputNormal}
+                    className={inputBaseClass}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Підтвердити пароль
+                  <label className="block text-sm font-medium text-[#454545] mb-2">
+                    Confirm Password
                   </label>
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••••••••••"
-                    className={inputNormal}
+                    className={inputBaseClass}
                   />
                 </div>
               </div>
@@ -287,79 +327,22 @@ const CustomerEditProfile = () => {
                   disabled={saving || !newPassword || !confirmPassword}
                   className={buttonClass}
                 >
-                  {saving ? "Збереження..." : "Змінити пароль"}
-                </button>
-              </div>
-            </div>
-
-            {/* Address */}
-            <div className="border-b border-[#DFDFDF] pb-8 mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                Адреса
-              </h2>
-
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Адреса доставки
-                </label>
-                <textarea
-                  value={shippingAddress}
-                  onChange={(e) => setShippingAddress(e.target.value)}
-                  placeholder="Ваша адреса"
-                  rows={4}
-                  className={inputArea}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Область
-                  </label>
-                  <input
-                    type="text"
-                    value={state}
-                    onChange={(e) => setState(e.target.value)}
-                    placeholder="Область"
-                    className={inputNormal}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Поштовий індекс
-                  </label>
-                  <input
-                    type="text"
-                    value={zipCode}
-                    onChange={(e) => setZipCode(e.target.value)}
-                    placeholder="Поштовий індекс"
-                    className={inputNormal}
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-center">
-                <button
-                  onClick={handleSaveAddress}
-                  disabled={saving}
-                  className={buttonClass}
-                >
-                  {saving ? "Збереження..." : "Зберегти адресу"}
+                  {saving ? "Saving..." : "Change Password"}
                 </button>
               </div>
             </div>
 
             {/* Account Settings */}
             <div className="border-b border-[#DFDFDF] pb-8 mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                Налаштування акаунту
+              <h2 className="text-xl font-semibold text-[#151515] mb-6">
+                Account Settings
               </h2>
 
               <div className="space-y-6">
                 {/* Notifications */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-800 mb-4">
-                    Сповіщення
+                  <h3 className="text-md font-medium text-[#2a2a2a] mb-4">
+                    Notifications
                   </h3>
                   <div className="space-y-4">
                     <label className="flex items-center">
@@ -369,8 +352,8 @@ const CustomerEditProfile = () => {
                         onChange={(e) => setEmailNotifications(e.target.checked)}
                         className="h-4 w-4 text-[#282828] focus:ring-[#282828] border-[#DFDFDF] rounded"
                       />
-                      <span className="ml-3 text-sm text-gray-700">
-                        Email сповіщення
+                      <span className="ml-3 text-sm text-[#454545]">
+                        Email Notifications
                       </span>
                     </label>
                     <label className="flex items-center">
@@ -380,8 +363,8 @@ const CustomerEditProfile = () => {
                         onChange={(e) => setSmsNotifications(e.target.checked)}
                         className="h-4 w-4 text-[#282828] focus:ring-[#282828] border-[#DFDFDF] rounded"
                       />
-                      <span className="ml-3 text-sm text-gray-700">
-                        SMS сповіщення
+                      <span className="ml-3 text-sm text-[#454545]">
+                        SMS Notifications
                       </span>
                     </label>
                   </div>
@@ -389,15 +372,15 @@ const CustomerEditProfile = () => {
 
                 {/* Language */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Мова
+                  <label className="block text-sm font-medium text-[#454545] mb-2">
+                    Language
                   </label>
                   <select
                     value={language}
                     onChange={(e) => setLanguage(e.target.value)}
-                    className={inputNormal}
+                    className={inputBaseClass}
                   >
-                    <option value="uk">Українська</option>
+                    <option value="uk">Ukrainian</option>
                     <option value="en">English</option>
                   </select>
                 </div>
@@ -409,7 +392,7 @@ const CustomerEditProfile = () => {
                   disabled={saving}
                   className={buttonClass}
                 >
-                  {saving ? "Збереження..." : "Зберегти налаштування"}
+                  {saving ? "Saving..." : "Save Settings"}
                 </button>
               </div>
             </div>
@@ -418,32 +401,23 @@ const CustomerEditProfile = () => {
             <div className="space-y-8">
               {/* Account Info */}
               <div className="border-b border-[#DFDFDF] pb-8 mb-8">
-                <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                  Інформація про акаунт
+                <h2 className="text-lg font-semibold text-[#151515] mb-6">
+                  Account Information
                 </h2>
-                <p className="text-gray-600 mb-2">Email: {customer.email}</p>
-                <p className="text-gray-600 mb-2">
-                  Телефон: {customer.phone || 'Не вказано'}
+                <p className="text-[#585858] mb-2">Email: {customer.email}</p>
+                <p className="text-[#585858] mb-2">
+                  Phone: {customer.phone || "Not provided"}
                 </p>
               </div>
 
               {/* Danger Zone */}
               <div className="pb-8">
-                <h2 className="text-lg font-semibold text-red-600 mb-6">
-                  Небезпечна зона
-                </h2>
                 <div className="space-y-4">
                   <button
-                    onClick={() => alert("Акаунт деактивовано")}
-                    className="px-12 py-3 bg-red-600 text-white font-medium rounded-full hover:bg-red-700 transition-colors"
+                    onClick={() => alert("Account deleted")}
+                    className="px-6 py-2 text-red-500 rounded-full transition-colors duration-200 hover:text-red-600"
                   >
-                    Деактивувати акаунт
-                  </button>
-                  <button
-                    onClick={() => alert("Акаунт видалено")}
-                    className="px-12 py-3 bg-red-700 text-white font-medium rounded-full hover:bg-red-800 transition-colors"
-                  >
-                    Видалити акаунт
+                    Delete Account
                   </button>
                 </div>
               </div>

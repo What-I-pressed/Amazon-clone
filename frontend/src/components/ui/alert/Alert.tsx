@@ -121,16 +121,16 @@ const Alert: React.FC<AlertProps> = ({
         </div>
 
         <div>
-          <h4 className="mb-1 text-sm font-semibold text-gray-800 dark:text-white/90">
+          <h4 className="mb-1 text-sm font-semibold text-[#2a2a2a] dark:text-white/90">
             {title}
           </h4>
 
-          <p className="text-sm text-gray-500 dark:text-gray-400">{message}</p>
+          <p className="text-sm text-[#838383] dark:text-[#989898]">{message}</p>
 
           {showLink && (
             <Link
               to={linkHref}
-              className="inline-block mt-3 text-sm font-medium text-gray-500 underline dark:text-gray-400"
+              className="inline-block mt-3 text-sm font-medium text-[#838383] underline dark:text-[#989898]"
             >
               {linkText}
             </Link>

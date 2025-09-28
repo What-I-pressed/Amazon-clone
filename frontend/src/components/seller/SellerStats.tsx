@@ -193,21 +193,21 @@ export const SellerStats: React.FC<SellerStatsProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+    <div className="bg-white dark:bg-[#151515] rounded-xl border border-[#e7e7e7] dark:border-[#2a2a2a] p-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-xl font-bold text-[#151515] dark:text-white">
             Sales Statistics
           </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-sm text-[#838383] dark:text-[#989898] mt-1">
             Track your sales performance over time
           </p>
         </div>
         
         {/* Income Display */}
         <div className="text-right">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Revenue</p>
+          <p className="text-sm text-[#838383] dark:text-[#989898]">Total Revenue</p>
           <p className="text-2xl font-bold text-brand-500">
             {formatCurrency(totalRevenue)}
           </p>
@@ -216,13 +216,13 @@ export const SellerStats: React.FC<SellerStatsProps> = ({
 
       {/* Filter Dropdown */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+        <h3 className="text-lg font-semibold text-[#2a2a2a] dark:text-white">
           {getFilterLabel(timeFilter)} Sales
         </h3>
         <div className="relative">
           <button
             onClick={toggleDropdown}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#454545] bg-white border border-[#dadada] rounded-lg hover:bg-white dark:bg-[#2a2a2a] dark:border-[#454545] dark:text-[#dadada] dark:hover:bg-[#454545]"
           >
             {getFilterLabel(timeFilter)}
             <ChevronDownIcon className="w-4 h-4" />
@@ -235,19 +235,19 @@ export const SellerStats: React.FC<SellerStatsProps> = ({
           >
             <DropdownItem
               onItemClick={() => handleFilterChange("weekly")}
-              className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+              className="flex w-full font-normal text-left text-[#838383] rounded-lg hover:bg-gray-100 hover:text-[#454545] dark:text-[#989898] dark:hover:bg-white/5 dark:hover:text-[#dadada]"
             >
               This Week
             </DropdownItem>
             <DropdownItem
               onItemClick={() => handleFilterChange("monthly")}
-              className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+              className="flex w-full font-normal text-left text-[#838383] rounded-lg hover:bg-gray-100 hover:text-[#454545] dark:text-[#989898] dark:hover:bg-white/5 dark:hover:text-[#dadada]"
             >
               This Month
             </DropdownItem>
             <DropdownItem
               onItemClick={() => handleFilterChange("yearly")}
-              className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+              className="flex w-full font-normal text-left text-[#838383] rounded-lg hover:bg-gray-100 hover:text-[#454545] dark:text-[#989898] dark:hover:bg-white/5 dark:hover:text-[#dadada]"
             >
               This Year
             </DropdownItem>
@@ -269,28 +269,28 @@ export const SellerStats: React.FC<SellerStatsProps> = ({
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-40 text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-center h-40 text-sm text-[#838383] dark:text-[#989898] bg-gray-50 dark:bg-[#2a2a2a] rounded-lg border border-dashed border-[#e7e7e7] dark:border-[#454545]">
             No sales trend data available yet.
           </div>
         )}
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-[#e7e7e7] dark:border-[#454545]">
         <div className="text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Average Rating</p>
-          <p className="text-lg font-semibold text-gray-900 dark:text-white">
+          <p className="text-sm text-[#838383] dark:text-[#989898]">Average Rating</p>
+          <p className="text-lg font-semibold text-[#151515] dark:text-white">
             {avgFeedback ? avgFeedback.toFixed(2) : "—"}
           </p>
         </div>
         <div className="text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Reviews</p>
+          <p className="text-sm text-[#838383] dark:text-[#989898]">Reviews</p>
           <p className="text-lg font-semibold text-green-600 dark:text-green-400">
             {reviewsCount}
           </p>
         </div>
         <div className="text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Orders</p>
+          <p className="text-sm text-[#838383] dark:text-[#989898]">Total Orders</p>
           <p className="text-lg font-semibold text-brand-500">
             {totalOrders}
           </p>

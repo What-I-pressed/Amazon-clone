@@ -72,19 +72,17 @@ const getCategoryImage = (categoryName: string, index: number) => {
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const carouselRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const featuredCollectionsRef = useRef<HTMLDivElement>(null);
   const popularSectionRef = useRef<HTMLDivElement>(null);
-  const [isScrolling, setIsScrolling] = useState(false);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
+
   const [popularProducts, setPopularProducts] = useState<Product[]>([]);
   const [popularLoading, setPopularLoading] = useState<boolean>(false);
   const [popularError, setPopularError] = useState<string | null>(null);
   const [categories, setCategories] = useState<CategorySummary[]>([]);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
   const [categoriesLoading, setCategoriesLoading] = useState<boolean>(true);
+  const [heroSearchTerm, setHeroSearchTerm] = useState("");
 
   // Reusable style objects
   const styles = {
@@ -114,7 +112,7 @@ const HomePage: React.FC = () => {
       shadow: 'hover:shadow-lg',
       shadowMd: 'hover:shadow-md',
       navButton: 'hover:bg-white/20 hover:scale-105',
-      searchBar: 'hover:shadow-lg hover:bg-gray-200/80',
+      searchBar: 'hover:shadow-lg hover:bg-[#e7e7e7]/80',
       categoryCard: 'group cursor-pointer',
       imageScale: 'group-hover:scale-105 transition-transform duration-300'
     },
@@ -128,8 +126,8 @@ const HomePage: React.FC = () => {
     },
     
     typography: {
-      mainTitle: 'font-afacad text-7xl font-bold leading-tight',
-      subtitle: 'font-afacad text-4xl leading-tight mt-2',
+      mainTitle: 'font-afacad text-7xl  font-bold leading-tight',
+      subtitle: 'font-afacad text-4xl leading-tight ',
       sectionTitle: 'font-afacad text-4xl font-bold mb-3',
       categoryTitle: 'font-poppins font-semibold text-lg',
       cardTitle: 'text-white font-poppins',
@@ -193,7 +191,7 @@ const HomePage: React.FC = () => {
                   navigate(`/search?subcategory=${encodeURIComponent(item.name)}`);
                 }
               }}
-              className="text-center w-full transition duration-200 py-1 rounded-full hover:bg-gray-100/40 hover:text-gray-900"
+              className="text-center w-full transition duration-200 py-1 rounded-full hover:bg-gray-100/40 hover:text-[#151515]"
               style={{ color: styles.colors.categorySubtext }}
             >
               {item.name}
@@ -261,6 +259,12 @@ const HomePage: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, []);
+
+  const handleHeroSearch = useCallback(() => {
+    const query = heroSearchTerm.trim();
+    if (!query) return;
+    navigate(`/search?query=${encodeURIComponent(query)}`);
+  }, [heroSearchTerm, navigate]);
 
   const navItems = useMemo(() => ([
     {
@@ -406,8 +410,9 @@ const featureCardBase = useMemo(
 
     return featureCardBase.map((card, idx) => {
       const sourceCategory = categories[idx % categories.length];
+      const categoryImage = sourceCategory ? getCategoryImage(sourceCategory.name, idx) : card.imageUrl;
       return {
-        imageUrl: card.imageUrl,
+        imageUrl: categoryImage ?? card.imageUrl,
         title: sourceCategory?.name ?? card.fallbackTitle,
         className: card.className,
         titleSize: card.titleSize,
@@ -418,54 +423,6 @@ const featureCardBase = useMemo(
 
   const featuredCardsGrid1 = featuredCategoryCards.slice(0, 4);
   const featuredCardsGrid2 = featuredCategoryCards.slice(4, 9);
-
-  const updateScrollButtons = () => {
-    if (carouselRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
-      setCanScrollLeft(scrollLeft > 0);
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
-    }
-  };
-
-  useEffect(() => {
-    const carousel = carouselRef.current;
-    if (carousel) {
-      carousel.addEventListener('scroll', updateScrollButtons);
-      updateScrollButtons();
-      return () => carousel.removeEventListener('scroll', updateScrollButtons);
-    }
-  }, []);
-
-  const scrollCarousel = (direction: 'left' | 'right') => {
-    if (carouselRef.current && !isScrolling) {
-      setIsScrolling(true);
-      const scrollAmount = 320;
-      const currentScroll = carouselRef.current.scrollLeft;
-      const newScroll = direction === 'left' 
-        ? Math.max(0, currentScroll - scrollAmount)
-        : currentScroll + scrollAmount;
-      
-      const carousel = carouselRef.current;
-      carousel.style.transform = 'scale(0.99)';
-      carousel.style.transition = 'transform 0.01s ease-out';
-      
-      carousel.scrollTo({
-        left: newScroll,
-        behavior: 'smooth'
-      });
-
-      setTimeout(() => {
-        carousel.style.transform = 'scale(1)';
-        carousel.style.transition = 'transform 0.2s ease-out';
-        setIsScrolling(false);
-        updateScrollButtons();
-      }, 100);
-
-      setTimeout(() => {
-        carousel.style.transition = '';
-      }, 300);
-    }
-  };
 
   const formatPrice = (price?: number | null) => {
     if (price === undefined || price === null) {
@@ -514,9 +471,6 @@ const featureCardBase = useMemo(
           .slice(0, 10);
 
         setPopularProducts(sorted);
-        setTimeout(() => {
-          updateScrollButtons();
-        }, 0);
       } catch (error) {
         if (!ignore) {
           setPopularError('Unable to load popular products right now. Please try again later.');
@@ -535,13 +489,6 @@ const featureCardBase = useMemo(
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (!popularLoading) {
-      updateScrollButtons();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [popularProducts, popularLoading]);
 
   useEffect(() => {
     AOS.refreshHard();
@@ -568,7 +515,7 @@ const featureCardBase = useMemo(
           style={{ backgroundImage: "url('/images/background/mainpagebg.png')" }} 
         />
 
-        <div className="max-w-4xl mx-auto text-center space-y-4 relative z-10">
+        <div className="max-w-4xl mx-auto text-center space-y-2 relative z-10">
           <h1 className={styles.typography.mainTitle} style={{ color: styles.colors.darkGray }}>
             Nexora Market
           </h1>
@@ -581,14 +528,19 @@ const featureCardBase = useMemo(
           </p>
 
           <div className="flex justify-center mt-8">
-            <div className={`relative w-96 h-14 rounded-full border border-gray-300 backdrop-blur-md bg-gray-200/70 shadow-sm ${styles.transitions.normal} ${styles.hover.searchBar}`}>
+            <div className={`relative w-96 h-14 rounded-full border border-[#dadada] backdrop-blur-md bg-[#e7e7e7]/70 ${styles.transitions.normal} ${styles.hover.searchBar}`}>
               <input
                 type="text"
+                value={heroSearchTerm}
+                onChange={(e) => setHeroSearchTerm(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleHeroSearch()}
                 placeholder="Search An Item"
-                className={`w-full h-full px-5 pr-16 bg-transparent text-base font-poppins placeholder-gray-600 focus:outline-none rounded-full hover:placeholder-gray-700 ${styles.transitions.fast}`}
+                className={`w-full h-full px-5 pr-16 bg-transparent text-base font-poppins placeholder-[#585858] focus:outline-none rounded-full hover:placeholder-[#454545] ${styles.transitions.fast}`}
                 style={{ color: styles.colors.textInput }}
               />
-              <button 
+              <button
+                type="button"
+                onClick={handleHeroSearch}
                 className={`absolute right-2 top-2 w-10 h-10 rounded-full flex items-center justify-center ${styles.transitions.fast} ${styles.hover.scaleSmall} ${styles.hover.shadowMd}`}
                 style={{ backgroundColor: styles.colors.searchBg }}
               >
@@ -604,7 +556,7 @@ const featureCardBase = useMemo(
         <div className={styles.layout.container}>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {categoriesError ? (
-              <div className="col-span-full text-center text-gray-500 text-sm">
+              <div className="col-span-full text-center text-[#838383] text-sm">
                 {categoriesError}
               </div>
             ) : categoriesLoading ? (
@@ -637,8 +589,8 @@ const featureCardBase = useMemo(
       {/* Featured Collections Section */}
       <div ref={featuredCollectionsRef} className={`${styles.layout.sectionLarge}`}>
         <div className={styles.layout.container}>
-          <div className="text-center mb-18 max-w-2xl mx-auto" data-aos="fade-up">
-            <h2 className={styles.typography.sectionTitle} style={{ color: styles.colors.mediumGray }}>
+          <div className="text-center mb-24 max-w-2xl mx-auto" data-aos="fade-up">
+            <h2 className={styles.typography.sectionTitle}>
               View Our Range Of Categories
             </h2>
             <p className={styles.typography.sectionDesc} style={{ color: styles.colors.textSecondary }}>
@@ -739,67 +691,54 @@ const featureCardBase = useMemo(
                 Discover our most loved and best-selling products
               </p>
             </div>
-            
-            <div className="flex items-center gap-4">
-              {[
-                { direction: 'left' as const, canScroll: canScrollLeft, icon: "M15 19l-7-7 7-7" },
-                { direction: 'right' as const, canScroll: canScrollRight, icon: "M9 5l7 7-7 7" }
-              ].map(({ direction, canScroll, icon }) => (
-                <button 
-                  key={direction}
-                  onClick={() => scrollCarousel(direction)}
-                  disabled={!canScroll || isScrolling}
-                  className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300 transform hover:scale-105 active:scale-95 ${
-                    canScroll && !isScrolling
-                      ? 'border-gray-200 hover:border-gray-300 hover:bg-white cursor-pointer'
-                      : 'border-gray-100 bg-white cursor-not-allowed opacity-50'
-                  }`}
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
-                  </svg>
-                </button>
-              ))}
-            </div>
           </div>
 
-          <div className="relative">
-            <div ref={carouselRef} className="overflow-x-auto scrollbar-hide relative">
-              <div className="flex gap-6 pb-4" style={{ width: 'max-content' }}>
-                {popularLoading ? (
-                  Array.from({ length: 4 }).map((_, idx) => (
-                    <div
-                      key={`popular-loading-${idx}`}
-                      className="w-72 h-80 rounded-3xl bg-gray-100 animate-pulse"
-                    />
-                  ))
-                ) : popularError ? (
-                  <div className="min-h-48 flex items-center justify-center px-8 text-sm text-gray-500">
-                    {popularError}
-                  </div>
-                ) : popularProducts.length === 0 ? (
-                  <div className="min-h-48 flex items-center justify-center px-8 text-sm text-gray-500">
-                    No popular products yet.
-                  </div>
-                ) : (
-                  popularProducts.map((product, idx) => {
-                    const cardProps = toProductCardProps(product);
-                    return (
-                      <div
-                        key={`popular-${product.id ?? idx}`}
-                        className="carousel-item transform transition-all duration-500"
-                        style={{ animationDelay: `${idx * 0.1}s` }}
-                        data-aos="fade-up"
-                        data-aos-delay={idx * 100}
-                      >
-                        <ProductCard {...cardProps} variant="carousel" />
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+          {popularLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-10">
+              {Array.from({ length: 8 }).map((_, idx) => (
+                <div
+                  key={`popular-loading-${idx}`}
+                  className="transform transition-all duration-500"
+                  style={{ animationDelay: `${idx * 0.1}s` }}
+                  data-aos="fade-up"
+                  data-aos-delay={(idx % 4) * 80 + Math.floor(idx / 4) * 120}
+                >
+                  <ProductCard
+                    variant="grid"
+                    loading
+                    imageUrl=""
+                    title=""
+                    price=""
+                  />
+                </div>
+              ))}
             </div>
-          </div>
+          ) : popularError ? (
+            <div className="min-h-48 flex items-center justify-center px-8 text-sm text-[#838383]">
+              {popularError}
+            </div>
+          ) : popularProducts.length === 0 ? (
+            <div className="min-h-48 flex items-center justify-center px-8 text-sm text-[#838383]">
+              No popular products yet.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-10">
+              {popularProducts.slice(0, 8).map((product, idx) => {
+                const cardProps = toProductCardProps(product);
+                return (
+                  <div
+                    key={`popular-${product.id ?? idx}`}
+                    className="transform transition-all duration-500"
+                    style={{ animationDelay: `${idx * 0.1}s` }}
+                    data-aos="fade-up"
+                    data-aos-delay={(idx % 4) * 80 + Math.floor(idx / 4) * 120}
+                  >
+                    <ProductCard {...cardProps} variant="grid" />
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
