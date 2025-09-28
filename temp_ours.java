@@ -102,18 +102,9 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody UserLoginRequestDto user) {
         try {
-            User u = userService.authenticateUser(user.getEmail().toLowerCase(), user.getPassword())
-                    .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+            User u = userService.authenticateUser(user.getEmail(), user.getPassword())
+                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
-<<<<<<< HEAD
-            if (!u.isEmailVerified()) {
-                Map<String, Object> notVerified = new HashMap<>();
-                notVerified.put("error", "Email not verified");
-                return ResponseEntity.status(403).body(notVerified);
-            }
-
-=======
->>>>>>> c486bf1634101d9bfc66ad40bc32e246735d0dad
             String token = jwtUtil.generateToken(u);
 
             Map<String, Object> response = new HashMap<>();
@@ -140,35 +131,14 @@ public class AuthController {
         try {
             UserRequestDto userRequest = new UserRequestDto();
             userRequest.setUsername(userDto.getUsername());
-            userRequest.setEmail(userDto.getEmail().toLowerCase());
+            userRequest.setEmail(userDto.getEmail());
             userRequest.setPassword(userDto.getPassword());
-            userRequest.setName(userDto.getName());
-            userRequest.setPhone(userDto.getPhone());
             userRequest.setRoleName("CUSTOMER");
 
             User u = userService.createUser(userRequest);
-            // ensure user is marked as not verified (default false)
-            u.setEmailVerified(false);
-            userRepository.save(u);
-
-            // Generate verification token and send verification email right away
             String token = jwtUtil.generateToken(u);
-<<<<<<< HEAD
-            String url = "http://localhost:8080/api/auth/verify?token=" + token;
-            String subject = "Please verify your email";
-            String body = "Click the link to verify your account: " + url;
-
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(u.getEmail());
-            message.setSubject(subject);
-            message.setText(body);
-            mailSender.send(message);
-
-            return ResponseEntity.ok("Verification email sent");
-=======
 
             return ResponseEntity.ok(token);
->>>>>>> c486bf1634101d9bfc66ad40bc32e246735d0dad
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Error registering user: " + e.getMessage());
         }
@@ -184,66 +154,18 @@ public class AuthController {
         try {
             UserRequestDto userRequest = new UserRequestDto();
             userRequest.setUsername(sellerDto.getUsername());
-            userRequest.setEmail(sellerDto.getEmail().toLowerCase());
+            userRequest.setEmail(sellerDto.getEmail());
             userRequest.setPassword(sellerDto.getPassword());
-            userRequest.setName(sellerDto.getName());
-            userRequest.setPhone(sellerDto.getPhone());
             userRequest.setRoleName("SELLER");
 
             User u = userService.createUser(userRequest);
-            u.setEmailVerified(false);
-            userRepository.save(u);
-
-            // Generate verification token and send verification email right away
             String token = jwtUtil.generateToken(u);
-<<<<<<< HEAD
-            String url = "http://localhost:8080/api/auth/verify?token=" + token;
-            String subject = "Please verify your email";
-            String body = "Click the link to verify your account: " + url;
-
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(u.getEmail());
-            message.setSubject(subject);
-            message.setText(body);
-            mailSender.send(message);
-
-            return ResponseEntity.ok("Verification email sent");
-=======
 
             return ResponseEntity.ok(token);
->>>>>>> c486bf1634101d9bfc66ad40bc32e246735d0dad
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Error registering seller: " + e.getMessage());
         }
     }
-
-    @Operation(summary = "Перевірити статус верифікації email за адресою")
-    @GetMapping("/verification-status")
-    public ResponseEntity<Map<String, Object>> verificationStatus(@RequestParam String email) {
-        Optional<User> u = userService.getUserByEmail(email);
-        if (u.isEmpty()) {
-            Map<String, Object> res = new HashMap<>();
-            res.put("exists", false);
-            res.put("verified", false);
-            return ResponseEntity.ok(res);
-        }
-        Map<String, Object> res = new HashMap<>();
-        res.put("exists", true);
-        res.put("verified", u.get().isEmailVerified());
-        return ResponseEntity.ok(res);
-    }
-
-    // @PostMapping("/register")
-    // public ResponseEntity<String> register(@RequestBody UserRequestDto user) {
-    //     try{
-    //         User u = userService.createUser(user);
-    //         String token = jwtUtil.generateToken(u);
-    //         return ResponseEntity.ok(token);
-    //     }
-    //     catch (Exception e) {
-    //         return ResponseEntity.status(400).body("Error registering user: " + e.getMessage());
-    //     }
-    // }
 
     @Operation(summary = "Отримати дані поточного користувача за JWT")
     @GetMapping("/me")

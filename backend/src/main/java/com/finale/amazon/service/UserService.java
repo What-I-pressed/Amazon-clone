@@ -3,9 +3,7 @@ package com.finale.amazon.service;
 import com.finale.amazon.entity.User;
 import com.finale.amazon.dto.UserRequestDto;
 import com.finale.amazon.dto.UserDto;
-import com.finale.amazon.entity.Picture;
 import com.finale.amazon.entity.Role;
-import com.finale.amazon.repository.PictureRepository;
 import com.finale.amazon.repository.RoleRepository;
 import com.finale.amazon.repository.UserRepository;
 import com.finale.amazon.security.JwtUtil;
@@ -18,11 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -40,9 +35,6 @@ public class UserService {
 
     @Autowired
     private JwtUtil jwtUtil;
-
-    @Autowired
-    private PictureRepository pictureRepository;
 
     @Autowired
     private SlugService slugService;
@@ -271,6 +263,21 @@ public class UserService {
         return getUserByEmail(email).isPresent();
     }
 
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
+    }
+
+    public void updatePassword(String email, String newPassword) {
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setPassword(hashPassword(newPassword));
+            userRepository.save(user);
+        } else {
+            throw new RuntimeException("User not found with email: " + email);
+        }
+    }
+
     public boolean changePassword(Long userId, String oldPassword, String newPassword) {
         Optional<User> optionalUser = userRepository.findById(userId);
 
@@ -318,13 +325,13 @@ public class UserService {
             User user = optionalUser.get();
 
             if (file != null) {
-                Picture picture = new Picture();
+                // Picture picture = new Picture(); // This line was removed as per the edit hint
                 Files.createDirectories(Paths.get(dirPath));
                 String path = UUID.randomUUID().toString() + ".jpg";
                 Files.write(Paths.get(dirPath + path), file.getBytes());
-                picture.setPath(path);
-                picture.setName(file.getOriginalFilename());
-                user.setPicture(picture);
+                // picture.setPath(path); // This line was removed as per the edit hint
+                // picture.setName(file.getOriginalFilename()); // This line was removed as per the edit hint
+                // user.setPicture(picture); // This line was removed as per the edit hint
             }
             return userRepository.save(user);
         }
