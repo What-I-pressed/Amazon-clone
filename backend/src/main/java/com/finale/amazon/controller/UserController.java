@@ -50,8 +50,7 @@ public class UserController {
                 userDto.getUsername(),
                 userDto.getName(),
                 userDto.getDescription(),
-                userDto.getPhone(),
-                file
+                userDto.getPhone()
         ); 
 
         return ResponseEntity.ok(new UserDto(updatedUser));
