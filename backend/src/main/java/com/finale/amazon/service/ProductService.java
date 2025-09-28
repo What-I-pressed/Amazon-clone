@@ -43,6 +43,8 @@ public class ProductService {
     @Autowired
     private CharacteristicTypeRepository characteristicTypeRepository;
     @Autowired
+    private CharacteristicService characteristicService;
+    @Autowired
     private UserRepository userRepository;
     @Autowired
     private PictureRepository pictureRepository;
@@ -60,6 +62,7 @@ public class ProductService {
 
     @Transactional
     public void updateAvgRating(Product product) {
+
         if (product == null) {
             return;
         }
