@@ -103,7 +103,7 @@ public class OrderController {
     @PutMapping("/status/ship")
     public ResponseEntity<?> ShipOrder(@RequestParam String token,@RequestParam Long orderId){
         if(jwtUtil.isTokenExpired(token)) return ResponseEntity.status(400).body("Token is expired");
-        if(jwtUtil.extractRole(token) != "ADMIN") return ResponseEntity.status(403).body("You are not authorized to change order status!");
+        if(!"ADMIN".equalsIgnoreCase(jwtUtil.extractRole(token))) return ResponseEntity.status(403).body("You are not authorized to change order status!");
         return ResponseEntity.ok(new OrderDto(orderService.updateOrderStatus(orderId, "SHIPPED")));
     }
 
@@ -111,7 +111,7 @@ public class OrderController {
     @PutMapping("/status/deliver")
     public ResponseEntity<?> DeliverOrder(@RequestParam String token,@RequestParam Long orderId){
         if(jwtUtil.isTokenExpired(token)) return ResponseEntity.status(400).body("Token is expired");
-        if(jwtUtil.extractRole(token) != "ADMIN") return ResponseEntity.status(403).body("You are not authorized to change order status!");
+        if(!"ADMIN".equalsIgnoreCase(jwtUtil.extractRole(token))) return ResponseEntity.status(403).body("You are not authorized to change order status!");
         return ResponseEntity.ok(new OrderDto(orderService.updateOrderStatus(orderId, "DELIVERED")));
     }
 
@@ -119,7 +119,9 @@ public class OrderController {
     @PutMapping("/status/cancel")
     public ResponseEntity<?> CancelOrder(@RequestParam String token,@RequestParam Long orderId){
         if(jwtUtil.isTokenExpired(token)) return ResponseEntity.status(400).body("Token is expired");
-        if(jwtUtil.extractRole(token) == "ADMIN") ResponseEntity.ok(new OrderDto(orderService.updateOrderStatus(orderId, "CANCELLED")));
+        if("ADMIN".equalsIgnoreCase(jwtUtil.extractRole(token))) {
+            return ResponseEntity.ok(new OrderDto(orderService.updateOrderStatus(orderId, "CANCELLED")));
+        }
         return ResponseEntity.ok(new OrderDto(orderService.updateOrderStatus(orderId, jwtUtil.extractUserId(token) , "CANCELLED")));
     }
 
@@ -127,26 +129,44 @@ public class OrderController {
     @GetMapping("/active")
     public ResponseEntity<?> getActiveOrders(@RequestParam String token) {
         if(jwtUtil.isTokenExpired(token)) return ResponseEntity.status(400).body("Token is expired");
-        List<Order> completedOrders = orderService.findByStatusNameInAndUserId(List.of(
-            "NEW", "PROCESSING", "SHIPPED"
-        ), jwtUtil.extractUserId(token));
+        String role = jwtUtil.extractRole(token);
 
-        return completedOrders.isEmpty()
-                ? ResponseEntity.noContent().build()
-                : ResponseEntity.ok(completedOrders);
+        List<Order> activeOrders;
+        if ("ADMIN".equalsIgnoreCase(role)) {
+            activeOrders = orderService.getOrdersByStatusNames(List.of("NEW", "PROCESSING", "SHIPPED"));
+        } else {
+            activeOrders = orderService.findByStatusNameInAndUserId(List.of(
+                "NEW", "PROCESSING", "SHIPPED"
+            ), jwtUtil.extractUserId(token));
+        }
+
+        if (activeOrders.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(activeOrders.stream().map(OrderDto::new).collect(Collectors.toList()));
     }
 
     @Operation(summary = "Отримати завершені замовлення (DELIVERED, CANCELLED)")
     @GetMapping("/completed")
     public ResponseEntity<?> getCompletedOrders(@RequestParam String token) {
         if(jwtUtil.isTokenExpired(token)) return ResponseEntity.status(400).body("Token is expired");
-        List<Order> completedOrders = orderService.findByStatusNameInAndUserId(List.of(
-            "DELIVERED", "CANCELLED"
-        ), jwtUtil.extractUserId(token));
+        String role = jwtUtil.extractRole(token);
 
-        return completedOrders.isEmpty()
-                ? ResponseEntity.noContent().build()
-                : ResponseEntity.ok(completedOrders);
+        List<Order> completedOrders;
+        if ("ADMIN".equalsIgnoreCase(role)) {
+            completedOrders = orderService.getOrdersByStatusNames(List.of("DELIVERED", "CANCELLED"));
+        } else {
+            completedOrders = orderService.findByStatusNameInAndUserId(List.of(
+                "DELIVERED", "CANCELLED"
+            ), jwtUtil.extractUserId(token));
+        }
+
+        if (completedOrders.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(completedOrders.stream().map(OrderDto::new).collect(Collectors.toList()));
     }
 
     @Operation(summary = "Підтвердити замовлення", description = "Змінює статус замовлення на CONFIRMED (для ADMIN або SELLER)")

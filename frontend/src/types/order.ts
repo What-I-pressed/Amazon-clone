@@ -19,10 +19,13 @@ export interface OrderItem {
 
 export interface Order {
     id: number;
-    buyerId: number;
+    userId?: number;
+    buyerId?: number;
     totalPrice: number;
     orderStatus: OrderStatus;
     orderDate: string;
+    arrivalDate?: string | null;
+    shipmentDate?: string | null;
     orderItems: OrderItem[];
     buyer?: {
         id: number;

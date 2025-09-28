@@ -114,27 +114,27 @@ export async function fetchActiveOrders(): Promise<Order[]> {
 // Order status update functions
 export async function setOrderStatusProcessing(orderId: number): Promise<void> {
     const token = getToken();
-    await api.put(`/orders/status/process`, { orderId }, { params: { token } });
+    await api.put(`/orders/status/process`, null, { params: { token, orderId } });
 }
 
 export async function setOrderStatusShipped(orderId: number): Promise<void> {
     const token = getToken();
-    await api.put(`/orders/status/ship`, { orderId }, { params: { token } });
+    await api.put(`/orders/status/ship`, null, { params: { token, orderId } });
 }
 
 export async function setOrderStatusDelivered(orderId: number): Promise<void> {
     const token = getToken();
-    await api.put(`/orders/status/deliver`, { orderId }, { params: { token } });
+    await api.put(`/orders/status/deliver`, null, { params: { token, orderId } });
 }
 
 export async function confirmOrder(orderId: number): Promise<void> {
     const token = getToken();
-    await api.put(`/orders/status/confirm`, { orderId }, { params: { token } });
+    await api.put(`/orders/status/confirm`, null, { params: { token, orderId } });
 }
 
 export async function cancelOrder(orderId: number): Promise<void> {
     const token = getToken();
-    await api.put(`/orders/status/cancel`, { orderId }, { params: { token } });
+    await api.put(`/orders/status/cancel`, null, { params: { token, orderId } });
 }
 
 export async function updateOrderAdmin(orderId: number, data: Partial<Order>): Promise<Order> {

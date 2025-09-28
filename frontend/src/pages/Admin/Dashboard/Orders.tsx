@@ -80,13 +80,13 @@ const AdminOrdersDashboard: React.FC = () => {
     let filtered = orders;
     
     if (searchTerm) {
-      filtered = orders.filter(
-        (order) =>
-          order.id.toString().includes(searchTerm) ||
-          order.buyer?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.buyer?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.buyer?.lastName?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const term = searchTerm.toLowerCase();
+      filtered = orders.filter((order) => {
+        const idMatches = order.id?.toString().includes(term);
+        const userIdMatches = order.userId?.toString().includes(term) || order.buyerId?.toString().includes(term);
+        const emailMatches = order.buyer?.email?.toLowerCase().includes(term);
+        return Boolean(idMatches || userIdMatches || emailMatches);
+      });
     }
 
     setFilteredOrders(filtered);
@@ -194,11 +194,8 @@ const AdminOrdersDashboard: React.FC = () => {
     }
   };
 
-  const getUserName = (order: Order) => {
-    if (order.buyer) {
-      return `${order.buyer.firstName} ${order.buyer.lastName}`;
-    }
-    return `User #${order.buyerId}`;
+  const getUserIdentifier = (order: Order) => {
+    return order.userId ?? order.buyer?.id ?? order.buyerId ?? "-";
   };
 
   const getItemsCount = (order: Order) => {
@@ -225,38 +222,9 @@ const AdminOrdersDashboard: React.FC = () => {
                   : "bg-gray-100 text-[#454545] hover:bg-[#e7e7e7]"
               }`}
             >
-              All Orders
+              Orders
             </button>
-            <button
-              onClick={() => setFilter("active")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                filter === "active"
-                  ? "bg-blue-100 text-blue-700 border border-blue-200"
-                  : "bg-gray-100 text-[#454545] hover:bg-[#e7e7e7]"
-              }`}
-            >
-              Active
-            </button>
-            <button
-              onClick={() => setFilter("completed")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                filter === "completed"
-                  ? "bg-blue-100 text-blue-700 border border-blue-200"
-                  : "bg-gray-100 text-[#454545] hover:bg-[#e7e7e7]"
-              }`}
-            >
-              Completed
-            </button>
-            <button
-              onClick={() => setFilter("seller")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                filter === "seller"
-                  ? "bg-blue-100 text-blue-700 border border-blue-200"
-                  : "bg-gray-100 text-[#454545] hover:bg-[#e7e7e7]"
-              }`}
-            >
-              Seller Orders
-            </button>
+            
           </div>
           
           <div className="w-full sm:w-auto">
@@ -333,7 +301,7 @@ const AdminOrdersDashboard: React.FC = () => {
                 {/* User */}
                 <div className="flex items-center">
                   <div className="text-sm">
-                    <div className="font-medium text-[#151515]">{getUserName(order)}</div>
+                    <div className="font-medium text-[#151515]">User ID: {getUserIdentifier(order)}</div>
                     {order.buyer?.email && (
                       <div className="text-[#838383] text-xs">{order.buyer.email}</div>
                     )}
@@ -477,8 +445,8 @@ const AdminOrdersDashboard: React.FC = () => {
                   <h4 className="text-sm font-medium text-[#838383] uppercase tracking-wide">Customer Information</h4>
                   <div className="mt-3 space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-sm text-[#585858]">Name:</span>
-                      <span className="text-sm font-medium">{getUserName(selectedOrder)}</span>
+                      <span className="text-sm text-[#585858]">User ID:</span>
+                      <span className="text-sm font-medium">{getUserIdentifier(selectedOrder)}</span>
                     </div>
                     {selectedOrder.buyer?.email && (
                       <div className="flex justify-between">
