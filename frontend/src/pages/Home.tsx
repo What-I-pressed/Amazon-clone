@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import ProductCard from './ProductCard';
 import { fetchProducts } from '../api/products';
@@ -72,9 +72,11 @@ const getCategoryImage = (categoryName: string, index: number) => {
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const heroRef = useRef<HTMLDivElement>(null);
   const featuredCollectionsRef = useRef<HTMLDivElement>(null);
   const popularSectionRef = useRef<HTMLDivElement>(null);
+  const supportSectionRef = useRef<HTMLDivElement>(null);
 
   const [popularProducts, setPopularProducts] = useState<Product[]>([]);
   const [popularLoading, setPopularLoading] = useState<boolean>(false);
@@ -260,6 +262,16 @@ const HomePage: React.FC = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (location.hash === '#support') {
+      const timer = window.setTimeout(() => {
+        scrollToRef(supportSectionRef);
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
+  }, [location.hash, scrollToRef]);
+
   const handleHeroSearch = useCallback(() => {
     const query = heroSearchTerm.trim();
     if (!query) return;
@@ -269,19 +281,11 @@ const HomePage: React.FC = () => {
   const navItems = useMemo(() => ([
     {
       label: 'All',
-      onClick: () => scrollToRef(heroRef),
-    },
-    {
-      label: 'Sell',
-      onClick: () => navigate('/seller/dashboard'),
+      onClick: () => navigate('/search'),
     },
     {
       label: 'Best Sellers',
       onClick: () => scrollToRef(popularSectionRef),
-    },
-    {
-      label: 'Customer Service',
-      onClick: () => navigate('/chat'),
     },
     {
       label: 'Electronics',
@@ -294,6 +298,10 @@ const HomePage: React.FC = () => {
     {
       label: 'New Releases',
       onClick: () => scrollToRef(featuredCollectionsRef),
+    },
+    {
+      label: 'About us',
+      onClick: () => scrollToRef(supportSectionRef),
     },
   ]), [navigate, scrollToRef]);
 
@@ -674,6 +682,56 @@ const featureCardBase = useMemo(
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Support Information Section */}
+      <div ref={supportSectionRef} className="w-full bg-[#f7f7f7] py-16">
+        <div className={`${styles.layout.container} px-8`}>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10" data-aos="fade-up">
+            <div>
+              <h2 className="text-3xl font-bold text-[#2a2a2a] mb-4">About Nexora Market</h2>
+              <p className="text-[#5a5a5a] leading-relaxed">
+                We are committed to providing a seamless shopping experience, curated collections, and
+                trusted sellers worldwide. Shop confidently knowing our team is here to support you from
+                discovery to delivery.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-2xl font-semibold text-[#2a2a2a] mb-4">FAQ</h3>
+              <ul className="space-y-3 text-[#5a5a5a]">
+                <li>
+                  <span className="font-medium text-[#2a2a2a]">How do I track my order?</span>
+                  <p>Visit your account dashboard to see live updates and estimated delivery timelines.</p>
+                </li>
+                <li>
+                  <span className="font-medium text-[#2a2a2a]">Do you offer international shipping?</span>
+                  <p>Yes, we ship to over 60 countries with transparent rates and customs support.</p>
+                </li>
+                <li>
+                  <span className="font-medium text-[#2a2a2a]">Can I contact support?</span>
+                  <p>Our support team is available 24/7 via chat and email to assist you.</p>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-2xl font-semibold text-[#2a2a2a] mb-4">Returns & Exchanges</h3>
+              <ul className="space-y-3 text-[#5a5a5a]">
+                <li>
+                  <span className="font-medium text-[#2a2a2a]">30-Day Guarantee</span>
+                  <p>Return eligible items within 30 days for a full refund.</p>
+                </li>
+                <li>
+                  <span className="font-medium text-[#2a2a2a]">Easy Exchanges</span>
+                  <p>Swap sizes or colors quickly with prepaid return labels.</p>
+                </li>
+                <li>
+                  <span className="font-medium text-[#2a2a2a]">Need help?</span>
+                  <p>Contact our returns team for guidance on resolving any order issues.</p>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
