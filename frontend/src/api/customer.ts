@@ -1,23 +1,33 @@
 import type { Customer } from "../types/customer";
 
-const API_BASE = "http://localhost:8080/api";
+const API_BASE = "/api";
 
-// helper для заголовків
-function getAuthHeaders() {
+function ensureToken(): string {
   const token = localStorage.getItem("token");
+  if (!token) {
+    throw new Error("Користувач не авторизований");
+  }
+  return token;
+}
+
+function jsonHeaders() {
   return {
     "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
+}
+
+export interface UpdateCustomerProfilePayload {
+  username: string;
+  name?: string;
+  description?: string;
+  phone?: string;
 }
 
 // отримання профілю покупця
 export async function fetchCustomerProfile(): Promise<Customer> {
   try {
-    const res = await fetch(`${API_BASE}/user/profile`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
+    const token = ensureToken();
+    const res = await fetch(`${API_BASE}/user/profile?token=${encodeURIComponent(token)}`);
     if (!res.ok) throw new Error("Не вдалося отримати профіль покупця");
     return res.json();
   } catch (e) {
@@ -27,11 +37,12 @@ export async function fetchCustomerProfile(): Promise<Customer> {
 }
 
 // оновлення профілю покупця
-export async function updateCustomerProfile(data: Partial<Customer>): Promise<Customer> {
+export async function updateCustomerProfile(data: UpdateCustomerProfilePayload): Promise<Customer> {
   try {
-    const res = await fetch(`${API_BASE}/user/profile`, {
+    const token = ensureToken();
+    const res = await fetch(`${API_BASE}/user/profile?token=${encodeURIComponent(token)}`, {
       method: "PUT",
-      headers: getAuthHeaders(),
+      headers: jsonHeaders(),
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error("Не вдалося оновити профіль покупця");

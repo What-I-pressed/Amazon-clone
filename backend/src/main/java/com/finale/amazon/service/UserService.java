@@ -294,8 +294,8 @@ public class UserService {
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
 
-            if (name != null) {
-                user.setUsername(name);
+            if (username != null) {
+                user.setUsername(username);
             }
             if (description != null) {
                 user.setDescription(description);

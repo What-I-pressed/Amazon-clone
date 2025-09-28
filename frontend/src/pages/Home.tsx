@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import ProductCard from './ProductCard';
@@ -10,35 +10,43 @@ import AOS from 'aos';
 const CATEGORY_IMAGE_MATCHES = [
   {
     keywords: ['elect', 'tech', 'device', 'gadget'],
-    url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    url: 'https://images.pexels.com/photos/1334597/pexels-photo-1334597.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
   {
     keywords: ['fashion', 'cloth', 'apparel', 'style'],
-    url: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    url: 'https://images.pexels.com/photos/934070/pexels-photo-934070.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
   {
     keywords: ['home', 'furn', 'decor', 'living'],
-    url: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    url: 'https://images.pexels.com/photos/1350789/pexels-photo-1350789.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
   {
     keywords: ['beaut', 'cosmetic', 'skincare', 'makeup'],
-    url: 'https://images.unsplash.com/photo-1526045478516-99145907023c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    url: 'https://images.pexels.com/photos/2536965/pexels-photo-2536965.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
   {
     keywords: ['sport', 'fitness', 'outdoor', 'athlet'],
-    url: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    url: 'https://images.pexels.com/photos/416778/pexels-photo-416778.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
   {
     keywords: ['toy', 'kid', 'baby', 'play'],
-    url: 'https://images.unsplash.com/photo-1511452885600-a2a6fcb7c1b9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    url: 'https://images.pexels.com/photos/1148998/pexels-photo-1148998.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
   {
     keywords: ['book', 'literature', 'read', 'novel'],
-    url: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    url: 'https://images.pexels.com/photos/1370295/pexels-photo-1370295.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
   {
     keywords: ['grocery', 'food', 'kitchen', 'culinary'],
-    url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    url: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=800',
+  },
+  {
+    keywords: ['health', 'wellness', 'medical', 'care'],
+    url: 'https://images.pexels.com/photos/263402/pexels-photo-263402.jpeg?auto=compress&cs=tinysrgb&w=800',
+  },
+  {
+    keywords: ['office', 'work', 'stationery', 'suppl'],
+    url: 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
 ];
 
@@ -65,6 +73,9 @@ const getCategoryImage = (categoryName: string, index: number) => {
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const carouselRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const featuredCollectionsRef = useRef<HTMLDivElement>(null);
+  const popularSectionRef = useRef<HTMLDivElement>(null);
   const [isScrolling, setIsScrolling] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -118,7 +129,7 @@ const HomePage: React.FC = () => {
     
     typography: {
       mainTitle: 'font-afacad text-7xl font-bold leading-tight',
-      subtitle: 'font-afacad text-4xl leading-tight -mt-2',
+      subtitle: 'font-afacad text-4xl leading-tight mt-2',
       sectionTitle: 'font-afacad text-4xl font-bold mb-3',
       categoryTitle: 'font-poppins font-semibold text-lg',
       cardTitle: 'text-white font-poppins',
@@ -129,9 +140,13 @@ const HomePage: React.FC = () => {
   };
 
   // Reusable component for navigation buttons
-  const NavButton: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <button className={`flex items-center justify-center h-12 px-4 rounded-md cursor-pointer ${styles.transitions.fast} ${styles.hover.navButton}`}>
-      <span className="text-white font-poppins text-base hover:text-gray-100">{children}</span>
+  const NavButton: React.FC<{ label: string; onClick: () => void }> = ({ label, onClick }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center justify-center h-12 px-4 rounded-md cursor-pointer ${styles.transitions.fast} ${styles.hover.navButton}`}
+    >
+      <span className="text-white font-poppins text-base hover:text-gray-100">{label}</span>
     </button>
   );
 
@@ -145,7 +160,7 @@ const HomePage: React.FC = () => {
     <button
       type="button"
       onClick={() => navigate(`/search?category=${encodeURIComponent(title)}`)}
-      className="group flex flex-col items-center space-y-3 transition-transform duration-200 mt-4 hover:-translate-y-1 hover:scale-[1.01]"
+      className="group flex flex-col items-center space-y-3 transition-transform duration-1000 mt-2 hover:-translate-y-0.5"
       data-aos="zoom-in"
       data-aos-duration="600"
       data-aos-delay={animationDelay}
@@ -178,7 +193,7 @@ const HomePage: React.FC = () => {
                   navigate(`/search?subcategory=${encodeURIComponent(item.name)}`);
                 }
               }}
-              className="text-center w-full transition duration-200 rounded-full px-3 py-1 hover:bg-gray-100/40 hover:text-gray-900"
+              className="text-center w-full transition duration-200 py-1 rounded-full hover:bg-gray-100/40 hover:text-gray-900"
               style={{ color: styles.colors.categorySubtext }}
             >
               {item.name}
@@ -238,8 +253,45 @@ const HomePage: React.FC = () => {
     );
   };
 
-  // Navigation items data
-  const navItems = ['All', 'Sell', 'Best Sellers', "Today's Deals", 'Customer Service', 'Electronics', 'Fashion', 'New Releases', 'Nexora Pay'];
+  const scrollToRef = useCallback((ref: React.RefObject<Element | null>) => {
+    const node = ref.current;
+    if (node && 'scrollIntoView' in node) {
+      (node as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, []);
+
+  const navItems = useMemo(() => ([
+    {
+      label: 'All',
+      onClick: () => scrollToRef(heroRef),
+    },
+    {
+      label: 'Sell',
+      onClick: () => navigate('/seller/dashboard'),
+    },
+    {
+      label: 'Best Sellers',
+      onClick: () => scrollToRef(popularSectionRef),
+    },
+    {
+      label: 'Customer Service',
+      onClick: () => navigate('/chat'),
+    },
+    {
+      label: 'Electronics',
+      onClick: () => navigate('/search?category=Electronics'),
+    },
+    {
+      label: 'Fashion',
+      onClick: () => navigate('/search?category=Clothing'),
+    },
+    {
+      label: 'New Releases',
+      onClick: () => scrollToRef(featuredCollectionsRef),
+    },
+  ]), [navigate, scrollToRef]);
 
   // Categories data
   const resolvedCategories = useMemo(() => {
@@ -291,54 +343,55 @@ const HomePage: React.FC = () => {
     };
   }, []);
 
-  // Featured cards data
-  const featureCardBase = useMemo(
-    () => [
-      {
-        imageUrl: 'https://images.unsplash.com/photo-1521335629791-ce4aec67dd47?auto=format&fit=crop&w=800&q=80',
-        fallbackTitle: 'Statement fashion picks',
-        className: 'lg:row-span-2 h-128',
-        titleSize: 'text-2xl'
-      },
-      {
-        imageUrl: 'https://images.unsplash.com/photo-1493666438817-866a91353ca9?auto=format&fit=crop&w=800&q=80',
-        fallbackTitle: 'Refresh your space'
-      },
-      {
-        imageUrl: 'https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?auto=format&fit=crop&w=800&q=80',
-        fallbackTitle: 'Tech that inspires'
-      },
-      {
-        imageUrl: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80',
-        fallbackTitle: 'Easy updates for elevated spaces',
-        className: 'lg:row-span-2 h-128',
-        titleSize: 'text-2xl'
-      },
-      {
-        imageUrl: 'https://images.unsplash.com/photo-1503454510643-66c5ca1e1e3d?auto=format&fit=crop&w=800&q=80',
-        fallbackTitle: 'Playtime essentials'
-      },
-      {
-        imageUrl: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80',
-        fallbackTitle: 'Travel-ready finds'
-      },
-      {
-        imageUrl: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80',
-        fallbackTitle: 'Beauty bestsellers',
-        className: 'lg:row-span-2 h-128',
-        titleSize: 'text-2xl'
-      },
-      {
-        imageUrl: 'https://images.unsplash.com/photo-1518544889280-48c8e8e01e15?auto=format&fit=crop&w=800&q=80',
-        fallbackTitle: 'Timeless accessories'
-      },
-      {
-        imageUrl: 'https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=800&q=80',
-        fallbackTitle: 'Top category deals'
-      }
-    ],
-    []
-  );
+ // Featured cards data
+const featureCardBase = useMemo(
+  () => [
+    {
+      imageUrl: 'https://images.pexels.com/photos/18105/pexels-photo.jpg?auto=compress&cs=tinysrgb&w=800',
+      fallbackTitle: 'electronics',
+      className: 'lg:row-span-2 h-128',
+      titleSize: 'text-2xl'
+    },
+    {
+      imageUrl: 'https://images.pexels.com/photos/374074/pexels-photo-374074.jpeg?auto=compress&cs=tinysrgb&w=800',
+      fallbackTitle: 'office supplies'
+    },
+    {
+      imageUrl: 'https://images.pexels.com/photos/271743/pexels-photo-271743.jpeg?auto=compress&cs=tinysrgb&w=800',
+      fallbackTitle: 'home and kitchen'
+    },
+    {
+      imageUrl: 'https://images.pexels.com/photos/2983464/pexels-photo-2983464.jpeg?auto=compress&cs=tinysrgb&w=800',
+      fallbackTitle: 'clothing',
+      className: 'lg:row-span-2 h-128',
+      titleSize: 'text-2xl'
+    },
+    {
+      imageUrl: 'https://images.pexels.com/photos/3764015/pexels-photo-3764015.jpeg?auto=compress&cs=tinysrgb&w=800',
+      fallbackTitle: 'beauty and personal care'
+    },
+    {
+      imageUrl: 'https://images.pexels.com/photos/3661353/pexels-photo-3661353.jpeg?auto=compress&cs=tinysrgb&w=800',
+      fallbackTitle: 'toys and games'
+    },
+    {
+      imageUrl: 'https://images.pexels.com/photos/40568/medical-appointment-doctor-healthcare-40568.jpeg?auto=compress&cs=tinysrgb&w=800',
+      fallbackTitle: 'health and wellness',
+      className: 'lg:row-span-2 h-128',
+      titleSize: 'text-2xl'
+    },
+    {
+      imageUrl: 'https://images.pexels.com/photos/46274/pexels-photo-46274.jpeg?auto=compress&cs=tinysrgb&w=800',
+      fallbackTitle: 'books'
+    },
+    {
+      imageUrl: 'https://images.pexels.com/photos/267761/pexels-photo-267761.jpeg?auto=compress&cs=tinysrgb&w=800',
+      fallbackTitle: 'sports & outdoors'
+    }
+  ],
+  []
+);
+
 
   const featuredCategoryCards = useMemo(() => {
     if (!categories.length) {
@@ -413,41 +466,6 @@ const HomePage: React.FC = () => {
       }, 300);
     }
   };
-
-  const featuredProducts = [
-    {
-      id: 101,
-      imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      title: 'Double Bed & Side Tables',
-      oldPrice: '$230.00',
-      price: '$200.00',
-      discountPercent: '-13%',
-    },
-    {
-      id: 102,
-      imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      title: 'Modern Sofa Set',
-      oldPrice: '$230.00',
-      price: '$200.00',
-      discountPercent: '-13%',
-    },
-    {
-      id: 103,
-      imageUrl: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      title: 'Smart Home Device',
-      oldPrice: '$230.00',
-      price: '$200.00',
-      discountPercent: '-13%',
-    },
-    {
-      id: 104,
-      imageUrl: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
-      title: 'Garden Tools Set',
-      oldPrice: '$230.00',
-      price: '$200.00',
-      discountPercent: '-13%',
-    },
-  ];
 
   const formatPrice = (price?: number | null) => {
     if (price === undefined || price === null) {
@@ -537,14 +555,14 @@ const HomePage: React.FC = () => {
         style={{ backgroundColor: styles.colors.primary }}
       >
         <div className="flex items-center gap-4 h-12">
-          {navItems.map((item) => (
-            <NavButton key={item}>{item}</NavButton>
+          {navItems.map(({ label, onClick }) => (
+            <NavButton key={label} label={label} onClick={onClick} />
           ))}
         </div>
       </div>
 
       {/* Hero Section */}
-      <div className="relative w-full px-8 py-20 flex flex-col items-center overflow-hidden">
+      <div ref={heroRef} className="relative w-full px-8 py-20 flex flex-col items-center overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center opacity-50"
           style={{ backgroundImage: "url('/images/background/mainpagebg.png')" }} 
@@ -591,16 +609,16 @@ const HomePage: React.FC = () => {
               </div>
             ) : categoriesLoading ? (
               Array.from({ length: 6 }).map((_, idx) => (
-                <div key={`category-skeleton-${idx}`} className="flex flex-col items-center space-y-4 animate-pulse">
+                <div key={`category-skeleton-${idx}`} className="flex flex-col items-center">
                   <div className="w-41 h-41 rounded-full bg-gray-100" />
-                  <div className="w-24 h-4 bg-gray-100 rounded" />
-                  <div className="w-16 h-3 bg-gray-100 rounded" />
-                  <div className="w-20 h-3 bg-gray-100 rounded" />
+                  <div className="w-21 h-4 bg-gray-100 rounded" />
+                  <div className="w-18 h-3 bg-gray-100 rounded" />
+                  <div className="w-12 h-3 bg-gray-100 rounded" />
                 </div>
               ))
             ) : resolvedCategories.length === 0 ? (
               Array.from({ length: 6 }).map((_, idx) => (
-                <div key={`category-skeleton-${idx}`} className="flex flex-col items-center space-y-4 animate-pulse">
+                <div key={`category-skeleton-${idx}`} className="flex flex-col items-center space-y-2">
                   <div className="w-41 h-41 rounded-full bg-gray-100" />
                   <div className="w-24 h-4 bg-gray-100 rounded" />
                   <div className="w-16 h-3 bg-gray-100 rounded" />
@@ -609,7 +627,7 @@ const HomePage: React.FC = () => {
               ))
             ) : (
               resolvedCategories.map((category, idx) => (
-                <CategoryCard key={`${category.title}-${idx}`} {...category} animationDelay={idx * 40} />
+                <CategoryCard key={`${category.title}-${idx}`} {...category} animationDelay={idx * 100} />
               ))
             )}
           </div>
@@ -617,9 +635,9 @@ const HomePage: React.FC = () => {
       </div>
 
       {/* Featured Collections Section */}
-      <div className={styles.layout.sectionLarge}>
+      <div ref={featuredCollectionsRef} className={`${styles.layout.sectionLarge}`}>
         <div className={styles.layout.container}>
-          <div className="text-center mb-12 max-w-2xl mx-auto" data-aos="fade-up">
+          <div className="text-center mb-18 max-w-2xl mx-auto" data-aos="fade-up">
             <h2 className={styles.typography.sectionTitle} style={{ color: styles.colors.mediumGray }}>
               View Our Range Of Categories
             </h2>
@@ -632,55 +650,29 @@ const HomePage: React.FC = () => {
           <div className="grid lg:grid-cols-3 gap-8 mb-8">
             <FeatureCard {...featuredCardsGrid1[0]} animationDelay={0} />
             <div className="space-y-8">
-              <FeatureCard {...featuredCardsGrid1[1]} animationDelay={60} />
+              <FeatureCard {...featuredCardsGrid1[1]} animationDelay={100} />
               <FeatureCard {...featuredCardsGrid1[2]} animationDelay={120} />
             </div>
-            <FeatureCard {...featuredCardsGrid1[3]} animationDelay={90} />
+            <FeatureCard {...featuredCardsGrid1[3]} animationDelay={10} />
           </div>
 
           {/* Featured Cards Grid 2 */}
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="space-y-8">
               <FeatureCard {...featuredCardsGrid2[0]} animationDelay={0} />
-              <FeatureCard {...featuredCardsGrid2[1]} animationDelay={80} />
+              <FeatureCard {...featuredCardsGrid2[1]} animationDelay={100} />
             </div>
             <FeatureCard {...featuredCardsGrid2[2]} animationDelay={140} />
             <div className="space-y-8">
-              <FeatureCard {...featuredCardsGrid2[3]} animationDelay={60} />
+              <FeatureCard {...featuredCardsGrid2[3]} animationDelay={100} />
               <FeatureCard {...featuredCardsGrid2[4]} animationDelay={160} />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Featured Products Section */}
-      <div className={styles.layout.sectionLarge}>
-        <div className={styles.layout.container}>
-          <div className="flex flex-col lg:flex-row lg:items-start gap-8 mb-12" data-aos="fade-up">
-            <div className="lg:w-1/3">
-              <h2 className="text-4xl font-bold mb-4 text-center lg:text-left" style={{ color: styles.colors.mediumGray }}>
-                Featured Products
-              </h2>
-            </div>
-            <div className="lg:w-2/3">
-              <p className="text-base leading-relaxed text-center lg:text-left" style={{ color: styles.colors.textSecondary }}>
-                Discover our hand-picked selection of best-selling items designed to make your life easier and more stylish. From innovative gadgets to everyday essentials, our featured products combine quality, functionality, and great value.
-              </p>
-            </div>
-          </div>
-
-          <div className="-mx-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 px-">
-            {featuredProducts.map((p, idx) => (
-              <div key={`featured-${idx}`} data-aos="fade-up" data-aos-delay={idx * 60}>
-                <ProductCard {...p} variant="grid" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* Call to Action Section */}
-      <div className="w-full py-60 relative overflow-hidden" data-aos="fade-up">
+      <div className="w-full py-60 relative overflow-hidden mt-16" data-aos="fade-up">
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{ 
@@ -696,7 +688,9 @@ const HomePage: React.FC = () => {
                 Have a Look at Our Unique Selling Propositions
               </h2>
               <div className="flex items-center gap-3">
-                <button className={`bg-[#282828] text-white font-semibold px-6 py-4 rounded-full flex items-center gap-3 ${styles.transitions.normal}`}
+                <button
+                  className={`bg-[#282828] text-white font-semibold px-6 py-4 rounded-full flex items-center gap-3 ${styles.transitions.normal}`}
+                  onClick={() => scrollToRef(featuredCollectionsRef)}
                         style={{ backgroundColor: '#282828' }}
                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = styles.colors.buttonHover}
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#282828'}>
@@ -734,7 +728,7 @@ const HomePage: React.FC = () => {
       </div>
 
       {/* Popular Products Carousel Section */}
-      <div className="w-full py-16 bg-white">
+      <div ref={popularSectionRef} className="w-full py-16 bg-white">
         <div className={`${styles.layout.container} px-8`}>
           <div className="flex items-center justify-between mb-12" data-aos="fade-up">
             <div>
@@ -796,7 +790,7 @@ const HomePage: React.FC = () => {
                         className="carousel-item transform transition-all duration-500"
                         style={{ animationDelay: `${idx * 0.1}s` }}
                         data-aos="fade-up"
-                        data-aos-delay={idx * 80}
+                        data-aos-delay={idx * 100}
                       >
                         <ProductCard {...cardProps} variant="carousel" />
                       </div>
