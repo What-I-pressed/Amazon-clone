@@ -38,26 +38,6 @@ public class PictureController {
         return ResponseEntity.ok("Picture was successfully loaded");
     }
 
-    @Operation(summary = "Завантажити аватар продавця", description = "Завантажує аватар для певного продавця")
-    @PostMapping(value = "/upload/seller/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> uploadSellerAvatar(
-            @Parameter(description = "Файл зображення") @RequestPart("file") MultipartFile file,
-            @Parameter(description = "ID продавця") @RequestParam("SellerId") Long sellerId) throws IOException {
-
-        String avatarPath = pictureService.saveSellerAvatar(file, sellerId);
-        return ResponseEntity.ok(avatarPath);
-    }
-
-    @Operation(summary = "Завантажити аватар користувача", description = "Завантажує аватар для певного користувача")
-    @PostMapping(value = "/upload/user/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> uploadUserAvatar(
-            @Parameter(description = "Файл зображення") @RequestPart("file") MultipartFile file,
-            @Parameter(description = "ID користувача") @RequestParam("UserId") Long userId) throws IOException {
-
-        String avatarPath = pictureService.saveUserAvatar(file, userId);
-        return ResponseEntity.ok(avatarPath);
-    }
-
     // @GetMapping("/{id}")
     // public ResponseEntity<PictureDto> getPicture(@PathVariable Long id) {
     //     return pictureService.getPicture(id)
