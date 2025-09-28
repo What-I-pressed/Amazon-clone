@@ -7,11 +7,25 @@ const api = axios.create({
   baseURL: API_URL,
 });
 
+// Paths that MUST NOT include Authorization header
+const PUBLIC_PATHS = new Set([
+  "/login",
+  "/register/user",
+  "/register/seller",
+  "/send-verification-email",
+  "/verification-status",
+  "/verify", // verification link handler
+]);
+
 api.interceptors.request.use((config) => {
-  const token = getToken();
-  if (token) {
-    console.log("Adding token to request:", token);
-    config.headers.Authorization = `Bearer ${token}`;
+  const urlPath = (config.url || "").replace(API_URL, "");
+  const isPublic = Array.from(PUBLIC_PATHS).some((p) => urlPath.startsWith(p));
+  if (!isPublic) {
+    const token = getToken();
+    if (token) {
+      config.headers = config.headers || {};
+      (config.headers as any).Authorization = `Bearer ${token}`;
+    }
   }
   return config;
 });

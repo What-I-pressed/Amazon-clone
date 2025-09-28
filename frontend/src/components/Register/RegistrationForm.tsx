@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import { register } from "../../services/authService";
+import { register, sendVerificationEmail } from "../../services/authService";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
@@ -22,7 +22,7 @@ const RegistrationForm: React.FC = () => {
 
   const auth = useContext(AuthContext);
   if (!auth) throw new Error("RegistrationForm must be used within AuthProvider");
-  const { loginUser } = auth;
+  const { loginUser } = auth; // retained for future use if needed
 
   const navigate = useNavigate();
 
@@ -44,7 +44,7 @@ const RegistrationForm: React.FC = () => {
     }
 
     try {
-      const res = await register({
+      await register({
         role: registerAsSeller ? "SELLER" : "CUSTOMER",
         username: formData.username || formData.email.split("@")[0],
         name: formData.fullName,
@@ -52,9 +52,12 @@ const RegistrationForm: React.FC = () => {
         password: formData.password,
         phone: formData.phone || undefined,
       });
-      const token: string = res.data; // backend returns raw token string
-      await loginUser(token);
-      navigate("/");
+      // Immediately send verification email and redirect to verify page
+      await sendVerificationEmail(formData.email);
+      // Store creds for auto-login after verification (ephemeral)
+      sessionStorage.setItem("verify_email", formData.email);
+      sessionStorage.setItem("verify_password", formData.password);
+      navigate(`/verify-pending?email=${encodeURIComponent(formData.email)}`);
     } catch (err: any) {
       setError(err.response?.data || err.message || "Registration failed");
     }
