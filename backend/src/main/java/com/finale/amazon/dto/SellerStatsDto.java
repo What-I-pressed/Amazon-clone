@@ -18,5 +18,4 @@ public class SellerStatsDto {
     private long completedOrders;
     private long cancelledOrders;
     private List<ReviewDto> buyersReviews;
-    private double avgFeedback;
 }
