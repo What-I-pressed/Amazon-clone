@@ -248,11 +248,6 @@ const SearchResults: React.FC = () => {
     setApplyKey((k) => k + 1);
   }, [pendingFilters]);
 
-
-  const searchTerm = query.get('query') || '';
-  const subcategoryIdStr = query.get('subcategoryId');
-  const subcategoryId = subcategoryIdStr ? Number(subcategoryIdStr) : undefined;
-  const categoryName = query.get('category') || '';
   const activeCategoryId = useMemo(() => {
     if (!categoryName) return undefined;
     const match = categoryBreakdown.find((e) => e.category === categoryName);
