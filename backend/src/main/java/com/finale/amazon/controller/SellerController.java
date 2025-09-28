@@ -62,7 +62,9 @@ public class SellerController {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not a seller");
                 }
 
-                return ResponseEntity.ok(new UserDto(seller));
+                UserDto response = new UserDto(seller);
+                response.setStats(sellerService.getSellerStats(seller));
+                return ResponseEntity.ok(response);
         }
 
         @Operation(summary = "Отримати статистику продавця", description = "Повертає статистику продажів і продуктів поточного продавця")
@@ -111,7 +113,24 @@ public class SellerController {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not a seller");
                 }
 
-                return ResponseEntity.ok(new UserDto(seller));
+                UserDto response = new UserDto(seller);
+                response.setStats(sellerService.getSellerStats(seller));
+                return ResponseEntity.ok(response);
+        }
+
+        @Operation(summary = "Публічна статистика продавця", description = "Повертає статистику продавця за slug без авторизації")
+        @GetMapping("/{slug:[a-zA-Z0-9]{4,8}}/stats")
+        public ResponseEntity<SellerStatsDto> getPublicSellerStatsBySlug(
+                        @Parameter(description = "Slug продавця") @PathVariable String slug) {
+                User seller = userService.getUserBySlug(slug)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Seller not found"));
+
+                if (seller.getRole() == null || !"SELLER".equalsIgnoreCase(seller.getRole().getName())) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is not a seller");
+                }
+
+                return ResponseEntity.ok(sellerService.getSellerStats(seller));
         }
 
         @Operation(summary = "Оновити профіль продавця", description = "Оновлює дані профілю продавця")

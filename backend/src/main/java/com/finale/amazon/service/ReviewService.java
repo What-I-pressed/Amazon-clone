@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.finale.amazon.repository.ReviewRepository;
-import com.finale.amazon.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -56,10 +55,9 @@ public class ReviewService {
         review.setUser(user);
         review.setProduct(product);
         review.setParent(null);
+        Review saved = reviewRepository.save(review);
         productService.updateAvgRating(product);
-        
-
-        return reviewRepository.save(review);
+        return saved;
     }
 
     public Review replyReview(User user, ReviewReplyDto dto) {
@@ -69,6 +67,13 @@ public class ReviewService {
         // Check if this is a reply to a reply (nested replies are not allowed)
         if (parent.getParent() != null) {
             throw new RuntimeException("Cannot reply to a reply. Please reply to the main review instead.");
+        }
+
+        if (user != null && user.getRole() != null && "SELLER".equalsIgnoreCase(user.getRole().getName())) {
+            Product parentProduct = parent.getProduct();
+            if (parentProduct == null || parentProduct.getSeller() == null || parentProduct.getSeller().getId() != user.getId()) {
+                throw new RuntimeException("Sellers can only reply to reviews on their own products");
+            }
         }
 
         Review reply = new Review();
@@ -81,7 +86,7 @@ public class ReviewService {
 
         // Save the reply
         Review savedReply = reviewRepository.save(reply);
-        
+
         // Update the parent's replies list
         if (parent.getReplies() == null) {
             parent.setReplies(new ArrayList<>());

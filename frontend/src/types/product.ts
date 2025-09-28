@@ -16,6 +16,7 @@ export type Product = {
   views: number;
   sold: number;
   rating?: number;       // optional
+  avgRating?: number;
   slug: string;          // добавляем slug для посилань
   sellerSlug: string;
   reviewCount?: number;  // add reviewCount as optional

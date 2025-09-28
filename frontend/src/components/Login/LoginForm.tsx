@@ -1,12 +1,14 @@
-  import React, { useState, useContext } from "react";
-  import { login } from "../../services/authService";
-  import { AuthContext } from "../../context/AuthContext";
-  import { useNavigate, Link } from "react-router-dom";
+import React, { useState, useContext } from "react";
+import { login } from "../../services/authService";
+import { AuthContext } from "../../context/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 
   const LoginForm: React.FC = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     const auth = useContext(AuthContext);
     if (!auth) throw new Error("LoginForm must be used within AuthProvider");
@@ -39,8 +41,8 @@
     };
 
     return (
-      <div className="min-h-screen w-full flex items-start justify-center bg-white pt-50">
-        <div className="flex w-2/3 h-[70%] bg-white rounded-lg overflow-hidden transition-transform duration-1000 hover:scale-[1.01] border border-gray-300">
+      <div className="min-h-screen w-full flex items-start justify-center bg-white pt-24">
+        <div className="flex w-2/3 h-[70%] bg-white rounded-lg overflow-hidden border border-gray-300">
           {/* Left Panel - Image */}
           <div className="w-1/2 hidden md:block">
             <img
@@ -93,14 +95,24 @@
                   <label className="block text-base font-medium text-gray-700 mb-2">
                     Password
                   </label>
-                  <input
-                    type="password"
-                    placeholder="Enter your password"
-                    className="w-full h-[60px] px-5 border border-[#dedfe1] rounded-[60px] bg-white text-gray-700 placeholder-[#939393] focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent transition-all duration-200"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      className="w-full h-[60px] pr-14 pl-5 border border-[#dedfe1] rounded-[60px] bg-white text-gray-700 placeholder-[#939393] focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent transition-all duration-200"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute inset-y-0 right-4 flex items-center text-gray-500 hover:text-gray-700"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
                 </div>
                 <button
                   type="submit"

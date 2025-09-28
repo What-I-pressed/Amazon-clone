@@ -1,18 +1,18 @@
 package com.finale.amazon.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class SellerStatsDto {
-    private long totalOrders;
-    private long activeOrders;
-    private long completedOrders;
-    private long cancelledOrders;
-    private double totalRevenue;
-    private long buyersReviews;
-    private double avgFeedback;
+    private Long totalOrders;
+    private Long activeOrders;
+    private Long completedOrders;
+    private Long cancelledOrders;
+    private Double totalRevenue;
+    private Double avgFeedback;
+    private Long reviewsCount;
 }
