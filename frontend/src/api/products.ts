@@ -90,6 +90,8 @@ export async function fetchProductById(id: number): Promise<Product | null> {
   return null;
 }
 
+export type CharacteristicInput = { characteristic: string; value: string };
+
 // Create product for a seller using backend endpoint: POST /api/products/create/{sellerId}
 export interface ProductCreationPayload {
   name: string;
@@ -102,7 +104,7 @@ export interface ProductCreationPayload {
   characteristicTypeName?: string;
   discountLaunchDate?: string; // ISO string
   discountExpirationDate?: string; // ISO string
-  characteristics?: any[]; // optional
+  characteristics?: CharacteristicInput[]; // optional
   variations?: any[]; // optional
 }
 

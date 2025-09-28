@@ -5,6 +5,11 @@ export type Picture = {
   pictureType: string;
 };
 
+export type Characteristic = {
+  characteristic: string;
+  value: string;
+};
+
 export type Product = {
   id: number;
   name: string;
@@ -34,4 +39,5 @@ export type Product = {
   characteristicType?: string;
   sellerName?: string;
   sellerId?: number;
+  characteristics?: Characteristic[];
 };

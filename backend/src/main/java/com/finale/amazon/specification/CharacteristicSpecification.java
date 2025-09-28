@@ -11,6 +11,8 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+
 public class CharacteristicSpecification {
     public static Specification<CharacteristicValue> belongToSubcategory(Long subcategoryId){
         return (root, query, cb) -> {
@@ -20,16 +22,13 @@ public class CharacteristicSpecification {
             Join<CharacteristicValue, Product> prods = root.join("product", JoinType.INNER);
             Join<Product, Subcategory> subs = prods.join("subcategory", JoinType.INNER);
 
-            //query.groupBy(root.get("characteristicType").get("id"));
-            
-
             return cb.equal(subs.get("id"), subcategoryId);
         };
     }
 
     public static Specification<CharacteristicValue> hasProductName(String name) {
         return (root, query, cb) -> cb.like(
-            root.join("product").get("name"), "%" + name.toLowerCase() + "%"
+            cb.lower(root.join("product").get("name")), "%" + name.toLowerCase() + "%"
         );
     }
 
