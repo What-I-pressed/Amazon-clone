@@ -38,6 +38,18 @@ public class PictureService {
     private final String dirPath = "uploads/pictures/";
     private final String avatarDirPath = "uploads/avatars/";
 
+    public String saveUserPicture(MultipartFile file) throws IOException {
+        Picture picture = new Picture();
+        picture.setPictureType(pictureTypeRepository.findByName("PRIMARY"));
+        Files.createDirectories(Paths.get(dirPath));
+        String path = UUID.randomUUID().toString() + ".jpg";
+        Files.write(Paths.get(dirPath + path), file.getBytes());
+        picture.setPath(path);
+        picture.setName(file.getOriginalFilename());
+        Picture saved = pictureRepository.save(picture);
+        return saved.getPath();
+    }
+
     public PictureDto savePicture(MultipartFile file, Long productId) throws IOException {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product with this id was not found"));

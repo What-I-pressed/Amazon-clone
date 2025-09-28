@@ -51,6 +51,12 @@ export default function EditAdForm({ product, onSuccess, onCancel }: EditAdFormP
   const [categoryMap, setCategoryMap] = useState<Record<string, SubcategoryOption[]>>({});
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const [characteristics, setCharacteristics] = useState<
+    { characteristic: string; value: string }[]
+  >([]);
+  const [newCharName, setNewCharName] = useState<string>("");
+  const [newCharValue, setNewCharValue] = useState<string>("");
+
   const previews = useMemo(
     () =>
       files.map((file) => ({
@@ -120,6 +126,7 @@ export default function EditAdForm({ product, onSuccess, onCancel }: EditAdFormP
         ? product.discountExpirationDate.split("T")[0]
         : ""
     );
+    setCharacteristics(product.characteristics ?? []);
     setFiles([]);
     setMessages([]);
     setSuccessMessage(null);
@@ -247,6 +254,12 @@ export default function EditAdForm({ product, onSuccess, onCancel }: EditAdFormP
         discountExpirationDate: discountExpirationDate
           ? new Date(discountExpirationDate).toISOString()
           : undefined,
+        characteristics: characteristics
+          .map((c) => ({
+            characteristic: c.characteristic.trim(),
+            value: c.value.trim(),
+          }))
+          .filter((c) => c.characteristic.length > 0 && c.value.length > 0),
       };
 
       const updatedProduct = await updateProduct(Number(product.id), payload);
@@ -621,6 +634,87 @@ export default function EditAdForm({ product, onSuccess, onCancel }: EditAdFormP
                 className="w-full bg-[#F8F8F8] border border-[#DFDFDF] rounded-3xl px-7 py-5 text-base text-gray-700 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-0 focus:border-[#DFDFDF] hover:bg-white focus:bg-white min-h-[160px]"
               />
             </label>
+          </div>
+        </section>
+
+        {/* Characteristics section */}
+        <section className="space-y-6 rounded-3xl border border-[#E4E4E7] bg-white p-8">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">Characteristics</h2>
+            <p className="text-base text-gray-500 mt-1">
+              Додайте власні характеристики товару (наприклад: Color, Material, Size).
+            </p>
+          </div>
+
+          {/* Existing characteristics list */}
+          {characteristics.length > 0 && (
+            <ul className="space-y-2">
+              {characteristics.map((c, idx) => (
+                <li
+                  key={`${c.characteristic}-${idx}`}
+                  className="flex items-center gap-3 justify-between rounded-2xl bg-[#F8F8F8] border border-[#DFDFDF] px-5 py-3"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-700 truncate">
+                      <span className="font-medium">{c.characteristic}</span>: {c.value}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-sm font-medium text-gray-500 hover:text-red-600"
+                    onClick={() =>
+                      setCharacteristics((prev) => prev.filter((_, i) => i !== idx))
+                    }
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Add new characteristic */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="md:col-span-1">
+              <label className="block text-sm text-gray-600 mb-2">Name</label>
+              <input
+                value={newCharName}
+                onChange={(e) => setNewCharName(e.target.value)}
+                placeholder="e.g., Color"
+                className={inputBaseClass}
+              />
+            </div>
+            <div className="md:col-span-1">
+              <label className="block text-sm text-gray-600 mb-2">Value</label>
+              <input
+                value={newCharValue}
+                onChange={(e) => setNewCharValue(e.target.value)}
+                placeholder="e.g., Red"
+                className={inputBaseClass}
+              />
+            </div>
+            <div className="md:col-span-1 flex items-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const name = newCharName.trim();
+                  const value = newCharValue.trim();
+                  if (!name || !value) return;
+                  setCharacteristics((prev) => {
+                    // Avoid exact duplicates
+                    if (prev.some((c) => c.characteristic === name && c.value === value)) {
+                      return prev;
+                    }
+                    return [...prev, { characteristic: name, value }];
+                  });
+                  setNewCharName("");
+                  setNewCharValue("");
+                }}
+              >
+                Add characteristic
+              </Button>
+            </div>
           </div>
         </section>
       </div>
