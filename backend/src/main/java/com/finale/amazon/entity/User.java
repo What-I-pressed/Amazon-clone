@@ -77,4 +77,7 @@ public class User {
     @Column(length = 256, unique = true)
     private String slug;
 
+    @Column(length = 512)
+    private String url;
+
 }

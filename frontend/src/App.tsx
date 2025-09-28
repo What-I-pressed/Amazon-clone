@@ -40,9 +40,9 @@ import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import ProfilePage from "./pages/ProfilePage";
 import ChatPage from "./pages/ChatPage";
-import SearchResults from "./pages/SearchResults";
 import FavouritesPage from "./pages/FavouritesPage";
 import OrdersPage from "./pages/OrdersPage";
+import SearchResults from "./pages/SearchResults";
 
 // Seller
 import SellerProfile from "./pages/Seller/Profile";
@@ -51,6 +51,7 @@ import SellerEditProfile from "./pages/Seller/Edit";
 import SellerOrdersPage from "./pages/Seller/Orders";
 import CreateProductPage from "./pages/Seller/CreateProduct";
 import UploadProductPictures from "./pages/Seller/UploadProductPictures";
+import EditProductPage from "./pages/Seller/EditProduct";
 
 // Customer
 import CustomerDashboard from "./pages/Customer/Dashboard";
@@ -82,36 +83,38 @@ export default function App() {
     <Router>
       <ScrollToTop />
       <Routes>
-
         {/* з лейаутом */}
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/catalog" element={<CatalogPage />} />
           <Route path="/product/:slug" element={<ProductPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/search" element={<SearchResults />} />
+          <Route path="/favourites" element={<FavouritesPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/register" element={<RegistrationForm />} />
+          <Route path="/verify-pending" element={<VerifyPending />} />
+          <Route path="/oauth2/success" element={<OAuth2Success />} />
+
           <Route path="seller">
             <Route path=":slug" element={<SellerProfile />} />
             <Route path="dashboard" element={<SellerDashboard />} />
             <Route path="edit" element={<SellerEditProfile />} />
             <Route path="orders" element={<SellerOrdersPage />} />
             <Route path="products/create" element={<CreateProductPage />} />
+            <Route path="products/:id/edit" element={<EditProductPage />} />
+            <Route path="products/slug/:slug/edit" element={<EditProductPage />} />
             <Route path="products/:id/pictures" element={<UploadProductPictures />} />
           </Route>
+
           <Route path="customer">
             <Route path="dashboard" element={<CustomerDashboard />} />
             <Route path="edit" element={<CustomerEditProfile />} />
           </Route>
-
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/favourites" element={<FavouritesPage />} />
-          <Route path="/orders" element={<OrdersPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/chat" element={<ChatPage />} />
-          <Route path="/search" element={<SearchResults />} />
-        <Route path="/login" element={<LoginForm />} />
-        <Route path="/register" element={<RegistrationForm />} />
-        <Route path="/verify-pending" element={<VerifyPending />} />
-        <Route path="/oauth2/success" element={<OAuth2Success />} />
         </Route>
 
         {/* Адмінка (з лейаутом) */}
@@ -131,10 +134,9 @@ export default function App() {
           <Route path="line-chart" element={<LineChart />} />
           <Route path="bar-chart" element={<BarChart />} />
         </Route>
-        
+
         {/* Інші */}
         <Route path="*" element={<NotFound />} />
-
       </Routes>
     </Router>
   );

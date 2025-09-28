@@ -4,9 +4,11 @@ import com.finale.amazon.dto.PictureDto;
 import com.finale.amazon.entity.Picture;
 import com.finale.amazon.entity.PictureType;
 import com.finale.amazon.entity.Product;
+import com.finale.amazon.entity.User;
 import com.finale.amazon.repository.PictureRepository;
 import com.finale.amazon.repository.PictureTypeRepository;
 import com.finale.amazon.repository.ProductRepository;
+import com.finale.amazon.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,7 +32,11 @@ public class PictureService {
 
     @Autowired
     private PictureTypeRepository pictureTypeRepository;
+    @Autowired
+    private UserRepository userRepository;
+    
     private final String dirPath = "uploads/pictures/";
+    private final String avatarDirPath = "uploads/avatars/";
 
     public PictureDto savePicture(MultipartFile file, Long productId) throws IOException {
         Product product = productRepository.findById(productId)
@@ -78,6 +84,39 @@ public class PictureService {
     public Optional<PictureDto> getPicture(Long id) {
         return pictureRepository.findById(id)
                 .map(p -> new PictureDto(p));
+    }
+
+    public String saveSellerAvatar(MultipartFile file, Long sellerId) throws IOException {
+        // Verify seller exists by checking if user with sellerId exists
+        User seller = userRepository.findById(sellerId)
+                .orElseThrow(() -> new RuntimeException("Seller with this id was not found"));
+        
+        Files.createDirectories(Paths.get(avatarDirPath));
+        String fileName = "seller_" + sellerId + "_" + UUID.randomUUID().toString() + ".jpg";
+        String filePath = avatarDirPath + fileName;
+        Files.write(Paths.get(filePath), file.getBytes());
+        
+        // Update seller's avatar URL in database
+        seller.setUrl(fileName);
+        userRepository.save(seller);
+        
+        return fileName;
+    }
+
+    public String saveUserAvatar(MultipartFile file, Long userId) throws IOException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User with this id was not found"));
+        
+        Files.createDirectories(Paths.get(avatarDirPath));
+        String fileName = "user_" + userId + "_" + UUID.randomUUID().toString() + ".jpg";
+        String filePath = avatarDirPath + fileName;
+        Files.write(Paths.get(filePath), file.getBytes());
+        
+        // Update user's avatar URL in database
+        user.setUrl(fileName);
+        userRepository.save(user);
+        
+        return fileName;
     }
 
     // public List<byte[]> getPicturesByProduct(Long productId){

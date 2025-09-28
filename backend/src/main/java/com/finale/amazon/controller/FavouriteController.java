@@ -44,6 +44,14 @@ public class FavouriteController {
         description = "Returns the id of the created favourite item"
     )
     public ResponseEntity<?> add(@RequestParam String token, @RequestParam Long productId){
+        if (jwtUtil.isTokenExpired(token)) {
+            return ResponseEntity.status(400).body("Token is expired");
+        }
+
+        if ("SELLER".equalsIgnoreCase(jwtUtil.extractRole(token))) {
+            return ResponseEntity.status(403).body("Sellers are not allowed to add favourites");
+        }
+
         return ResponseEntity.ok(favouriteService.Add(jwtUtil.extractUserId(token), productId));
     }
 

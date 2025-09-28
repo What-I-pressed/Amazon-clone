@@ -44,6 +44,9 @@ public class ReviewController {
             return ResponseEntity.status(400).body("Token is expired");
 
         User user = userService.getUserById(jwtUtil.extractUserId(token));
+        if (user != null && user.getRole() != null && "SELLER".equalsIgnoreCase(user.getRole().getName())) {
+            return ResponseEntity.status(403).body("Sellers are not allowed to create product reviews");
+        }
         Review review = reviewService.createReview(user, dto);
         return ResponseEntity.ok(new ReviewDto(review));
     }

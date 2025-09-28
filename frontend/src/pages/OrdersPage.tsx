@@ -1,13 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { fetchUserOrders } from "../api/orders";
 import { fetchProductById } from "../api/products";
+import { AuthContext } from "../context/AuthContext";
 
 const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const auth = useContext(AuthContext);
+  if (!auth) throw new Error("OrdersPage must be used within AuthProvider");
 
   useEffect(() => {
+    if (auth.loading) return;
+    if (!auth.isAuthenticated) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
     const load = async () => {
       try {
         setLoading(true);
@@ -20,13 +31,13 @@ const OrdersPage: React.FC = () => {
         setLoading(false);
       }
     };
-    load();
-  }, []);
+
+    if (auth.isAuthenticated) load();
+  }, [auth.loading, auth.isAuthenticated, navigate]);
 
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [productMap, setProductMap] = useState<Record<number, any>>({});
-
   const openDetails = (order: any) => {
     setSelectedOrder(order);
     setDetailsOpen(true);
@@ -113,9 +124,6 @@ const OrdersPage: React.FC = () => {
           {/* Table Body */}
           <div className="divide-y divide-gray-200">
             {orders.map((order: any) => {
-              const firstItem = Array.isArray(order.orderItems) && order.orderItems.length > 0 ? order.orderItems[0] : null;
-              const itemsCount = Array.isArray(order.orderItems) ? order.orderItems.length : 0;
-              
               return (
                 <div
                   key={order.id}

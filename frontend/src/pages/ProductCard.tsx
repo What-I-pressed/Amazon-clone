@@ -57,6 +57,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const navigate = useNavigate();
   const auth = useContext(AuthContext);
+  if (!auth) {
+    throw new Error("ProductCard must be used within AuthProvider");
+  }
+
   const [liked, setLiked] = useState(false);
   const [loadingFav, setLoadingFav] = useState(false);
   const [addingCart, setAddingCart] = useState(false);
@@ -68,48 +72,50 @@ const ProductCard: React.FC<ProductCardProps> = ({
     const init = async () => {
       if (!id) return;
       try {
-        // Use favourite product IDs from context for instant check
-        const favSet = auth?.favouriteProductIds;
+        const favSet = auth.favouriteProductIds;
         if (favSet) {
           setLiked(favSet.has(Number(id)));
         }
-        // Load cart
         try {
           const cartItems = await fetchCart();
           if (!mounted) return;
           const found = cartItems.find((ci) => Number(ci.product?.id) === Number(id));
           setInCartQty(found ? (found.quantity || 0) : 0);
         } catch {
-          // ignore
+          // ignore cart load failures
         }
       } catch {
-        // ignore errors silently
+        // ignore favourite fetch failures
       }
     };
 
     init();
-    return () => { mounted = false; };
-  }, [id, auth?.favouriteProductIds]);
-
+    return () => {
+      mounted = false;
+    };
+  }, [id, auth.favouriteProductIds]);
 
   const addFavouriteOnce = async () => {
     if (!id || liked) return;
+    if (!auth.isAuthenticated) {
+      navigate("/login");
+      return;
+    }
     try {
       setLoadingFav(true);
       await addFavourite(Number(id));
       setLiked(true);
 
-      auth?.addFavouriteId(Number(id));
-    } catch (e) {
-      // optional: show toast
+      auth.addFavouriteId(Number(id));
+    } catch {
+      // ignore
     } finally {
       setLoadingFav(false);
     }
   };
 
   const handleAddToCart = async () => {
-    if (!id) return;
-    if (quantityInStock !== undefined && inCartQty >= quantityInStock) return;
+    if (!id || (quantityInStock !== undefined && inCartQty >= quantityInStock)) return;
     try {
       setAddingCart(true);
       await addToCartApi({ productId: Number(id), quantity: 1 });
@@ -168,18 +174,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
         <div className="flex items-center gap-3 pt-3 mt-4">
           <button
-          onClick={(e) => { e.stopPropagation(); handleAddToCart(); }}
-          disabled={addingCart || !id || (quantityInStock !== undefined && quantityInStock <= 0)}
-          className="flex-1 bg-[#282828] text-white rounded-3xl py-2.5 font-medium hover:opacity-90 transition disabled:opacity-50"
-        >
-          {quantityInStock !== undefined && quantityInStock <= 0
-            ? "Out of stock"
-            : addingCart
-              ? "Adding..."
-              : inCartQty > 0
-                ? `In cart (${inCartQty})`
-                : "Add to cart"}
-        </button>
+                    onClick={(e) => { e.stopPropagation(); handleAddToCart(); }}
+                    disabled={addingCart || !id || (quantityInStock !== undefined && quantityInStock <= 0)}
+                    className="flex-1 bg-[#282828] text-white rounded-3xl py-2.5 font-medium hover:opacity-90 transition disabled:opacity-50"
+                  >
+                    {quantityInStock !== undefined && quantityInStock <= 0
+                      ? "Out of stock"
+                      : addingCart
+                        ? "Adding..."
+                        : inCartQty > 0
+                          ? `In cart (${inCartQty})`
+                          : "Add to cart"}
+                  </button>
+          
           <button
             onClick={(e) => {
               e.stopPropagation();

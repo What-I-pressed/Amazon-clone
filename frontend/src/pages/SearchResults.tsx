@@ -8,11 +8,68 @@ import ProductCard from './ProductCard';
 import type { Product } from '../types/product';
 import ProductFilters, { type ProductFiltersState } from '../components/filters/ProductFilters';
 
+const sortProducts = (items: Product[], sortField: ProductFiltersState['sortField'], sortDir: ProductFiltersState['sortDir']) => {
+  if (!sortField || !sortDir) return items;
+  const direction = sortDir === 'desc' ? -1 : 1;
+
+  const getComparableValue = (product: Product) => {
+    switch (sortField) {
+      case 'price':
+        if (Number.isFinite(product.price)) return Number(product.price);
+        if (sortDir === 'asc') {
+          return Number.isFinite(product.priceWithoutDiscount) ? Number(product.priceWithoutDiscount) : Number.POSITIVE_INFINITY;
+        }
+        return Number.isFinite(product.priceWithoutDiscount) ? Number(product.priceWithoutDiscount) : 0;
+      case 'avgRating':
+        return Number(product.rating ?? 0);
+      case 'views':
+        return Number(product.views ?? 0);
+      default:
+        return 0;
+    }
+  };
+
+  return [...items].sort((a, b) => {
+    const aVal = getComparableValue(a);
+    const bVal = getComparableValue(b);
+    if (aVal === bVal) return 0;
+    return aVal > bVal ? direction : -direction;
+  });
+};
+
+const extractComparablePrice = (product: Product): number | null => {
+  const primary = typeof product.price === 'number' ? product.price : Number(product.price);
+  if (Number.isFinite(primary)) return Number(primary);
+  const fallback = typeof product.priceWithoutDiscount === 'number' ? product.priceWithoutDiscount : Number(product.priceWithoutDiscount);
+  if (Number.isFinite(fallback)) return Number(fallback);
+  return null;
+};
+
+const filterProducts = (items: Product[], filters: ProductFiltersState) => {
+  const lower = typeof filters.lowerPriceBound === 'number' ? filters.lowerPriceBound : null;
+  const upper = typeof filters.upperPriceBound === 'number' ? filters.upperPriceBound : null;
+  if (lower == null && upper == null) return items;
+
+  return items.filter((product) => {
+    const price = extractComparablePrice(product);
+    if (price == null) return false;
+    if (lower != null && price < lower) return false;
+    if (upper != null && price > upper) return false;
+    return true;
+  });
+};
+
+const prepareProducts = (items: Product[], filters: ProductFiltersState) => {
+  const filtered = filterProducts(items, filters);
+  return sortProducts(filtered, filters.sortField, filters.sortDir);
+};
+
 const SearchResults: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [visibleCount, setVisibleCount] = useState(24);
+  const PAGE_SIZE = 24;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [showFilters, setShowFilters] = useState(false);
   // Default/empty filters object
   const emptyFilters: ProductFiltersState = {
@@ -31,6 +88,17 @@ const SearchResults: React.FC = () => {
   const navigate = useNavigate();
   const query = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const sortMenuRef = useRef<HTMLDivElement | null>(null);
+  const [nextSearchPage, setNextSearchPage] = useState(0);
+  const [hasMoreSearchPages, setHasMoreSearchPages] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [totalResults, setTotalResults] = useState<number | null>(null);
+
+  const searchTerm = useMemo(() => query.get('query') || '', [query]);
+  const subcategoryId = useMemo(() => {
+    const val = query.get('subcategoryId');
+    return val ? Number(val) : undefined;
+  }, [query]);
+  const categoryName = useMemo(() => query.get('category') || '', [query]);
 
   type SortOption = {
     label: string;
@@ -45,6 +113,18 @@ const SearchResults: React.FC = () => {
     { label: 'Rating: High to Low', field: 'avgRating', dir: 'desc' },
     { label: 'Views: High to Low', field: 'views', dir: 'desc' },
   ]), []);
+
+  const buildSearchPayload = useCallback((): ProductFilterDto => ({
+    name: searchTerm || undefined,
+    subcategoryId: subcategoryId ?? undefined,
+    lowerPriceBound: filters.lowerPriceBound ?? undefined,
+    upperPriceBound: filters.upperPriceBound ?? undefined,
+    characteristics: filters.characteristics ?? undefined,
+  }), [searchTerm, subcategoryId, filters.lowerPriceBound, filters.upperPriceBound, filters.characteristics]);
+
+  const buildSortParam = useCallback(() => (
+    filters.sortField && filters.sortDir ? `${filters.sortField},${filters.sortDir}` : undefined
+  ), [filters.sortField, filters.sortDir]);
 
   const currentSortLabel = useMemo(() => {
     const match = sortOptions.find((option) => option.field === filters.sortField && option.dir === filters.sortDir);
@@ -169,11 +249,6 @@ const SearchResults: React.FC = () => {
     setApplyKey((k) => k + 1);
   }, [pendingFilters]);
 
-  const searchTerm = query.get('query') || '';
-  const subcategoryIdStr = query.get('subcategoryId');
-  const subcategoryId = subcategoryIdStr ? Number(subcategoryIdStr) : undefined;
-  const categoryName = query.get('category') || '';
-
   // Load saved filters on first mount (persist across reloads)
   useEffect(() => {
     try {
@@ -208,18 +283,30 @@ const SearchResults: React.FC = () => {
     const timeout = setTimeout(async () => {
       setLoading(true);
       setError(null);
+      setLoadingMore(false);
+      setProducts([]);
+      setVisibleCount(PAGE_SIZE);
+      setNextSearchPage(0);
+      setHasMoreSearchPages(false);
       try {
-        const payload: ProductFilterDto = {
-          name: searchTerm || undefined,
-          subcategoryId: subcategoryId ?? undefined,
-          lowerPriceBound: filters.lowerPriceBound ?? undefined,
-          upperPriceBound: filters.upperPriceBound ?? undefined,
-          // Note: categoryId not wired yet; backend filters by categoryId only.
-          characteristics: filters.characteristics ?? undefined,
-        };
-        const sort = filters.sortField && filters.sortDir ? `${filters.sortField},${filters.sortDir}` : undefined;
-        const results = await searchProductsWithFilter(payload, 0, 100, controller.signal, sort);
-        setProducts(results.content || []);
+        const payload = buildSearchPayload();
+        const sort = buildSortParam();
+        const results = await searchProductsWithFilter(payload, 0, PAGE_SIZE, controller.signal, sort);
+        const content = results.content || [];
+        const prepared = prepareProducts(content, filters);
+        setProducts(prepared);
+        setVisibleCount(Math.min(PAGE_SIZE, prepared.length));
+        setHasMoreSearchPages(results?.last === false);
+        if (typeof results?.totalElements === 'number') {
+          setTotalResults(results.totalElements);
+        } else {
+          setTotalResults(prepared.length);
+        }
+        if (results && typeof results.number === 'number') {
+          setNextSearchPage(results.number + 1);
+        } else {
+          setNextSearchPage(1);
+        }
       } catch (err: any) {
         // Ignore cancellations
         if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') return;
@@ -234,7 +321,7 @@ const SearchResults: React.FC = () => {
       clearTimeout(timeout);
       controller.abort();
     };
-  }, [searchTerm, applyKey, subcategoryId, categoryName]);
+  }, [searchTerm, applyKey, subcategoryId, categoryName, buildSearchPayload, buildSortParam, filters]);
 
   useEffect(() => {
     if (!categoryName) {
@@ -254,8 +341,12 @@ const SearchResults: React.FC = () => {
           const productCategory = product.categoryName?.toLowerCase();
           return productCategory === normalized;
         });
-        setProducts(filtered);
-        setVisibleCount(24);
+        const prepared = prepareProducts(filtered, filters);
+        setProducts(prepared);
+        setVisibleCount(Math.min(PAGE_SIZE, prepared.length));
+        setHasMoreSearchPages(false);
+        setNextSearchPage(0);
+        setTotalResults(prepared.length);
       } catch (err) {
         if (!ignore) {
           console.error(err);
@@ -273,7 +364,7 @@ const SearchResults: React.FC = () => {
     return () => {
       ignore = true;
     };
-  }, [categoryName]);
+  }, [categoryName, filters.sortField, filters.sortDir, applyKey]);
 
   const handleCategorySummaryClick = useCallback((categoryLabel: string, categoryId?: number) => {
     const params = new URLSearchParams(location.search);
@@ -302,12 +393,54 @@ const SearchResults: React.FC = () => {
     setShowFilters(false);
   }, [location.search, navigate]);
 
-  const loadMore = () => {
-    setVisibleCount(prev => prev + 24);
-  };
+  const loadMore = useCallback(async () => {
+    if (categoryName) {
+      setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, products.length));
+      return;
+    }
+
+    if (loading || loadingMore || !hasMoreSearchPages) {
+      return;
+    }
+
+    const controller = new AbortController();
+    try {
+      setLoadingMore(true);
+      const payload = buildSearchPayload();
+      const sort = buildSortParam();
+      const results = await searchProductsWithFilter(payload, nextSearchPage, PAGE_SIZE, controller.signal, sort);
+      const content = results.content || [];
+      setProducts((prev) => {
+        const merged = prepareProducts([...prev, ...content], filters);
+        const added = merged.length - prev.length;
+        if (added > 0) {
+          setVisibleCount((prevVisible) => prevVisible + added);
+        }
+        return merged;
+      });
+      setHasMoreSearchPages(results?.last === false);
+      if (typeof results?.totalElements === 'number') {
+        setTotalResults(results.totalElements);
+      } else {
+        setTotalResults((prev) => (prev != null ? Math.max(prev, products.length + content.length) : products.length + content.length));
+      }
+      if (results && typeof results.number === 'number') {
+        setNextSearchPage(results.number + 1);
+      } else {
+        setNextSearchPage((prev) => prev + 1);
+      }
+    } catch (err: any) {
+      if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') return;
+      setError('Failed to load more results.');
+      console.error(err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [categoryName, loading, loadingMore, hasMoreSearchPages, buildSearchPayload, buildSortParam, nextSearchPage, filters, products.length]);
 
   const displayedProducts = products.slice(0, visibleCount);
-  const hasMore = visibleCount < products.length;
+  const hasMore = categoryName ? visibleCount < products.length : hasMoreSearchPages;
+  const totalDisplayCount = categoryName ? products.length : (typeof totalResults === 'number' ? totalResults : products.length);
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[400px]">
@@ -324,9 +457,10 @@ const SearchResults: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-white mt-6 md:mt-10 px-5 md:px-12">
-      {/* Sidebar */}
-      <aside className={`${showFilters ? 'fixed inset-0 z-50 lg:relative lg:inset-auto' : 'hidden lg:block'} lg:w-64 bg-white`}>
+    <>
+      <div className="flex min-h-screen bg-white mt-6 md:mt-10 px-5 md:px-12 gap-6 md:gap-10">
+        {/* Sidebar */}
+        <aside className={`${showFilters ? 'fixed inset-0 z-50 lg:relative lg:inset-auto' : 'hidden lg:block'} lg:w-64 bg-white`}>
         <div className="space-y-6">
           <div className="border border-[#E2E2E2] bg-white">
             <div className="px-8 pt-10 pb-8 space-y-8">
@@ -412,7 +546,7 @@ const SearchResults: React.FC = () => {
             </div>
           </div>
 
-          <div className="p-6 border border-gray-200 rounded-3xl bg-white">
+          <div className="p-6 border border-gray-200 rounded-sm bg-white">
             <div className="lg:hidden flex justify-end mb-4">
               <button onClick={() => setShowFilters(false)} className="p-2">
                 <X className="w-5 h-5" />
@@ -426,7 +560,7 @@ const SearchResults: React.FC = () => {
               <button
                 type="button"
                 onClick={applyFiltersNow}
-                className="px-4 py-2 rounded-md bg-gray-900 text-white text-sm"
+                className="px-4 py-2 rounded-2xl bg-[#282828] text-white text-sm"
               >
                 Apply Filters
               </button>
@@ -438,7 +572,7 @@ const SearchResults: React.FC = () => {
                   try { localStorage.removeItem('search.filters.v1'); } catch {}
                   setApplyKey((k)=>k+1);
                 }}
-                className="px-4 py-2 rounded-md border text-sm"
+                className="px-4 py-2 rounded-2xl border text-sm"
               >
                 Reset
               </button>
@@ -447,11 +581,11 @@ const SearchResults: React.FC = () => {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 px-6 py-4">
+        {/* Main Content */}
+        <div className="flex-1 px-6 py-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-gray-900">
               {categoryName ? `${categoryName} Products` : 'All Items'}
             </h1>
             {categoryName ? (
@@ -465,14 +599,14 @@ const SearchResults: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSortMenuOpen((open) => !open)}
-                className="inline-flex items-center gap-3 rounded-full border border-[#D9D9D9] bg-white px-4 py-2 text-sm font-medium text-[#555555] shadow-sm hover:text-[#2C2C2C] hover:border-[#BDBDBD] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BDBDBD]"
+                className="inline-flex items-center gap-3 rounded-full border border-[#D9D9D9] bg-white px-4 py-2 text-sm font-medium text-[#555555] hover:text-[#2C2C2C] hover:border-[#BDBDBD] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BDBDBD]"
               >
                 <span className="uppercase text-xs tracking-wide text-[#8A8A8A]">Sort By</span>
                 <span className="text-sm text-[#454545]">{currentSortLabel}</span>
                 <ChevronDown className={`w-4 h-4 transition-transform ${sortMenuOpen ? 'rotate-180 text-[#2C2C2C]' : 'text-[#8A8A8A]'}`} />
               </button>
               {sortMenuOpen ? (
-                <div className="absolute right-0 z-20 mt-2 w-56 overflow-hidden rounded-2xl border border-[#E0E0E0] bg-white shadow-xl">
+                <div className="absolute right-0 z-20 mt-2 w-56 overflow-hidden rounded-2xl border border-[#E0E0E0] bg-white">
                   <ul className="py-2">
                     {sortOptions.map((option) => {
                       const isActive = option.field === filters.sortField && option.dir === filters.sortDir;
@@ -499,8 +633,8 @@ const SearchResults: React.FC = () => {
           </div>
         </div>
 
-        <p className="text-sm text-gray-600 mb-6">
-          Showing 1-{Math.min(visibleCount, products.length)} of {products.length} item(s)
+        <p className="text-sm text-gray-600 mb-12">
+          Showing {displayedProducts.length} of {totalDisplayCount} item(s)
         </p>
 
         <motion.div 
@@ -510,59 +644,69 @@ const SearchResults: React.FC = () => {
           transition={{ duration: 0.3 }}
         >
           <AnimatePresence>
-            {displayedProducts.map((product, index) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-              >
-                {(() => {
-                  const primary = product.pictures?.find(p => p.pictureType === 'PRIMARY') || product.pictures?.[0];
-                  const imgUrl = primary?.url ? `http://localhost:8080/${primary.url}` : '/images/product/placeholder.jpg';
-                  const formatCurrency = (value: number) => `$${Number(value).toLocaleString(undefined, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}`;
-                  const effectivePrice = product.price ?? 0;
-                  const baselinePrice = product.priceWithoutDiscount ?? effectivePrice;
-                  const computedPercentage = product.discountPercentage ?? (
-                    baselinePrice > 0 ? ((baselinePrice - effectivePrice) / baselinePrice) * 100 : 0
-                  );
-                  const showDiscount = baselinePrice > effectivePrice && computedPercentage > 0;
-                  const price = formatCurrency(effectivePrice);
-                  const oldPrice = showDiscount ? formatCurrency(baselinePrice) : undefined;
-                  const discountPercent = showDiscount ? `-${Math.round(computedPercentage)}%` : undefined;
-                  return (
-                    <ProductCard
-                      id={product.id}
-                      slug={product.slug}
-                      imageUrl={imgUrl}
-                      title={product.name || ''}
-                      price={price}
-                      oldPrice={oldPrice}
-                      discountPercent={discountPercent}
-                    />
-                  );
-                })()}
-              </motion.div>
-            ))}
+            {displayedProducts.map((product, index) => {
+              const divider = (index + 1) % 8 === 0 && index !== displayedProducts.length - 1;
+              return (
+                <React.Fragment key={product.id}>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                  >
+                    {(() => {
+                      const primary = product.pictures?.find(p => p.pictureType === 'PRIMARY') || product.pictures?.[0];
+                      const imgUrl = primary?.url ? `http://localhost:8080/${primary.url}` : '/images/product/placeholder.jpg';
+                      const formatCurrency = (value: number) => `$${Number(value).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}`;
+                      const effectivePrice = product.price ?? 0;
+                      const baselinePrice = product.priceWithoutDiscount ?? effectivePrice;
+                      const computedPercentage = product.discountPercentage ?? (
+                        baselinePrice > 0 ? ((baselinePrice - effectivePrice) / baselinePrice) * 100 : 0
+                      );
+                      const showDiscount = baselinePrice > effectivePrice && computedPercentage > 0;
+                      const price = formatCurrency(effectivePrice);
+                      const oldPrice = showDiscount ? formatCurrency(baselinePrice) : undefined;
+                      const discountPercent = showDiscount ? `-${Math.round(computedPercentage)}%` : undefined;
+                      return (
+                        <ProductCard
+                          id={product.id}
+                          slug={product.slug}
+                          imageUrl={imgUrl}
+                          title={product.name || ''}
+                          price={price}
+                          oldPrice={oldPrice}
+                          discountPercent={discountPercent}
+                          quantityInStock={product.quantityInStock}
+                        />
+                      );
+                    })()}
+                  </motion.div>
+                  {divider ? (
+                    <div className="col-span-full border-t border-gray-200 mt-4 mb-2" aria-hidden="true" />
+                  ) : null}
+                </React.Fragment>
+              );
+            })}
           </AnimatePresence>
         </motion.div>
 
-        {hasMore && (
-          <div className="mt-12 mb-8 flex justify-center">
-            <button
-              onClick={loadMore}
-              className="px-8 py-3 bg-gray-900 text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-colors"
-            >
-              Load More
-            </button>
-          </div>
-        )}
+        </div>
       </div>
-    </div>
+      {hasMore && (
+        <div className="mt-12 mb-8 flex justify-center">
+          <button
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="px-6 py-3 bg-[#282828] text-white font-medium rounded-full hover:bg-[#3A3A3A] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            {loadingMore ? 'Loading…' : 'Load More'}
+          </button>
+        </div>
+      )}
+    </>
   );
 };
 

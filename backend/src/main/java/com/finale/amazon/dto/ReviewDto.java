@@ -18,6 +18,7 @@ public class ReviewDto {
     private Long userId;
     private Long parentId;
     private Long productId;
+    private String roleName;
     
     public ReviewDto(com.finale.amazon.entity.Review review) {
         this.id = review.getId();
@@ -27,6 +28,9 @@ public class ReviewDto {
         if (review.getUser() != null) {
             this.username = review.getUser().getUsername();
             this.userId = review.getUser().getId();
+            if (review.getUser().getRole() != null) {
+                this.roleName = review.getUser().getRole().getName();
+            }
         }
         if (review.getParent() != null) {
             this.parentId = review.getParent().getId();
@@ -36,7 +40,7 @@ public class ReviewDto {
         if (review.getProduct() != null) {
             this.productId = review.getProduct().getId();
         }
-
+        
         stars = (long)review.getStars();
     }
 } 
