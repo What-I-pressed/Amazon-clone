@@ -87,15 +87,11 @@ const CartPage: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto p-6 min-h-screen">
-        <div className="text-center py-8">
-          <p className="text-[#585858]">Завантаження...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#151515]"></div>
+    </div>
+  );
 
   if (items.length === 0 && !loading) {
     return (
@@ -103,7 +99,7 @@ const CartPage: React.FC = () => {
         <div className="border rounded-2xl p-10 text-center">
           <div className="text-lg font-semibold mb-1">Ваш кошик порожній</div>
           <div className="text-[#585858] mb-4">Додайте товари до кошика, щоб продовжити оформлення</div>
-          <a href="/catalog" className="inline-block px-5 py-2 rounded-full bg-[#151515] text-white hover:bg-[#2a2a2a]">Перейти в каталог</a>
+          <a href="/search" className="inline-block px-5 py-2 rounded-full bg-[#151515] text-white hover:bg-[#2a2a2a]">Перейти в каталог</a>
         </div>
       </div>
     );

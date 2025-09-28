@@ -19,6 +19,9 @@ const CheckoutPage: React.FC = () => {
   const [showValidation, setShowValidation] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
+  const inputBaseClass =
+    "w-full bg-[#F8F8F8] border border-[#DFDFDF] rounded-full px-7 py-3.5 text-base text-[#454545] placeholder:text-[#989898] transition-colors focus:outline-none focus:ring-0 focus:border-[#CFCFCF] hover:bg-[#FCFCFC] focus:bg-white";
+
   // Cart items from API
   const [items, setItems] = useState<CartItemResponseDto[]>([]);
   const [loading, setLoading] = useState(false);
@@ -40,12 +43,9 @@ const CheckoutPage: React.FC = () => {
     load();
   }, []);
 
-  // 💰 сума
   const total = useMemo(() => items.reduce((sum, it) => sum + (it.product?.price || 0) * it.quantity, 0), [items]);
 
-  // 📤 submit
   const handleSubmit = async () => {
-    // Validate required fields; email is known, so not required here
     const missing: string[] = [];
     if (!fullName.trim()) missing.push("Повне ім'я");
     if (!phone.trim()) missing.push("Телефон");
@@ -61,7 +61,6 @@ const CheckoutPage: React.FC = () => {
     try {
       setLoading(true);
       setProcessing(true);
-      // Backend expects: OrderCreationDto { orderItems: [{ productId, quantity }] }
       const payload = {
         orderItems: items
           .filter((it) => Number.isFinite(Number((it.product as any)?.id)))
@@ -76,14 +75,12 @@ const CheckoutPage: React.FC = () => {
         return;
       }
 
-      // Mock payment processing delay
       await new Promise((res) => setTimeout(res, 1200));
       await createOrder(payload);
       await clearCart();
       setItems([]);
       window.dispatchEvent(new CustomEvent('cart:updated'));
       setMessage("✅ Замовлення успішно оформлено!");
-      // Redirect to orders after a short confirmation delay
       setTimeout(() => navigate('/orders'), 500);
     } catch (error: any) {
       setMessage("❌ Помилка оформлення: " + (error?.response?.data || error?.message || 'Unknown error'));
@@ -98,59 +95,59 @@ const CheckoutPage: React.FC = () => {
       <h1 className="text-2xl font-bold mb-4">Оформлення замовлення</h1>
 
       {/* Контакти */}
-      <div className="bg-white shadow rounded-xl p-4">
+      <div className="bg-white border border-1px rounded-xl p-4">
         <h2 className="text-lg font-semibold mb-2">Контактні дані</h2>
         <input
           type="text"
           placeholder="Повне ім'я"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
-          className="w-full border rounded-lg p-2 mb-2"
+          className={`${inputBaseClass} mb-2`}
         />
         <input
           type="tel"
           placeholder="Телефон"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          className="w-full border rounded-lg p-2"
+          className={inputBaseClass}
         />
       </div>
 
       {/* Адреса */}
-      <div className="bg-white shadow rounded-xl p-4">
+      <div className="bg-white border border-1px rounded-xl p-4">
         <h2 className="text-lg font-semibold mb-2">Адреса доставки</h2>
         <input
           type="text"
           placeholder="Адреса"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          className="w-full border rounded-lg p-2 mb-2"
+          className={`${inputBaseClass} mb-2`}
         />
         <input
           type="text"
           placeholder="Місто"
           value={city}
           onChange={(e) => setCity(e.target.value)}
-          className="w-full border rounded-lg p-2 mb-2"
+          className={`${inputBaseClass} mb-2`}
         />
         <input
           type="text"
           placeholder="Поштовий індекс"
           value={postalCode}
           onChange={(e) => setPostalCode(e.target.value)}
-          className="w-full border rounded-lg p-2"
+          className={inputBaseClass}
         />
       </div>
 
       {/* Спосіб доставки */}
-      <div className="bg-white shadow rounded-xl p-4">
+      <div className="bg-white border border-1px rounded-xl p-4">
         <h2 className="text-lg font-semibold mb-2">Спосіб доставки</h2>
         <label className="block">
           <input
             type="radio"
             value="courier"
             checked={delivery === "courier"}
-            onChange={(e) => setDelivery(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDelivery(e.target.value)}
           />{" "}
           Кур'єр (100₴)
         </label>
@@ -159,14 +156,12 @@ const CheckoutPage: React.FC = () => {
             type="radio"
             value="pickup"
             checked={delivery === "pickup"}
-            onChange={(e) => setDelivery(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDelivery(e.target.value)}
           />{" "}
           Самовивіз (безкоштовно)
         </label>
       </div>
-
-      {/* Оплата */}
-      <div className="bg-white shadow rounded-xl p-4">
+      <div className="bg-white border border-1px rounded-xl p-4">
         <h2 className="text-lg font-semibold mb-2">Метод оплати</h2>
         <label className="block">
           <input
@@ -174,7 +169,7 @@ const CheckoutPage: React.FC = () => {
             name="payment"
             value="Credit Card"
             checked={paymentMethod === "Credit Card"}
-            onChange={(e) => setPaymentMethod(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPaymentMethod(e.target.value)}
           />{" "}
           Банківська картка
         </label>
@@ -184,7 +179,7 @@ const CheckoutPage: React.FC = () => {
             name="payment"
             value="PayPal"
             checked={paymentMethod === "PayPal"}
-            onChange={(e) => setPaymentMethod(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPaymentMethod(e.target.value)}
           />{" "}
           PayPal
         </label>
@@ -194,14 +189,14 @@ const CheckoutPage: React.FC = () => {
             name="payment"
             value="Cash on Delivery"
             checked={paymentMethod === "Cash on Delivery"}
-            onChange={(e) => setPaymentMethod(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPaymentMethod(e.target.value)}
           />{" "}
           Післяплата
         </label>
       </div>
 
       {/* Огляд замовлення */}
-      <div className="bg-white shadow rounded-xl p-4">
+      <div className="bg-white border border-1px rounded-xl p-4">
         <h2 className="text-lg font-semibold mb-4">Ваше замовлення</h2>
         {loading && <p>Завантаження...</p>}
         {error && <p style={{ color: 'red' }}>{error}</p>}
@@ -232,9 +227,9 @@ const CheckoutPage: React.FC = () => {
       <button
         onClick={handleSubmit}
         disabled={loading || processing || items.length === 0}
-        className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50"
+        className="w-full bg-[#42A275] text-white py-3 rounded-lg font-semibold hover:bg-[#369167] disabled:opacity-50"
       >
-        {processing ? 'Оплата…' : loading ? 'Оформлення…' : 'Оплатити і оформити'}
+        {processing ? 'Payment...' : loading ? 'Processing…' : 'Proceed to payment'}
       </button>
 
       {message && <p className="text-center mt-4">{message}</p>}
@@ -242,7 +237,7 @@ const CheckoutPage: React.FC = () => {
       {/* Validation Modal */}
       {showValidation && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
+          <div className="bg-white rounded-xl border border-1px-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-2">Будь ласка, заповніть необхідні поля</h3>
             <ul className="list-disc list-inside text-sm text-[#454545] mb-4">
               {validationErrors.map((err) => (
@@ -264,7 +259,7 @@ const CheckoutPage: React.FC = () => {
       {/* Processing Overlay */}
       {processing && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-40">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm text-center">
+          <div className="bg-white rounded-xl border border-1px-lg p-6 w-full max-w-sm text-center">
             <div className="animate-spin inline-block w-6 h-6 border-4 border-blue-600 border-t-transparent rounded-full mb-3" />
             <div className="font-medium mb-1">Обробка оплати…</div>
             <div className="text-sm text-[#585858]">Зачекайте, будь ласка</div>

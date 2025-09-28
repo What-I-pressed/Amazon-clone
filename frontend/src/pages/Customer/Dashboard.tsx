@@ -24,13 +24,11 @@ const CustomerDashboard: React.FC = () => {
     loadCustomer();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2a2a2a]"></div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#151515]"></div>
+    </div>
+  );
 
   if (error) {
     return (
