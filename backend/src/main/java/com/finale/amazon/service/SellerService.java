@@ -1,6 +1,7 @@
 package com.finale.amazon.service;
 
 import com.finale.amazon.dto.ProductDto;
+import com.finale.amazon.dto.ReviewDto;
 import com.finale.amazon.dto.SellerStatsDto;
 import com.finale.amazon.entity.Review;
 import com.finale.amazon.entity.User;
@@ -15,6 +16,7 @@ import com.finale.amazon.dto.UserDto;
 
 
 import java.util.List;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Service
@@ -69,8 +71,10 @@ public class SellerService {
                 var sellerReviewsOpt = reviewRepository.findByProduct_seller_Username(seller.getUsername());
                 double customerFeedback = sellerReviewsOpt.map(list -> list.stream().mapToDouble(Review::getStars).average().orElse(0.0)).orElse(0.0);
                 long reviewsCount = sellerReviewsOpt.map(List::size).orElse(0);
-
+                double customerFeedback = reviewRepository.findByProduct_seller_Username(seller.getUsername()).get().stream().mapToDouble(review -> review.getStars()).average().orElse(1.0);
+                List<ReviewDto> numOfReviews = reviewRepository.findByProduct_seller_Username(seller.getUsername()).get().stream().map(ReviewDto::new).collect(Collectors.toList());
                 SellerStatsDto stats = new SellerStatsDto();
+                numOfReviews = numOfReviews.stream().filter(e -> e.getUsername() != seller.getUsername()).collect(Collectors.toList());
                 stats.setTotalOrders(totalOrders);
                 stats.setActiveOrders(activeOrders);
                 stats.setCompletedOrders(completedOrders);
@@ -78,6 +82,7 @@ public class SellerService {
                 stats.setTotalRevenue(totalRevenue);
                 stats.setAvgFeedback(customerFeedback);
                 stats.setReviewsCount(reviewsCount);
+                stats.setBuyersReviews(numOfReviews);
                 return stats;
         }
 
