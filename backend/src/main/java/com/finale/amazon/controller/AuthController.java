@@ -4,7 +4,6 @@ import java.util.Optional;
 import java.util.Map;
 import java.util.HashMap;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
@@ -101,21 +100,27 @@ public class AuthController {
         }
     }
 
-@Operation(summary = "Увійти в акаунт", description = "Аутентифікує користувача за email та паролем і повертає JWT токен разом з роллю")
+    @Operation(summary = "Увійти в акаунт", description = "Аутентифікує користувача за email та паролем і повертає JWT токен разом з роллю")
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody UserLoginRequestDto user) {
         try {
             User u = userService.authenticateUser(user.getEmail().toLowerCase(), user.getPassword())
                     .orElseThrow(() -> new RuntimeException("Invalid email or password"));
-    
+
+            if (!u.isEmailVerified()) {
+                Map<String, Object> notVerified = new HashMap<>();
+                notVerified.put("error", "Email not verified");
+                return ResponseEntity.status(403).body(notVerified);
+            }
+
             String token = jwtUtil.generateToken(u);
-    
+
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
             response.put("email", u.getEmail());
             response.put("username", u.getUsername());
             response.put("role", u.getRole().getName());
-    
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, Object> error = new HashMap<>();
@@ -123,7 +128,6 @@ public class AuthController {
             return ResponseEntity.status(400).body(error);
         }
     }
-    
 
     @Operation(summary = "Зареєструвати користувача з роллю CUSTOMER")
     @PostMapping("/register/user")
@@ -148,9 +152,19 @@ public class AuthController {
             u.setEmailVerified(false);
             userRepository.save(u);
 
-            // Send verification email
+            // Generate verification token and send verification email right away
             String token = jwtUtil.generateToken(u);
-            return ResponseEntity.ok(token);
+            String url = "http://localhost:8080/api/auth/verify?token=" + token;
+            String subject = "Please verify your email";
+            String body = "Click the link to verify your account: " + url;
+
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(u.getEmail());
+            message.setSubject(subject);
+            message.setText(body);
+            mailSender.send(message);
+
+            return ResponseEntity.ok("Verification email sent");
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Error registering user: " + e.getMessage());
         }
@@ -177,8 +191,19 @@ public class AuthController {
             u.setEmailVerified(false);
             userRepository.save(u);
 
+            // Generate verification token and send verification email right away
             String token = jwtUtil.generateToken(u);
-            return ResponseEntity.ok(token);
+            String url = "http://localhost:8080/api/auth/verify?token=" + token;
+            String subject = "Please verify your email";
+            String body = "Click the link to verify your account: " + url;
+
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(u.getEmail());
+            message.setSubject(subject);
+            message.setText(body);
+            mailSender.send(message);
+
+            return ResponseEntity.ok("Verification email sent");
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Error registering seller: " + e.getMessage());
         }
