@@ -30,7 +30,7 @@ const StarRating: React.FC<{ rating: number }> = ({ rating }) => {
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className={isFilled ? "text-yellow-400" : "text-gray-300 dark:text-gray-600"}
+          className={isFilled ? "text-yellow-400" : "text-[#dadada] dark:text-[#585858]"}
         >
           <polygon
             points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
@@ -79,17 +79,17 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-4 md:p-6">
+    <div className="bg-white dark:bg-[#151515] rounded-lg border border-[#e7e7e7] dark:border-[#2a2a2a] p-4 md:p-6">
       {/* Header - Username, Rating, and Date */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
-            <h3 className="font-semibold text-gray-900 dark:text-white">
+            <h3 className="font-semibold text-[#151515] dark:text-white">
               {username}
             </h3>
             <StarRating rating={rating} />
           </div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-[#838383] dark:text-[#989898]">
             {formatDate(date)}
           </p>
         </div>
@@ -97,7 +97,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
 
       {/* Comment Text */}
       <div className="mb-4">
-        <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+        <p className="text-[#454545] dark:text-[#dadada] leading-relaxed">
           {comment}
         </p>
       </div>
@@ -114,7 +114,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                 <img
                   src={image}
                   alt={`Review image ${index + 1}`}
-                  className="w-full h-full object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                  className="w-full h-full object-cover rounded-lg border border-[#e7e7e7] dark:border-[#454545]"
                   loading="lazy"
                 />
               </div>

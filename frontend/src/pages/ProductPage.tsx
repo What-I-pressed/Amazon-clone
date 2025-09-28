@@ -447,7 +447,7 @@ const ProductPage: React.FC = () => {
             <div className="flex items-baseline gap-3">
               <span className="text-3xl font-semibold text-black">{mainPrice}</span>
               {showBaseline && baselinePriceLabel ? (
-                <span className="text-lg text-gray-400 line-through">{baselinePriceLabel}</span>
+                <span className="text-lg text-[#989898] line-through">{baselinePriceLabel}</span>
               ) : null}
               {discountLabel ? (
                 <span className="inline-flex items-center gap-1 text-sm font-semibold text-red-600 bg-red-50 px-2 py-1 rounded-full">
@@ -458,21 +458,21 @@ const ProductPage: React.FC = () => {
             </div>
             <div className="flex items-center gap-2 text-sm text-[#2C2C2C]">
               <Star
-                className={hasRating && averageRating! > 0 ? 'w-4 h-4 fill-[#F5A524] text-[#F5A524]' : 'w-4 h-4 text-gray-400'}
+                className={hasRating && averageRating! > 0 ? 'w-4 h-4 fill-[#F5A524] text-[#F5A524]' : 'w-4 h-4 text-[#989898]'}
               />
               {hasRating ? (
                 <>
                   <span className="font-medium">{averageRating!.toFixed(1)}</span>
                   {reviewCount != null ? (
-                    <span className="text-gray-500">({reviewCount} review{reviewCount === 1 ? '' : 's'})</span>
+                    <span className="text-[#838383]">({reviewCount} review{reviewCount === 1 ? '' : 's'})</span>
                   ) : null}
                 </>
               ) : (
-                <span className="text-gray-500">No ratings yet</span>
+                <span className="text-[#838383]">No ratings yet</span>
               )}
             </div>
             {(discountMeta.status === "scheduled" || discountMeta.status === "finished") && (discountStarts || discountEnds) ? (
-              <div className="text-xs text-gray-600 flex flex-col">
+              <div className="text-xs text-[#585858] flex flex-col">
                 {discountMeta.status === "scheduled" && discountStarts ? (
                   <span>Discount starts on {discountStarts}</span>
                 ) : null}
@@ -510,7 +510,7 @@ const ProductPage: React.FC = () => {
           {/* Dividing line between seller info and description */}
           <div className="border-t border-[#DDDDDD] my-8"></div>
           
-          <p className="text-gray-700 leading-relaxed">
+          <p className="text-[#454545] leading-relaxed">
             {showFullDescription ? product.description : product.description.slice(0, 500)}
             {!showFullDescription && product.description.length > 500 && '... '}
             {!showFullDescription && product.description.length > 500 && (
@@ -539,7 +539,7 @@ const ProductPage: React.FC = () => {
             </button>
            
           </div>
-          <div className="mt-4 space-y-2 text-sm text-gray-600">
+          <div className="mt-4 space-y-2 text-sm text-[#585858]">
             <div className="flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M10 17h4V5H2v12h3m5 0l-3 3l-3-3m12 2v-2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2m0-4V7a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v6"/>
@@ -563,7 +563,7 @@ const ProductPage: React.FC = () => {
           <h2 className="text-xl font-semibold mb-4">Customer Reviews</h2>
 
           {reviewsLoading && (
-            <div className="text-gray-500">Loading reviews...</div>
+            <div className="text-[#838383]">Loading reviews...</div>
           )}
           {reviewsError && (
             <div className="text-red-600">{reviewsError}</div>
@@ -572,7 +572,7 @@ const ProductPage: React.FC = () => {
           {!reviewsLoading && !reviewsError && (
             <div className="space-y-4">
               {reviews.length === 0 ? (
-                <div className="text-gray-600">No reviews yet. Be the first to write one!</div>
+                <div className="text-[#585858]">No reviews yet. Be the first to write one!</div>
               ) : (
                 reviews.map((r) => (
                   <div key={r.id} className="border rounded-xl p-4 mb-4">
@@ -581,7 +581,7 @@ const ProductPage: React.FC = () => {
                         {r.username ?? 'User'}
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-[#838383]">
                           {r.date ? new Date(r.date).toLocaleString() : ''}
                         </span>
                         {currentUser && r.userId === currentUser.id && (
@@ -589,7 +589,7 @@ const ProductPage: React.FC = () => {
                             <button
                               onClick={() => handleDeleteReview(r.id)}
                               disabled={deletingReviewId === r.id}
-                              className="text-gray-400 hover:text-red-500 transition-colors p-1 -mr-1"
+                              className="text-[#989898] hover:text-red-500 transition-colors p-1 -mr-1"
                               aria-label="Delete review"
                               title="Delete review"
                             >
@@ -611,7 +611,7 @@ const ProductPage: React.FC = () => {
                               setReplyingToReviewId(r.id === replyingToReviewId ? null : r.id);
                               setReplyText("");
                             }}
-                            className="text-gray-400 hover:text-blue-500 transition-colors p-1 -mr-1"
+                            className="text-[#989898] hover:text-blue-500 transition-colors p-1 -mr-1"
                             aria-label="Reply to review"
                             title="Reply to review"
                           >
@@ -626,16 +626,16 @@ const ProductPage: React.FC = () => {
                       {Array.from({ length: 5 }).map((_, idx) => (
                         <Star 
                           key={idx} 
-                          className={idx < (r.stars || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'} 
+                          className={idx < (r.stars || 0) ? 'text-yellow-500 fill-yellow-500' : 'text-[#dadada]'} 
                           size={16} 
                         />
                       ))}
                     </div>
-                    <p className="text-gray-800 whitespace-pre-wrap">{r.description}</p>
+                    <p className="text-[#2a2a2a] whitespace-pre-wrap">{r.description}</p>
                     
                     {/* Replies section */}
                     {r.replies && r.replies.length > 0 && (
-                      <div className="mt-3 ml-6 pl-4 border-l-2 border-gray-200">
+                      <div className="mt-3 ml-6 pl-4 border-l-2 border-[#e7e7e7]">
                         <div className="space-y-3 mt-2">
                           {r.replies.map((reply) => (
                             <div key={reply.id} className="bg-gray-50 rounded-lg p-3">
@@ -643,11 +643,11 @@ const ProductPage: React.FC = () => {
                                 <div className="font-medium text-sm">
                                   {reply.username ?? 'User'}
                                 </div>
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs text-[#838383]">
                                   {reply.date ? new Date(reply.date).toLocaleString() : ''}
                                 </span>
                               </div>
-                              <p className="text-gray-700 text-sm">{reply.description}</p>
+                              <p className="text-[#454545] text-sm">{reply.description}</p>
                             </div>
                           ))}
                         </div>
@@ -668,14 +668,14 @@ const ProductPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setReplyingToReviewId(null)}
-                            className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+                            className="px-3 py-1 text-sm text-[#585858] hover:text-[#2a2a2a]"
                           >
                             Cancel
                           </button>
                           <button
                             type="submit"
                             disabled={postingReply || !replyText.trim()}
-                            className={`px-3 py-1 text-sm rounded ${postingReply ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
+                            className={`px-3 py-1 text-sm rounded ${postingReply ? 'bg-[#989898]' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
                           >
                             {postingReply ? 'Posting...' : 'Post Reply'}
                           </button>
@@ -694,7 +694,7 @@ const ProductPage: React.FC = () => {
           <h3 className="text-lg font-semibold mb-3">Write a review</h3>
           <form onSubmit={handleSubmitReview} className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-700 mb-1">Your rating</label>
+              <label className="block text-sm text-[#454545] mb-1">Your rating</label>
               <div className="flex items-center gap-2">
                 {([1,2,3,4,5] as const).map((val) => (
                   <button
@@ -705,18 +705,18 @@ const ProductPage: React.FC = () => {
                     aria-label={`Rate ${val} star${val>1?'s':''}`}
                   >
                     <Star 
-                      className={val <= newReviewStars ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'} 
+                      className={val <= newReviewStars ? 'text-yellow-500 fill-yellow-500' : 'text-[#dadada]'} 
                       size={20} 
                     />
                   </button>
                 ))}
-                <span className="text-sm text-gray-600">{newReviewStars}/5</span>
+                <span className="text-sm text-[#585858]">{newReviewStars}/5</span>
               </div>
             </div>
             <div>
-              <label className="block text-sm text-gray-700 mb-1">Your review</label>
+              <label className="block text-sm text-[#454545] mb-1">Your review</label>
               <textarea
-                className="w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                className="w-full border rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-[#dadada]"
                 rows={4}
                 value={newReviewText}
                 onChange={(e) => setNewReviewText(e.target.value)}
@@ -728,7 +728,7 @@ const ProductPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={postingReview || !newReviewText.trim()}
-                className={`px-5 py-2 rounded-full text-white ${postingReview ? 'bg-gray-400' : 'bg-[#282828] hover:opacity-90'} transition`}
+                className={`px-5 py-2 rounded-full text-white ${postingReview ? 'bg-[#989898]' : 'bg-[#282828] hover:opacity-90'} transition`}
               >
                 {postingReview ? 'Posting...' : 'Submit Review'}
               </button>

@@ -56,19 +56,19 @@ export default function EditProductPage() {
     <div className="max-w-5xl mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Редагування товару</h1>
+          <h1 className="text-2xl font-bold text-[#151515]">Редагування товару</h1>
         </div>
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="px-4 py-2 rounded-full border border-gray-300 text-sm text-gray-600 hover:bg-gray-100"
+          className="px-4 py-2 rounded-full border border-[#dadada] text-sm text-[#585858] hover:bg-gray-100"
         >
           Назад
         </button>
       </div>
 
       {loading && (
-        <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+        <div className="rounded-2xl border border-[#e7e7e7] bg-gray-50 px-4 py-3 text-sm text-[#585858]">
           Завантаження товару...
         </div>
       )}

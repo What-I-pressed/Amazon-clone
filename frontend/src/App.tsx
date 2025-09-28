@@ -7,6 +7,9 @@ import "aos/dist/aos.css";
 // Layout
 import AppLayout from "./layout/AppLayout";
 
+// Route guards
+import RequireAdmin from "./routes/RequireAdmin";
+
 // Auth
 import LoginForm from "./components/Login/LoginForm";
 import RegistrationForm from "./components/Register/RegistrationForm";
@@ -56,6 +59,9 @@ import EditProductPage from "./pages/Seller/EditProduct";
 // Customer
 import CustomerDashboard from "./pages/Customer/Dashboard";
 import CustomerEditProfile from "./pages/Customer/Edit";
+
+// Admin
+import AdminOrdersDashboard from "./pages/Admin/Dashboard/Orders";
 
 export default function App() {
   useEffect(() => {
@@ -118,21 +124,23 @@ export default function App() {
         </Route>
 
         {/* Адмінка (з лейаутом) */}
-        <Route path="/admin" element={<AppLayout />}>
-          <Route index element={<Admin />} />
-          <Route path="profile" element={<UserProfiles />} />
-          <Route path="calendar" element={<Calendar />} />
-          <Route path="blank" element={<Blank />} />
-          <Route path="form-elements" element={<FormElements />} />
-          <Route path="basic-tables" element={<BasicTables />} />
-          <Route path="alerts" element={<Alerts />} />
-          <Route path="avatars" element={<Avatars />} />
-          <Route path="badge" element={<Badges />} />
-          <Route path="buttons" element={<Buttons />} />
-          <Route path="images" element={<Images />} />
-          <Route path="videos" element={<Videos />} />
-          <Route path="line-chart" element={<LineChart />} />
-          <Route path="bar-chart" element={<BarChart />} />
+        <Route path="/admin" element={<RequireAdmin />}>
+          <Route element={<AppLayout />}>
+            <Route index element={<AdminOrdersDashboard />} />
+            <Route path="profile" element={<UserProfiles />} />
+            <Route path="calendar" element={<Calendar />} />
+            <Route path="blank" element={<Blank />} />
+            <Route path="form-elements" element={<FormElements />} />
+            <Route path="basic-tables" element={<BasicTables />} />
+            <Route path="alerts" element={<Alerts />} />
+            <Route path="avatars" element={<Avatars />} />
+            <Route path="badge" element={<Badges />} />
+            <Route path="buttons" element={<Buttons />} />
+            <Route path="images" element={<Images />} />
+            <Route path="videos" element={<Videos />} />
+            <Route path="line-chart" element={<LineChart />} />
+            <Route path="bar-chart" element={<BarChart />} />
+          </Route>
         </Route>
 
         {/* Інші */}

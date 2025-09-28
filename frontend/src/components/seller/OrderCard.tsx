@@ -55,14 +55,14 @@ export const OrderCard: React.FC<OrderCardProps> = ({
   onViewOrder,
 }) => {
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md border border-gray-200 dark:border-gray-800 p-4 md:p-6">
+    <div className="bg-white dark:bg-[#151515] rounded-xl shadow-md border border-[#e7e7e7] dark:border-[#2a2a2a] p-4 md:p-6">
       {/* Header - Order ID, Date, and Status */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-          <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
+          <h3 className="font-semibold text-lg text-[#151515] dark:text-white">
             Order #{orderId}
           </h3>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
+          <span className="text-sm text-[#838383] dark:text-[#989898]">
             {formatDate(orderDate)}
           </span>
         </div>
@@ -80,7 +80,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({
         {products.map((product) => (
           <div
             key={product.id}
-            className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg"
+            className="flex items-center gap-3 p-3 bg-white dark:bg-[#2a2a2a] rounded-lg"
           >
             <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20">
               <img
@@ -91,15 +91,15 @@ export const OrderCard: React.FC<OrderCardProps> = ({
               />
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="font-medium text-sm md:text-base text-gray-900 dark:text-white line-clamp-2">
+              <h4 className="font-medium text-sm md:text-base text-[#151515] dark:text-white line-clamp-2">
                 {product.title}
               </h4>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-[#838383] dark:text-[#989898]">
                 Qty: {product.quantity}
               </p>
             </div>
             <div className="flex-shrink-0 text-right">
-              <p className="font-medium text-sm md:text-base text-gray-900 dark:text-white">
+              <p className="font-medium text-sm md:text-base text-[#151515] dark:text-white">
                 {formatPrice(product.price)}
               </p>
             </div>
@@ -108,9 +108,9 @@ export const OrderCard: React.FC<OrderCardProps> = ({
       </div>
 
       {/* Footer - Total Price and View Order Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-[#e7e7e7] dark:border-[#454545]">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <span className="text-sm text-gray-500 dark:text-gray-400">Total:</span>
+          <span className="text-sm text-[#838383] dark:text-[#989898]">Total:</span>
           <span className="text-lg font-bold text-brand-500">
             {formatPrice(totalPrice)}
           </span>

@@ -42,7 +42,7 @@ const ChatPage: React.FC = () => {
             className={`p-3 rounded-xl max-w-xs ${
               msg.sender === "user"
                 ? "bg-blue-500 text-white ml-auto"
-                : "bg-gray-300 text-black mr-auto"
+                : "bg-[#dadada] text-black mr-auto"
             }`}
           >
             {msg.text}

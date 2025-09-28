@@ -9,7 +9,7 @@ export interface ProductFilterDto {
   upperPriceBound?: number | null;
   sellerIds?: number[] | null;
   slugs?: string[] | null;
-  characteristics?: Record<string, string> | null; // key: characteristic type name, value: selected value
+  characteristics?: Record<string, string[]> | null; // key: characteristic type name, values: selected options
 }
 
 export const searchProducts = async (searchTerm: string, page: number, size: number) => {

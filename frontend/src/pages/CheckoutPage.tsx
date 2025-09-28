@@ -218,7 +218,7 @@ const CheckoutPage: React.FC = () => {
                 />
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold truncate">{it.product?.name}</h3>
-                  <p className="text-sm text-gray-500">{it.quantity} x {it.product?.price?.toFixed(2)} грн</p>
+                  <p className="text-sm text-[#838383]">{it.quantity} x {it.product?.price?.toFixed(2)} грн</p>
                 </div>
                 <p className="font-bold">{((it.product?.price || 0) * it.quantity).toFixed(2)} грн</p>
               </li>
@@ -244,7 +244,7 @@ const CheckoutPage: React.FC = () => {
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-2">Будь ласка, заповніть необхідні поля</h3>
-            <ul className="list-disc list-inside text-sm text-gray-700 mb-4">
+            <ul className="list-disc list-inside text-sm text-[#454545] mb-4">
               {validationErrors.map((err) => (
                 <li key={err}>{err}</li>
               ))}
@@ -267,7 +267,7 @@ const CheckoutPage: React.FC = () => {
           <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm text-center">
             <div className="animate-spin inline-block w-6 h-6 border-4 border-blue-600 border-t-transparent rounded-full mb-3" />
             <div className="font-medium mb-1">Обробка оплати…</div>
-            <div className="text-sm text-gray-600">Зачекайте, будь ласка</div>
+            <div className="text-sm text-[#585858]">Зачекайте, будь ласка</div>
           </div>
         </div>
       )}

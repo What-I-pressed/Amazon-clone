@@ -98,7 +98,7 @@ const SellerOrdersPage: React.FC = () => {
               tabIndex={0}
             >
               <div className="flex justify-between items-center">
-                <div className="text-sm text-gray-500">ID: {order.id}</div>
+                <div className="text-sm text-[#838383]">ID: {order.id}</div>
                 {(() => {
                   const statusValue = order?.orderStatus?.name || order?.orderStatus || order?.status || 'NEW';
                   const s = String(statusValue).toUpperCase();
@@ -111,14 +111,14 @@ const SellerOrdersPage: React.FC = () => {
                     CONFIRMED: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
                   };
                   return (
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${styles[s] || 'bg-gray-100 text-gray-700'}`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${styles[s] || 'bg-gray-100 text-[#454545]'}`}>
                       {s}
                     </span>
                   );
                 })()}
               </div>
               {order.orderDate && (
-                <div className="text-sm text-gray-500 mt-1">
+                <div className="text-sm text-[#838383] mt-1">
                   Дата створення: {new Date(order.orderDate).toLocaleString()}
                 </div>
               )}
@@ -126,7 +126,7 @@ const SellerOrdersPage: React.FC = () => {
                 {typeof sellerTotal === 'number' ? 'Сума для ваших товарів: ' : 'Сума замовлення: '}
                 {Number(orderTotal).toFixed(2)} грн
               </div>
-              <div className="mt-1 text-sm text-gray-600">
+              <div className="mt-1 text-sm text-[#585858]">
                 Товарів у замовленні: {items.length}
               </div>
             </div>
@@ -148,7 +148,7 @@ const SellerOrdersPage: React.FC = () => {
               )}
               {selectedOrder && !selectedOrder.error && (
                 <div className="space-y-3">
-                  <div className="text-sm text-gray-600">ID: {selectedOrder.id}</div>
+                  <div className="text-sm text-[#585858]">ID: {selectedOrder.id}</div>
                   {selectedOrder.orderStatus && (
                     <div className="text-sm">Статус: {selectedOrder?.orderStatus?.name || selectedOrder.orderStatus}</div>
                   )}
@@ -197,11 +197,11 @@ const SellerOrdersPage: React.FC = () => {
                                   })()}
                                 </div>
                                 {typeof it?.totalPrice === 'number' && (
-                                  <div className="text-sm text-gray-600">Сума позиції: {Number(it.totalPrice).toFixed(2)} грн</div>
+                                  <div className="text-sm text-[#585858]">Сума позиції: {Number(it.totalPrice).toFixed(2)} грн</div>
                                 )}
                               </div>
                             </div>
-                            <div className="text-sm text-gray-700 whitespace-nowrap">x{Number(it?.quantity || 0)}</div>
+                            <div className="text-sm text-[#454545] whitespace-nowrap">x{Number(it?.quantity || 0)}</div>
                           </li>
                           ));
                         })()}

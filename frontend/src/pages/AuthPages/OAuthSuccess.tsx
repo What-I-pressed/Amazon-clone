@@ -33,7 +33,7 @@ export default function OAuthSuccess() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="text-gray-700">Signing you in with Google...</div>
+      <div className="text-[#454545]">Signing you in with Google...</div>
     </div>
   );
 }

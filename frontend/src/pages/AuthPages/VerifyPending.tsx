@@ -60,9 +60,9 @@ const VerifyPending: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-white p-6">
-      <div className="w-full max-w-md bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Verify your email</h1>
-        <p className="text-gray-600 mb-6">
+      <div className="w-full max-w-md bg-white border border-[#e7e7e7] rounded-2xl p-8 shadow-sm">
+        <h1 className="text-2xl font-bold text-[#2a2a2a] mb-2">Verify your email</h1>
+        <p className="text-[#585858] mb-6">
           We sent a verification link to your email. Please click the link to activate your account.
         </p>
 
@@ -76,12 +76,12 @@ const VerifyPending: React.FC = () => {
               <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">{error}</div>
             )}
 
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+            <label className="block text-sm font-medium text-[#454545] mb-2">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full h-[50px] px-4 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent mb-4"
+              className="w-full h-[50px] px-4 border border-[#dadada] rounded-full focus:outline-none focus:ring-2 focus:ring-[#42A275] focus:border-transparent mb-4"
               placeholder="Enter your email"
             />
             <button
@@ -90,9 +90,9 @@ const VerifyPending: React.FC = () => {
             >
               Resend verification email
             </button>
-            <div className="text-sm text-gray-500 mb-1">{status === "sent" && `Email sent${counter > 1 ? ` (${counter})` : ""}.`}</div>
+            <div className="text-sm text-[#838383] mb-1">{status === "sent" && `Email sent${counter > 1 ? ` (${counter})` : ""}.`}</div>
 
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-[#585858]">
               Already verified? <Link to="/login" className="text-[#42A275] hover:underline">Sign in</Link>
             </div>
           </>

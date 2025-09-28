@@ -21,14 +21,16 @@ const Navbar: React.FC = () => {
   const auth = useContext(AuthContext);
   if (!auth) throw new Error("Navbar must be used within AuthProvider");
   const { user, logoutUser } = auth;
-  const isSeller = user?.roleName === "SELLER";
+  const role = String(user?.roleName ?? "").toUpperCase();
+  const isSeller = role === "SELLER";
+  const isAdmin = role === "ADMIN";
 
   const [seller, setSeller] = useState<Seller | null>(null);
   const [cartCount, setCartCount] = useState<number>(0);
 
   useEffect(() => {
     const loadSeller = async () => {
-      if (!user) {
+      if (!user || isAdmin) {
         setSeller(null);
         return;
       }
@@ -45,7 +47,7 @@ const Navbar: React.FC = () => {
   useEffect(() => {
     const loadCart = async () => {
       try {
-        if (!user || isSeller) {
+        if (!user || isSeller || isAdmin) {
           setCartCount(0);
           return;
         }
@@ -92,7 +94,11 @@ const Navbar: React.FC = () => {
 
   return (
     <nav
-      style={{ backgroundColor: "#434343" }}
+    style={{
+      backgroundColor: "rgba(42, 42, 42, 0.9)",
+      backdropFilter: "blur(25px)",
+      WebkitBackdropFilter: "blur(25px)"
+    }}
       className="text-white py-4 relative sticky top-0 z-50"
     >
       <div className="max-w-7xl mx-auto px-8 flex items-center gap-8">
@@ -129,7 +135,7 @@ const Navbar: React.FC = () => {
             />
 
             <input
-              className="w-full px-3 text-white bg-transparent focus:outline-none placeholder-white text-sm hover:placeholder-gray-300 transition-colors duration-500 ease-in-out"
+              className="w-full px-3 text-white bg-transparent focus:outline-none placeholder-white text-sm hover:placeholder-[#dadada] transition-colors duration-500 ease-in-out"
               placeholder="Nexora Search"
               type="text"
               value={searchTerm}
@@ -152,22 +158,42 @@ const Navbar: React.FC = () => {
         {/* Right block */}
         <div className="flex items-center gap-16 flex-shrink-0">
           {isSeller && (
-            <button
-              className="hidden md:block px-4 py-2 rounded-full border border-white/40 text-sm font-semibold text-white hover:bg-white hover:text-[#434343] transition-colors duration-200"
-              onClick={() => navigate("/seller/dashboard")}
+            <>
+              <div
+                className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-[#dadada] px-2 py-1 rounded"
+                onClick={() => navigate("/seller/dashboard")}
+                title="Go to seller dashboard"
+              >
+                Seller Dashboard
+              </div>
+              <div
+                className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-[#dadada] px-2 py-1 rounded"
+                onClick={() => navigate("/seller/orders")}
+                title="Go to seller orders"
+              >
+                Orders
+              </div>
+            </>
+          )}
+
+          {isAdmin && (
+            <div
+              className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-[#dadada] px-2 py-1 rounded"
+              onClick={() => navigate("/admin")}
+              title="Go to admin dashboard"
             >
-              Seller Dashboard
-            </button>
+              Admin Dashboard
+            </div>
           )}
 
           {/* Language dropdown */}
           <div className="relative" ref={languageRef}>
             <div
-              className="flex items-center cursor-pointer text-base transition-colors duration-300 ease-in-out hover:text-gray-300 group"
+              className="flex items-center cursor-pointer text-base transition-colors duration-300 ease-in-out hover:text-[#dadada] group"
               onClick={() => setLanguageDropdown(prev => !prev)}
             >
-              <span className="group-hover:text-gray-300 transition-colors duration-300 ease-in-out">EN</span>
-              <span className="material-icons group-hover:text-gray-300 transition-colors duration-300 ease-in-out" style={{ lineHeight: 1, marginLeft: -2, color: "#b0b0b0" }}>
+              <span className="group-hover:text-[#dadada] transition-colors duration-300 ease-in-out">EN</span>
+              <span className="material-icons group-hover:text-[#dadada] transition-colors duration-300 ease-in-out" style={{ lineHeight: 1, marginLeft: -2, color: "#b0b0b0" }}>
                 arrow_drop_down
               </span>
             </div>
@@ -191,9 +217,9 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Favourites */}
-          {!isSeller && (
+          {!isSeller && !isAdmin && (
             <div
-              className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
+              className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-[#dadada] px-2 py-1 rounded"
               onClick={() => navigate("/favourites")}
               title="Go to favourites"
             >
@@ -202,9 +228,9 @@ const Navbar: React.FC = () => {
           )}
 
           {/* Orders */}
-          {!isSeller && (
+          {!isSeller && !isAdmin && (
             <div
-              className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
+              className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-[#dadada] px-2 py-1 rounded"
               onClick={() => navigate("/orders")}
               title="Go to orders"
             >
@@ -213,9 +239,9 @@ const Navbar: React.FC = () => {
           )}
 
           {/* Cart */}
-          {!isSeller && (
+          {!isSeller && !isAdmin && (
             <div
-              className="relative cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
+              className="relative cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-[#dadada] px-2 py-1 rounded"
               onClick={() => navigate("/cart")}
               title="Go to cart"
             >
@@ -234,17 +260,13 @@ const Navbar: React.FC = () => {
           {/* Account dropdown */}
           <div className="relative" ref={accountRef}>
             <div
-              className="cursor-pointer text-center text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 hover:bg-[#343434]"
+              className="cursor-pointer text-center text-sm transition-colors duration-300 ease-in-out hover:text-[#dadada] px-2 py-1 rounded"
               onClick={() => setAccountDropdown(prev => !prev)}
             >
-              <div className="flex items-center justify-center gap-2">
-                
+              <div className="flex items-center justify-center gap-1">
                 <span>
                   {user ? `Hello, ${seller?.username || user.username || user.email}` : "Hello, sign in"}
                 </span>
-              </div>
-              <div className="flex items-center justify-center gap-1">
-                <span>Account</span>
                 <span className="material-icons" style={{ lineHeight: 1 }}>arrow_drop_down</span>
               </div>
             </div>
@@ -257,7 +279,16 @@ const Navbar: React.FC = () => {
               <div className="py-1">
                 {user ? (
                   <>
-                    {seller ? (
+                    {isAdmin ? (
+                      <>
+                        <button
+                          className="block w-full text-center px-4 py-2 text-sm font-semibold text-white hover:bg-[#343434]"
+                          onClick={() => navigate("/admin")}
+                        >
+                          Admin Dashboard
+                        </button>
+                      </>
+                    ) : seller ? (
                       <>
                         <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => navigate(`/seller/${seller.slug}`)}>
                           Seller Profile

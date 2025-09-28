@@ -165,7 +165,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Product Title */}
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label htmlFor="title" className="block text-sm font-medium text-[#454545] dark:text-[#dadada] mb-2">
           Product Title *
         </label>
         <input
@@ -174,8 +174,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           name="title"
           value={formData.title}
           onChange={handleInputChange}
-          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
-            errors.title ? "border-red-500" : "border-gray-300"
+          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-[#2a2a2a] dark:border-[#454545] dark:text-white ${
+            errors.title ? "border-red-500" : "border-[#dadada]"
           }`}
           placeholder="Enter product title"
         />
@@ -188,11 +188,11 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Price */}
         <div>
-          <label htmlFor="price" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label htmlFor="price" className="block text-sm font-medium text-[#454545] dark:text-[#dadada] mb-2">
             Price *
           </label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#838383]">$</span>
             <input
               type="number"
               id="price"
@@ -201,8 +201,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               onChange={handleInputChange}
               step="0.01"
               min="0"
-              className={`w-full pl-8 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
-                errors.price ? "border-red-500" : "border-gray-300"
+              className={`w-full pl-8 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-[#2a2a2a] dark:border-[#454545] dark:text-white ${
+                errors.price ? "border-red-500" : "border-[#dadada]"
               }`}
               placeholder="0.00"
             />
@@ -214,7 +214,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
         {/* Category */}
         <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label htmlFor="category" className="block text-sm font-medium text-[#454545] dark:text-[#dadada] mb-2">
             Category *
           </label>
           <select
@@ -222,8 +222,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             name="category"
             value={formData.category}
             onChange={handleInputChange}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
-              errors.category ? "border-red-500" : "border-gray-300"
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-[#2a2a2a] dark:border-[#454545] dark:text-white ${
+              errors.category ? "border-red-500" : "border-[#dadada]"
             }`}
           >
             <option value="">Select a category</option>
@@ -241,7 +241,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
       {/* Product Image */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-[#454545] dark:text-[#dadada] mb-2">
           Product Image *
         </label>
         <div className="space-y-4">
@@ -249,11 +249,11 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           <div className="flex items-center justify-center w-full">
             <label
               htmlFor="image"
-              className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-white dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600"
+              className="flex flex-col items-center justify-center w-full h-32 border-2 border-[#dadada] border-dashed rounded-lg cursor-pointer bg-white dark:hover:bg-[#2a2a2a] dark:bg-[#454545] hover:bg-gray-100 dark:border-[#585858]"
             >
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
                 <svg
-                  className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
+                  className="w-8 h-8 mb-4 text-[#838383] dark:text-[#989898]"
                   aria-hidden="true"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -267,10 +267,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
                   />
                 </svg>
-                <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                <p className="mb-2 text-sm text-[#838383] dark:text-[#989898]">
                   <span className="font-semibold">Click to upload</span> or drag and drop
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, GIF up to 5MB</p>
+                <p className="text-xs text-[#838383] dark:text-[#989898]">PNG, JPG, GIF up to 5MB</p>
               </div>
               <input
                 ref={fileInputRef}
@@ -290,7 +290,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               <img
                 src={imagePreview}
                 alt="Product preview"
-                className="w-32 h-32 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
+                className="w-32 h-32 object-cover rounded-lg border border-[#dadada] dark:border-[#585858]"
               />
               <button
                 type="button"
@@ -309,7 +309,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
       {/* Description */}
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label htmlFor="description" className="block text-sm font-medium text-[#454545] dark:text-[#dadada] mb-2">
           Description *
         </label>
         <textarea
@@ -318,8 +318,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           value={formData.description}
           onChange={handleInputChange}
           rows={4}
-          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white resize-none ${
-            errors.description ? "border-red-500" : "border-gray-300"
+          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-[#2a2a2a] dark:border-[#454545] dark:text-white resize-none ${
+            errors.description ? "border-red-500" : "border-[#dadada]"
           }`}
           placeholder="Enter product description..."
         />

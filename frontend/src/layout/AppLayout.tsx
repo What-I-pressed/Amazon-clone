@@ -4,6 +4,7 @@ import { AuthProvider } from "../context/AuthContext";
 import { Outlet } from "react-router";
 import AppHeader from "./AppHeader";
 import AppFooter from "./AppFooter";
+import { ToastProvider } from "../context/ToastContext";
 
 const LayoutContent: React.FC = () => {
   return (
@@ -28,7 +29,9 @@ const AppLayout: React.FC = () => {
   return (
     <SidebarProvider>
       <AuthProvider>
-        <LayoutContent />
+        <ToastProvider>
+          <LayoutContent />
+        </ToastProvider>
       </AuthProvider>
     </SidebarProvider>
   );
