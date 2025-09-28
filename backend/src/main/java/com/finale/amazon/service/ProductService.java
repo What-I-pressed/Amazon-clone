@@ -59,7 +59,7 @@ public class ProductService {
 
     @Transactional
     public void updateAvgRating(Product product) {
-        Double avg = product.getReviews().stream()
+        Double avg = product.getReviews().stream().filter(r -> r.getParent() == null)
                 .mapToDouble(Review::getStars)
                 .average()
                 .orElse(0.0);
