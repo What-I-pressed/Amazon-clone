@@ -4,14 +4,11 @@ import com.finale.amazon.dto.ReviewCreationDto;
 import com.finale.amazon.dto.ReviewReplyDto;
 import com.finale.amazon.dto.ReviewUpdateDto;
 import com.finale.amazon.dto.ReviewDto;
-import com.finale.amazon.entity.Product;
 import com.finale.amazon.entity.Review;
 import com.finale.amazon.entity.User;
 import com.finale.amazon.security.JwtUtil;
 import com.finale.amazon.service.ReviewService;
 import com.finale.amazon.service.UserService;
-import com.finale.amazon.repository.ProductRepository;
-import com.finale.amazon.repository.ReviewRepository;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -33,8 +30,6 @@ public class ReviewController {
 
     private final ReviewService reviewService;
     private final UserService userService;
-    private final ProductRepository productRepository;
-    private final ReviewRepository reviewRepository;
     private final JwtUtil jwtUtil;
 
     @Operation(summary = "Створити відгук", description = "Створює новий відгук для продукту. Не можна створювати parentId, якщо це звичайний відгук")

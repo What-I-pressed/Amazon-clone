@@ -11,27 +11,33 @@ import com.finale.amazon.entity.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-    @Query("Select u from User u where u.role.name = :role and u.email = :gmail and u.password = :password")
+
+    @Query("SELECT u FROM User u WHERE u.role.name = :role AND u.email = :gmail AND u.password = :password")
     List<User> findUser(@Param("role") String role, @Param("gmail") String gmail,
                         @Param("password") String password);
-    
-    @Query("Select u from User u where u.role.name = :role")
+
+    @Query("SELECT u FROM User u WHERE u.role.name = :role")
     List<User> findByRoleName(@Param("role") String role);
-    
-    @Query("Select u from User u where u.blocked = :blocked")
+
+    @Query("SELECT u FROM User u WHERE u.blocked = :blocked")
     List<User> findByBlockedStatus(@Param("blocked") boolean blocked);
-    
-    @Query("Select u from User u where u.blocked = true")
+
+    @Query("SELECT u FROM User u WHERE u.blocked = true")
     List<User> findBlockedUsers();
-    
-    @Query("Select u from User u where u.blocked = false")
+
+    @Query("SELECT u FROM User u WHERE u.blocked = false")
     List<User> findActiveUsers();
 
     Optional<User> findById(Long id);
-    
+
     Optional<User> findByEmail(String email);
 
     Optional<User> findBySlug(String slug);
     boolean existsBySlug(String slug);
+
+    // --- додані методи для email verification ---
+    Optional<User> findByEmailAndVerificationCode(String email, String verificationCode);
+
+    @Query("SELECT u FROM User u WHERE u.email = :email AND u.emailVerified = true")
+    Optional<User> findVerifiedUserByEmail(@Param("email") String email);
 }
- 

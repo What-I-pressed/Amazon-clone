@@ -84,7 +84,7 @@ public class ProductService {
                 : null;
         System.out.println("Name : " + name);
 
-        Specification<Product> spec = Specification.where(null);
+        Specification<Product> spec = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
 
         if (name != null) {
             spec = spec.and(ProductSpecification.hasName(name));
@@ -101,7 +101,7 @@ public class ProductService {
 
         Specification<Product> charSpec = characteristics != null && filtered != null ? filtered.entrySet().stream()
                 .map(entry -> ProductSpecification.matchCharacteristic(entry.getKey(), entry.getValue()))
-                .reduce(Specification.where(null), Specification::and) : null;
+                .reduce((root, query, criteriaBuilder) -> criteriaBuilder.conjunction(), Specification::and) : null;
 
         Specification<Product> sellerSpec = sellersIds != null ? sellersIds.stream()
                 .map(entry -> ProductSpecification.sellerIs(entry)).reduce(Specification.where(null), Specification::or)

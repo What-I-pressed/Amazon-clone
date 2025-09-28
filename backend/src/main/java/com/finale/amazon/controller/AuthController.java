@@ -42,9 +42,6 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // @Autowired
-    // private TokenRepository tokenRepository;
-
     @Autowired
     private JavaMailSender mailSender;
 
@@ -62,8 +59,7 @@ public class AuthController {
     public ResponseEntity<String> sendVerificationEmail(@RequestBody UserLoginRequestDto user) {
         try {
             User u = userService.getUserByEmail(user.getEmail())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
+                .orElseThrow(() -> new RuntimeException("User not found"));
             String token = jwtUtil.generateToken(u);
 
             String url = "http://localhost:8080/api/auth/verify?token=" + token;
@@ -74,8 +70,8 @@ public class AuthController {
             message.setTo(user.getEmail());
             message.setSubject(subject);
             message.setText(body);
-
             mailSender.send(message);
+
             return ResponseEntity.ok("Verification email sent");
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Error sending verification email: " + e.getMessage());
@@ -91,9 +87,11 @@ public class AuthController {
             }
             String email = jwtUtil.extractSubject(token);
             User user = userService.getUserByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
             user.setEmailVerified(true);
             userRepository.save(user);
+
             return ResponseEntity.ok("Email verified");
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Error verifying email: " + e.getMessage());
@@ -107,12 +105,15 @@ public class AuthController {
             User u = userService.authenticateUser(user.getEmail().toLowerCase(), user.getPassword())
                     .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
+<<<<<<< HEAD
             if (!u.isEmailVerified()) {
                 Map<String, Object> notVerified = new HashMap<>();
                 notVerified.put("error", "Email not verified");
                 return ResponseEntity.status(403).body(notVerified);
             }
 
+=======
+>>>>>>> c486bf1634101d9bfc66ad40bc32e246735d0dad
             String token = jwtUtil.generateToken(u);
 
             Map<String, Object> response = new HashMap<>();
@@ -131,14 +132,12 @@ public class AuthController {
 
     @Operation(summary = "Зареєструвати користувача з роллю CUSTOMER")
     @PostMapping("/register/user")
-    public ResponseEntity<String> registerUser(@Valid @RequestBody UserRegistrationDto userDto,
-                                               BindingResult result) {
+    public ResponseEntity<String> registerUser(@Valid @RequestBody UserRegistrationDto userDto, BindingResult result) {
         if (result.hasErrors()) {
             String errorMsg = result.getAllErrors().get(0).getDefaultMessage();
             return ResponseEntity.badRequest().body(errorMsg);
         }
         try {
-            // Create user with USER role
             UserRequestDto userRequest = new UserRequestDto();
             userRequest.setUsername(userDto.getUsername());
             userRequest.setEmail(userDto.getEmail().toLowerCase());
@@ -154,6 +153,7 @@ public class AuthController {
 
             // Generate verification token and send verification email right away
             String token = jwtUtil.generateToken(u);
+<<<<<<< HEAD
             String url = "http://localhost:8080/api/auth/verify?token=" + token;
             String subject = "Please verify your email";
             String body = "Click the link to verify your account: " + url;
@@ -165,6 +165,10 @@ public class AuthController {
             mailSender.send(message);
 
             return ResponseEntity.ok("Verification email sent");
+=======
+
+            return ResponseEntity.ok(token);
+>>>>>>> c486bf1634101d9bfc66ad40bc32e246735d0dad
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Error registering user: " + e.getMessage());
         }
@@ -172,8 +176,7 @@ public class AuthController {
 
     @Operation(summary = "Зареєструвати продавця з роллю SELLER")
     @PostMapping("/register/seller")
-    public ResponseEntity<String> registerSeller(@Valid @RequestBody UserRegistrationDto sellerDto,
-                                                 BindingResult result) {
+    public ResponseEntity<String> registerSeller(@Valid @RequestBody UserRegistrationDto sellerDto, BindingResult result) {
         if (result.hasErrors()) {
             String errorMsg = result.getAllErrors().get(0).getDefaultMessage();
             return ResponseEntity.badRequest().body(errorMsg);
@@ -193,6 +196,7 @@ public class AuthController {
 
             // Generate verification token and send verification email right away
             String token = jwtUtil.generateToken(u);
+<<<<<<< HEAD
             String url = "http://localhost:8080/api/auth/verify?token=" + token;
             String subject = "Please verify your email";
             String body = "Click the link to verify your account: " + url;
@@ -204,6 +208,10 @@ public class AuthController {
             mailSender.send(message);
 
             return ResponseEntity.ok("Verification email sent");
+=======
+
+            return ResponseEntity.ok(token);
+>>>>>>> c486bf1634101d9bfc66ad40bc32e246735d0dad
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Error registering seller: " + e.getMessage());
         }
@@ -241,21 +249,10 @@ public class AuthController {
     @GetMapping("/me")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<UserDto> getCurrentUser(
-            @Parameter(description = "JWT Bearer token", in = ParameterIn.HEADER, name = "Authorization", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
-            @RequestHeader(value = "Authorization", required = true) String authHeader,
-            HttpServletRequest request) {
-
-        System.out.println("=== DEBUG INFO ===");
-        System.out.println("Authorization header: " + authHeader);
-        System.out.println("All headers:");
-        java.util.Enumeration<String> headerNames = request.getHeaderNames();
-        while (headerNames.hasMoreElements()) {
-            String headerName = headerNames.nextElement();
-            String headerValue = request.getHeader(headerName);
-            System.out.println(headerName + ": " + headerValue);
-        }
-        System.out.println("==================");
-
+        @Parameter(description = "JWT Bearer token", in = ParameterIn.HEADER, name = "Authorization", example = "Bearer eyJhbGciOiJIUzI1NiJ9...")
+        @RequestHeader(value = "Authorization", required = true) String authHeader,
+        HttpServletRequest request) {
+        
         if (authHeader == null || authHeader.isEmpty()) {
             return ResponseEntity.status(401).body(null);
         }
@@ -266,15 +263,10 @@ public class AuthController {
             }
 
             String token = authHeader.substring(7);
-            System.out.println("=== TOKEN DEBUG ===");
-            System.out.println("Token: " + token);
-            System.out.println("Subject (email): " + jwtUtil.extractSubject(token));
-            System.out.println("User ID: " + jwtUtil.extractUserId(token));
-            System.out.println("==================");
 
             String email = jwtUtil.extractSubject(token);
-
             Optional<User> userOptional = userService.getUserByEmail(email);
+
             if (userOptional.isEmpty()) {
                 return ResponseEntity.status(401).body(null);
             }
@@ -282,8 +274,6 @@ public class AuthController {
             User user = userOptional.get();
             return ResponseEntity.ok(new UserDto(user));
         } catch (Exception e) {
-            System.out.println("Error in /me endpoint: " + e.getMessage());
-            e.printStackTrace();
             return ResponseEntity.status(401).body(null);
         }
     }
