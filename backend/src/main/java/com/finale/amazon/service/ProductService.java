@@ -19,6 +19,7 @@ import com.finale.amazon.repository.CharacteristicTypeRepository;
 import com.finale.amazon.repository.UserRepository;
 import com.finale.amazon.specification.ProductSpecification;
 import com.finale.amazon.repository.PictureRepository;
+import com.finale.amazon.repository.ReviewRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +49,8 @@ public class ProductService {
     @Autowired
     private PictureRepository pictureRepository;
     @Autowired
+    private ReviewRepository reviewRepository;
+    @Autowired
     private SlugService slugService;
 
     @Transactional()
@@ -59,7 +62,13 @@ public class ProductService {
 
     @Transactional
     public void updateAvgRating(Product product) {
-        Double avg = product.getReviews().stream().filter(r -> r.getParent() == null)
+
+        if (product == null) {
+            return;
+        }
+
+        List<Review> topLevelReviews = reviewRepository.findByProductIdAndParentIsNull(product.getId());
+        double avg = topLevelReviews.stream()
                 .mapToDouble(Review::getStars)
                 .average()
                 .orElse(0.0);

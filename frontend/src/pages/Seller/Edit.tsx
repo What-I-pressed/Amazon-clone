@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { Product } from "../../types/product";
 import type { Seller } from "../../types/seller";
 import { fetchSellerProfile, fetchSellerProducts, updateSellerProfile, fetchSellerStats } from "../../api/seller";
+import { uploadSellerAvatar } from "../../api/pictures";
 
 const SellerEditProfile = () => {
   const [seller, setSeller] = useState<Seller | null>(null);
@@ -34,13 +35,14 @@ const SellerEditProfile = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const inputBase =
-    "w-full px-6 py-4 border placeholder-gray-500 focus:outline-none transition-colors";
-  const inputNormal =
-    inputBase +
-    " bg-[#DFDFDF] border-[#DFDFDF] rounded-full hover:border-gray-400 focus:bg-white";
+  // Avatar upload ref
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  const inputBaseClass =
+    "w-full bg-[#F8F8F8] border border-[#DFDFDF] rounded-full px-7 py-3.5 text-base text-gray-700 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-0 focus:border-[#DFDFDF] hover:bg-white focus:bg-white";
+  
   const inputArea =
-    "w-full px-6 py-4 border rounded-2xl placeholder-gray-500 focus:outline-none transition-colors resize-none bg-[#DFDFDF] border-[#DFDFDF] hover:border-gray-400 focus:bg-white";
+    "w-full bg-[#F8F8F8] border border-[#DFDFDF] rounded-3xl px-7 py-5 text-base text-gray-700 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-0 focus:border-[#DFDFDF] hover:bg-white focus:bg-white min-h-[160px] resize-none";
 
   const buttonClass =
     "px-12 py-3 bg-[#282828] text-white font-medium rounded-full hover:bg-[#3A3A3A] disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
@@ -68,7 +70,18 @@ const SellerEditProfile = () => {
         setSurname(nameParts.slice(1).join(" ") || "");
         setEmail(profile.email || "");
         setDescription(profile.description || "");
-        setAvatar(profile.url || "");
+        // Handle both base64 and file path URLs
+        if (profile.url) {
+          if (profile.url.startsWith('data:')) {
+            // Base64 image
+            setAvatar(profile.url);
+          } else {
+            // File path from backend
+            setAvatar(`http://localhost:8080/uploads/avatars/${profile.url}`);
+          }
+        } else {
+          setAvatar("");
+        }
         setProducts(prods.content || []);
         setLoading(false);
       } catch (e: any) {
@@ -79,6 +92,34 @@ const SellerEditProfile = () => {
     loadData();
   }, []);
 
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !seller) return;
+
+    try {
+      setSaving(true);
+      
+      // Upload avatar to backend
+      const uploadedUrl = await uploadSellerAvatar(seller.id, file);
+      const fullUrl = `http://localhost:8080/uploads/avatars/${uploadedUrl}`;
+      setAvatar(fullUrl);
+      
+      // Update seller profile with new avatar URL
+      await updateSellerProfile({
+        username: `${firstName} ${surname}`.trim(),
+        email,
+        description,
+        url: uploadedUrl, // Store relative path in backend
+      });
+      
+      setSeller(prev => prev ? { ...prev, url: uploadedUrl } : null);
+    } catch (err: any) {
+      setError(err?.message || "Не вдалося завантажити аватар");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleSaveProfile = async () => {
     if (!seller) return;
     setSaving(true);
@@ -87,7 +128,7 @@ const SellerEditProfile = () => {
         username: `${firstName} ${surname}`.trim(),
         email,
         description,
-        url: avatar,
+        url: seller.url, // Keep existing avatar URL
       });
       setSeller((prev) => ({ ...(prev as Seller), ...updated }));
     } catch (e: any) {
@@ -210,7 +251,14 @@ const SellerEditProfile = () => {
                     )}
                   </div>
                   <div>
-                    <input type="file" accept="image/*" className={inputNormal} />
+                    <input 
+                      ref={avatarInputRef}
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleAvatarUpload}
+                      className={inputBaseClass}
+                      disabled={saving}
+                    />
                   </div>
                 </div>
               </div>
@@ -225,7 +273,7 @@ const SellerEditProfile = () => {
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className={inputNormal}
+                    className={inputBaseClass}
                     placeholder="Введіть ім'я"
                   />
                 </div>
@@ -237,7 +285,7 @@ const SellerEditProfile = () => {
                     type="text"
                     value={surname}
                     onChange={(e) => setSurname(e.target.value)}
-                    className={inputNormal}
+                    className={inputBaseClass}
                     placeholder="Введіть прізвище"
                   />
                 </div>
@@ -253,7 +301,7 @@ const SellerEditProfile = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className={inputNormal}
+                    className={inputBaseClass}
                     placeholder="your@email.com"
                   />
                 </div>
@@ -317,7 +365,7 @@ const SellerEditProfile = () => {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="••••••••••••••••"
-                    className={inputNormal}
+                    className={inputBaseClass}
                   />
                 </div>
                 <div>
@@ -329,7 +377,7 @@ const SellerEditProfile = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••••••••••"
-                    className={inputNormal}
+                    className={inputBaseClass}
                   />
                 </div>
               </div>
@@ -374,7 +422,7 @@ const SellerEditProfile = () => {
                     value={state}
                     onChange={(e) => setState(e.target.value)}
                     placeholder="Область"
-                    className={inputNormal}
+                    className={inputBaseClass}
                   />
                 </div>
                 <div>
@@ -386,7 +434,7 @@ const SellerEditProfile = () => {
                     value={zipCode}
                     onChange={(e) => setZipCode(e.target.value)}
                     placeholder="Поштовий індекс"
-                    className={inputNormal}
+                    className={inputBaseClass}
                   />
                 </div>
               </div>
@@ -460,7 +508,7 @@ const SellerEditProfile = () => {
                     <select
                       value={language}
                       onChange={(e) => setLanguage(e.target.value)}
-                      className={inputNormal}
+                      className={inputBaseClass}
                     >
                       <option value="uk">Українська</option>
                       <option value="en">English</option>
@@ -473,7 +521,7 @@ const SellerEditProfile = () => {
                     <select
                       value={timezone}
                       onChange={(e) => setTimezone(e.target.value)}
-                      className={inputNormal}
+                      className={inputBaseClass}
                     >
                       <option value="Europe/Kiev">Europe/Kiev</option>
                       <option value="Europe/Warsaw">Europe/Warsaw</option>
@@ -492,74 +540,7 @@ const SellerEditProfile = () => {
                   {saving ? "Збереження..." : "Зберегти налаштування"}
                 </button>
               </div>
-            </div>
-
-            {/* Products */}
-            <div className="border-b border-[#DFDFDF] pb-8 mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">
-                Редагувати товари
-              </h2>
-              <div className="grid gap-6 md:grid-cols-2">
-                {products.map((product) => (
-                  <div
-                    key={product.id}
-                    className="border border-[#DFDFDF] rounded-lg p-6 space-y-4"
-                  >
-                    <div className="aspect-w-16 aspect-h-9 bg-white rounded-lg overflow-hidden flex items-center justify-center">
-                      <img
-                        src={product.pictures[0]?.url}
-                        alt={product.name}
-                        className="max-w-full max-h-full object-contain"
-                      />
-                    </div>
-                    <input
-                      type="text"
-                      value={product.name}
-                      onChange={(e) =>
-                        handleProductChange(product.id, "name", e.target.value)
-                      }
-                      className={inputNormal}
-                      placeholder="Назва товару"
-                    />
-                    <textarea
-                      value={product.description}
-                      onChange={(e) =>
-                        handleProductChange(
-                          product.id,
-                          "description",
-                          e.target.value
-                        )
-                      }
-                      className={inputArea}
-                      rows={3}
-                      placeholder="Опис товару"
-                    />
-                    <input
-                      type="number"
-                      value={product.price}
-                      onChange={(e) =>
-                        handleProductChange(
-                          product.id,
-                          "price",
-                          parseFloat(e.target.value)
-                        )
-                      }
-                      className={inputNormal}
-                      placeholder="Ціна"
-                    />
-                  </div>
-                ))}
-              </div>
-              <div className="flex justify-center mt-6">
-                <button
-                  onClick={handleSaveProducts}
-                  disabled={saving}
-                  className={buttonClass}
-                >
-                  {saving ? "Збереження..." : "Зберегти товари"}
-                </button>
-              </div>
-            </div>
+            </div>     
 
             {/* Account Info / Quick Actions / Danger Zone */}
             <div className="space-y-8">

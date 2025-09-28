@@ -386,6 +386,11 @@ const ProductPage: React.FC = () => {
   const discountLabel = discountMeta.percent > 0 ? `-${Math.round(discountMeta.percent)}%` : null;
   const discountStarts = formatDate(discountMeta.startsAt);
   const discountEnds = formatDate(discountMeta.endsAt);
+  const averageRating = typeof product.avgRating === 'number'
+    ? product.avgRating
+    : (typeof product.rating === 'number' ? product.rating : null);
+  const reviewCount = typeof product.reviewCount === 'number' ? product.reviewCount : null;
+  const hasRating = averageRating != null;
 
   return (
     <div className="min-h-screen bg-white p-2 pt-12">
@@ -450,6 +455,21 @@ const ProductPage: React.FC = () => {
                   {discountLabel}
                 </span>
               ) : null}
+            </div>
+            <div className="flex items-center gap-2 text-sm text-[#2C2C2C]">
+              <Star
+                className={hasRating && averageRating! > 0 ? 'w-4 h-4 fill-[#F5A524] text-[#F5A524]' : 'w-4 h-4 text-gray-400'}
+              />
+              {hasRating ? (
+                <>
+                  <span className="font-medium">{averageRating!.toFixed(1)}</span>
+                  {reviewCount != null ? (
+                    <span className="text-gray-500">({reviewCount} review{reviewCount === 1 ? '' : 's'})</span>
+                  ) : null}
+                </>
+              ) : (
+                <span className="text-gray-500">No ratings yet</span>
+              )}
             </div>
             {(discountMeta.status === "scheduled" || discountMeta.status === "finished") && (discountStarts || discountEnds) ? (
               <div className="text-xs text-gray-600 flex flex-col">

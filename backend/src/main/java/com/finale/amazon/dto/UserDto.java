@@ -23,6 +23,7 @@ public class UserDto {
     private boolean blocked = false;
     private String slug;
     private String url;
+    private SellerStatsDto stats;
 
     public UserDto(User user){
         this.id = user.getId();

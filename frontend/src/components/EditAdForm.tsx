@@ -5,14 +5,10 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useNavigate } from "react-router";
 import Button from "./ui/button/Button";
-import {
-  createProductForSeller,
-  type ProductCreationPayload,
-} from "../api/products";
-import { fetchSellerProfile } from "../api/seller";
+import { updateProduct } from "../api/products";
 import { uploadProductPicture } from "../api/pictures";
+import type { Product } from "../types/product";
 
 type UploadMessage = {
   name: string;
@@ -25,30 +21,35 @@ type SubcategoryOption = {
   name: string;
 };
 
+type EditAdFormProps = {
+  product: Product | null;
+  onSuccess?: (product: Product) => void;
+  onCancel?: () => void;
+};
+
 const inputBaseClass =
   "w-full bg-[#F8F8F8] border border-[#DFDFDF] rounded-full px-7 py-3.5 text-base text-gray-700 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-0 focus:border-[#DFDFDF] hover:bg-white focus:bg-white";
 
-export default function CreateAdForm() {
-  const navigate = useNavigate();
-
+export default function EditAdForm({ product, onSuccess, onCancel }: EditAdFormProps) {
   const [name, setName] = useState("");
   const [price, setPrice] = useState<string>("");
-  const [quantityInStock, setQuantityInStock] = useState<string>("1");
+  const [priceWithoutDiscount, setPriceWithoutDiscount] = useState<string>("");
+  const [quantityInStock, setQuantityInStock] = useState<string>("0");
   const [categoryName, setCategoryName] = useState("");
   const [subcategoryName, setSubcategoryName] = useState("");
   const [description, setDescription] = useState("");
+  const [discountLaunchDate, setDiscountLaunchDate] = useState("");
+  const [discountExpirationDate, setDiscountExpirationDate] = useState("");
 
   const [files, setFiles] = useState<File[]>([]);
   const [isDragActive, setIsDragActive] = useState(false);
   const [messages, setMessages] = useState<UploadMessage[]>([]);
-  const [createdProductId, setCreatedProductId] = useState<number | null>(null);
-  const [createdProductSlug, setCreatedProductSlug] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [loading, setLoading] = useState(false);
+
   const [categoryMap, setCategoryMap] = useState<Record<string, SubcategoryOption[]>>({});
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const previews = useMemo(
     () =>
@@ -60,7 +61,11 @@ export default function CreateAdForm() {
     [files]
   );
 
-  const categoryOptions = useMemo(() => Object.keys(categoryMap).sort((a, b) => a.localeCompare(b)), [categoryMap]);
+  const categoryOptions = useMemo(
+    () => Object.keys(categoryMap).sort((a, b) => a.localeCompare(b)),
+    [categoryMap]
+  );
+
   const subcategoryOptions = useMemo(() => {
     if (!categoryName) return [] as SubcategoryOption[];
     return categoryMap[categoryName] ?? [];
@@ -82,12 +87,44 @@ export default function CreateAdForm() {
         const data = await response.json();
         setCategoryMap(data ?? {});
       } catch (err) {
-        console.error("[CreateAdForm] Failed to fetch categories", err);
+        console.error("[EditAdForm] Failed to fetch categories", err);
       }
     };
 
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    if (!product) return;
+
+    setName(product.name ?? "");
+    setDescription(product.description ?? "");
+    setPrice(product.price != null ? String(product.price) : "");
+    setPriceWithoutDiscount(
+      product.priceWithoutDiscount != null
+        ? String(product.priceWithoutDiscount)
+        : product.price != null
+        ? String(product.price)
+        : ""
+    );
+    setQuantityInStock(
+      product.quantityInStock != null ? String(product.quantityInStock) : "0"
+    );
+    setCategoryName(product.categoryName ?? "");
+    setSubcategoryName(product.subcategoryName ?? "");
+    setDiscountLaunchDate(
+      product.discountLaunchDate ? product.discountLaunchDate.split("T")[0] : ""
+    );
+    setDiscountExpirationDate(
+      product.discountExpirationDate
+        ? product.discountExpirationDate.split("T")[0]
+        : ""
+    );
+    setFiles([]);
+    setMessages([]);
+    setSuccessMessage(null);
+    setError(null);
+  }, [product]);
 
   useEffect(() => {
     if (!categoryName) {
@@ -103,7 +140,10 @@ export default function CreateAdForm() {
     const subcategoriesForCategory = categoryMap[categoryName] ?? [];
     if (subcategoriesForCategory.length === 0) {
       setSubcategoryName("");
-    } else if (!subcategoryName || !subcategoriesForCategory.some((option) => option.name === subcategoryName)) {
+    } else if (
+      !subcategoryName ||
+      !subcategoriesForCategory.some((option) => option.name === subcategoryName)
+    ) {
       setSubcategoryName(subcategoriesForCategory[0].name);
     }
   }, [categoryOptions, categoryMap, categoryName, subcategoryName]);
@@ -175,6 +215,8 @@ export default function CreateAdForm() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (!product) return;
+
     setError(null);
     setSuccessMessage(null);
     setMessages([]);
@@ -189,36 +231,32 @@ export default function CreateAdForm() {
     try {
       setLoading(true);
 
-      const seller = await fetchSellerProfile();
-      if (!seller || typeof seller.id !== "number") {
-        throw new Error(
-          "Не вдалося визначити продавця. Увійдіть у свій акаунт продавця."
-        );
-      }
-
       const numericPrice = Number(price);
-      const payload: ProductCreationPayload = {
+      const numericOriginalPrice = Number(priceWithoutDiscount) || numericPrice;
+      const payload = {
         name,
         description: description || undefined,
         price: numericPrice,
-        priceWithoutDiscount: numericPrice,
-        quantityInStock: Number(quantityInStock),
+        priceWithoutDiscount: numericOriginalPrice,
+        quantityInStock: Number(quantityInStock) || 0,
         categoryName,
         subcategoryName: subcategoryName || undefined,
+        discountLaunchDate: discountLaunchDate
+          ? new Date(discountLaunchDate).toISOString()
+          : undefined,
+        discountExpirationDate: discountExpirationDate
+          ? new Date(discountExpirationDate).toISOString()
+          : undefined,
       };
 
-      const product = await createProductForSeller(seller.id, payload);
-      const productId = (product as any)?.id;
-      const productSlug = (product as any)?.slug ?? null;
-      setCreatedProductId(productId ?? null);
-      setCreatedProductSlug(productSlug);
+      const updatedProduct = await updateProduct(Number(product.id), payload);
 
-      if (productId && files.length > 0) {
+      if (product.id && files.length > 0) {
         const uploadMessages: UploadMessage[] = [];
 
         for (const file of files) {
           try {
-            await uploadProductPicture(productId, file);
+            await uploadProductPicture(product.id, file);
             uploadMessages.push({
               name: file.name,
               status: "success",
@@ -237,37 +275,40 @@ export default function CreateAdForm() {
         setMessages(uploadMessages);
       }
 
-      setSuccessMessage(`Товар «${product?.name ?? name}» успішно створений.`);
-
-      setName("");
-      setPrice("");
-      setQuantityInStock("1");
-      setCategoryName("");
-      setSubcategoryName("");
-      setDescription("");
+      setSuccessMessage(`Товар «${updatedProduct.name ?? name}» оновлено.`);
       setFiles([]);
+
+      if (onSuccess) {
+        onSuccess(updatedProduct);
+      }
     } catch (err: any) {
-      setError(err?.response?.data || err?.message || "Помилка створення товару");
+      setError(err?.response?.data || err?.message || "Помилка оновлення товару");
     } finally {
       setLoading(false);
     }
   };
 
-  const viewProductUrl = useMemo(() => {
-    if (createdProductSlug) {
-      return `/product/${createdProductSlug}`;
-    }
-    if (createdProductId) {
-      return `/product/${createdProductId}`;
-    }
-    return null;
-  }, [createdProductId, createdProductSlug]);
+  if (!product) {
+    return (
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-6 text-sm text-amber-700">
+        Оберіть товар для редагування.
+      </div>
+    );
+  }
 
-  const handleViewProduct = useCallback(() => {
-    if (viewProductUrl) {
-      navigate(viewProductUrl);
-    }
-  }, [navigate, viewProductUrl]);
+  const hasDiscount = useMemo(() => {
+    const original = Number(priceWithoutDiscount);
+    const current = Number(price);
+    if (!original || original <= 0) return false;
+    return current < original;
+  }, [price, priceWithoutDiscount]);
+
+  const discountPercent = useMemo(() => {
+    const original = Number(priceWithoutDiscount);
+    const current = Number(price);
+    if (!original || original <= 0 || current >= original) return 0;
+    return Math.round(((original - current) / original) * 100);
+  }, [price, priceWithoutDiscount]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -288,8 +329,26 @@ export default function CreateAdForm() {
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Product photos</h2>
             <p className="text-base text-gray-500 mt-1">
-              Upload product images. The first image will be used as the cover photo.
+              Завантажте нові фото продукту. Поточні фото залишаться без змін.
             </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {product.pictures?.map((picture) => (
+              <div
+                key={picture.id}
+                className="rounded-2xl border border-[#DFDFDF] bg-[#F8F8F8] overflow-hidden"
+              >
+                <img
+                  src={`http://localhost:8080/${picture.url}`}
+                  alt={picture.name}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="px-5 py-3">
+                  <p className="text-sm text-gray-600 truncate">{picture.name}</p>
+                </div>
+              </div>
+            ))}
           </div>
 
           <div
@@ -321,10 +380,10 @@ export default function CreateAdForm() {
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-gray-700">
-                  Drag & drop files here or choose manually
+                  Перетягніть файли сюди або оберіть вручну
                 </p>
                 <p className="text-xs text-gray-500">
-                  JPG, PNG, WEBP formats up to 10 MB each
+                  JPG, PNG, WEBP до 10 МБ кожен
                 </p>
               </div>
               <Button
@@ -349,7 +408,7 @@ export default function CreateAdForm() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-semibold text-gray-700">
-                  Selected files ({previews.length})
+                  Нові файли ({previews.length})
                 </h3>
                 <button
                   type="button"
@@ -378,7 +437,9 @@ export default function CreateAdForm() {
                         <p className="text-base font-medium text-gray-800 truncate max-w-[240px]">
                           {preview.name}
                         </p>
-                        <p className="text-sm text-gray-500">{formatFileSize(preview.size)}</p>
+                        <p className="text-sm text-gray-500">
+                          {formatFileSize(preview.size)}
+                        </p>
                       </div>
                     </div>
                     <button
@@ -396,7 +457,9 @@ export default function CreateAdForm() {
 
           {messages.length > 0 && (
             <div className="rounded-2xl border border-[#E4E4E7] bg-gray-50 px-4 py-3">
-              <h3 className="text-base font-semibold text-gray-700 mb-3">Upload status</h3>
+              <h3 className="text-base font-semibold text-gray-700 mb-3">
+                Статус завантаження
+              </h3>
               <ul className="space-y-1 text-base">
                 {messages.map((message, index) => (
                   <li
@@ -414,11 +477,12 @@ export default function CreateAdForm() {
             </div>
           )}
         </section>
+
         <section className="space-y-6 rounded-3xl border border-[#E4E4E7] bg-white p-8">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Product details</h2>
             <p className="text-base text-gray-500 mt-1">
-              Provide the essential product information. Fields marked with * are required.
+              Оновіть ключову інформацію товару. Поля з * є обов'язковими.
             </p>
           </div>
 
@@ -433,18 +497,39 @@ export default function CreateAdForm() {
               />
             </label>
 
-            <label className="block space-y-2">
-              <span className="text-sm text-gray-600">Price*</span>
-              <input
-                value={price}
-                onChange={(event) => setPrice(event.target.value)}
-                placeholder="0.00"
-                type="number"
-                min="0"
-                step="0.01"
-                className={inputBaseClass}
-              />
-            </label>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="block space-y-2">
+                <span className="text-sm text-gray-600">Price*</span>
+                <input
+                  value={price}
+                  onChange={(event) => setPrice(event.target.value)}
+                  placeholder="0.00"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className={inputBaseClass}
+                />
+              </label>
+
+              <label className="block space-y-2">
+                <span className="text-sm text-gray-600">Original price</span>
+                <input
+                  value={priceWithoutDiscount}
+                  onChange={(event) => setPriceWithoutDiscount(event.target.value)}
+                  placeholder="0.00"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className={inputBaseClass}
+                />
+              </label>
+            </div>
+
+            {hasDiscount && (
+              <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+                Знижка {discountPercent}% буде показана на сторінці товару.
+              </div>
+            )}
 
             <div className="grid gap-4 md:grid-cols-2">
               <label className="block space-y-2">
@@ -472,7 +557,9 @@ export default function CreateAdForm() {
                   className={inputBaseClass}
                   disabled={categoryOptions.length === 0}
                 >
-                  {categoryOptions.length === 0 && <option value="">Loading categories...</option>}
+                  {categoryOptions.length === 0 && (
+                    <option value="">Loading categories...</option>
+                  )}
                   {categoryOptions.map((category) => (
                     <option key={category} value={category}>
                       {category}
@@ -490,7 +577,9 @@ export default function CreateAdForm() {
                 className={inputBaseClass}
                 disabled={(subcategoryOptions?.length ?? 0) === 0}
               >
-                {subcategoryOptions.length === 0 && <option value="">No subcategories</option>}
+                {subcategoryOptions.length === 0 && (
+                  <option value="">No subcategories</option>
+                )}
                 {subcategoryOptions.map((option) => (
                   <option key={option.id} value={option.name}>
                     {option.name}
@@ -498,6 +587,30 @@ export default function CreateAdForm() {
                 ))}
               </select>
             </label>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="block space-y-2">
+                <span className="text-sm text-gray-600">Discount start</span>
+                <input
+                  value={discountLaunchDate}
+                  onChange={(event) => setDiscountLaunchDate(event.target.value)}
+                  type="date"
+                  className={inputBaseClass}
+                />
+              </label>
+
+              <label className="block space-y-2">
+                <span className="text-sm text-gray-600">Discount end</span>
+                <input
+                  value={discountExpirationDate}
+                  onChange={(event) =>
+                    setDiscountExpirationDate(event.target.value)
+                  }
+                  type="date"
+                  className={inputBaseClass}
+                />
+              </label>
+            </div>
 
             <label className="block space-y-2">
               <span className="text-sm text-gray-600">Description</span>
@@ -514,16 +627,12 @@ export default function CreateAdForm() {
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={loading}>
-          {loading ? "Saving..." : "Create product"}
+          {loading ? "Saving..." : "Save changes"}
         </Button>
 
-        {viewProductUrl && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleViewProduct}
-          >
-            View product
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
           </Button>
         )}
       </div>

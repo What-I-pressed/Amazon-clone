@@ -1,87 +1,58 @@
-import { createContext, useState, useEffect, type ReactNode } from "react";
-import { isLoggedIn, logout } from "../utilites/auth";
+import { createContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { getProfile } from "../services/authService";
 import { User } from "../types/user";
-import { fetchFavouriteProductIds } from "../api/favourites";
 
-type AuthContextType = {
+interface AuthContextType {
+  isAuthenticated: boolean;
   user: User | null;
-  loading: boolean;
+  favouriteProductIds: Set<number>;
   loginUser: (token: string) => Promise<void>;
   logoutUser: () => void;
-  favouriteProductIds: Set<number>;
   addFavouriteId: (productId: number) => void;
   removeFavouriteId: (productId: number) => void;
-};
+  loading: boolean;
+}
 
-export const AuthContext = createContext<AuthContextType | null>(null);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const [favouriteProductIds, setFavouriteProductIds] = useState<Set<number>>(new Set());
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (isLoggedIn()) {
-        try {
-          const res = await getProfile();
-          console.log("Profile loaded:", res.data);
-          setUser(res.data);
-          // Load favourite product IDs for fast is-fav checks
-          try {
-            const ids = await fetchFavouriteProductIds();
-            setFavouriteProductIds(new Set(ids));
-          } catch (e) {
-            console.warn("Failed to fetch favourite product IDs on init:", e);
-            setFavouriteProductIds(new Set());
-          }
-        } catch (err) {
-          console.error("Failed to fetch profile, clearing user state:", err);
-          // Don't redirect on API errors, just clear user state
-          setUser(null);
-          setFavouriteProductIds(new Set());
-        }
-      }
-      setLoading(false);
-    };
-    fetchProfile();
-  }, []);
-
-  const loginUser = async (token: string) => {
-    console.log("loginUser called with token:", token);
-    localStorage.setItem("token", token); // кладем токен
+  const [loading, setLoading] = useState(true);
+  const fetchAndStoreProfile = useCallback(async () => {
     try {
-      const res = await getProfile();
-      console.log("Profile after login:", res.data);
-      setUser(res.data);
-      try {
-        const ids = await fetchFavouriteProductIds();
-        setFavouriteProductIds(new Set(ids));
-      } catch (e) {
-        console.warn("Failed to fetch favourite product IDs after login:", e);
-        setFavouriteProductIds(new Set());
-      }
-    } catch (err) {
-      console.error("Failed to fetch profile after login:", err);
-      // Don't redirect on API errors, just clear user state
+      setLoading(true);
+      const response = await getProfile();
+      setUser(response.data ?? null);
+      const ids = (response.data?.favouriteProductIds ?? []) as Array<number | string>;
+      setFavouriteProductIds(new Set(ids.map((id) => Number(id))));
+    } catch (error) {
       setUser(null);
       setFavouriteProductIds(new Set());
+    } finally {
+      setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetchAndStoreProfile();
+  }, [fetchAndStoreProfile]);
+
+  const loginUser = async (token: string) => {
+    localStorage.setItem("token", token);
+    await fetchAndStoreProfile();
   };
 
   const logoutUser = () => {
-    console.log("logoutUser called");
-    logout();
+    localStorage.removeItem("token");
     setUser(null);
     setFavouriteProductIds(new Set());
-    window.location.href = "/login";
   };
 
   const addFavouriteId = (productId: number) => {
     setFavouriteProductIds((prev) => {
       const next = new Set(prev);
-      next.add(productId);
+      next.add(Number(productId));
       return next;
     });
   };
@@ -89,13 +60,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const removeFavouriteId = (productId: number) => {
     setFavouriteProductIds((prev) => {
       const next = new Set(prev);
-      next.delete(productId);
+      next.delete(Number(productId));
       return next;
     });
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginUser, logoutUser, favouriteProductIds, addFavouriteId, removeFavouriteId }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated: !!user,
+        user,
+        favouriteProductIds,
+        loginUser,
+        logoutUser,
+        addFavouriteId,
+        removeFavouriteId,
+        loading,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

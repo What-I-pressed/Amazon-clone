@@ -77,6 +77,10 @@ public class OrderController {
     @PutMapping("/create")
     public ResponseEntity<?> CreateOrder(@RequestParam String token, @RequestBody OrderCreationDto order){
         if(jwtUtil.isTokenExpired(token)) return ResponseEntity.status(400).body("Token is expired");
+        String role = jwtUtil.extractRole(token);
+        if ("SELLER".equalsIgnoreCase(role)) {
+            return ResponseEntity.status(403).body("Sellers are not allowed to place orders");
+        }
         try{
             Order o = orderService.creatOrder(order, jwtUtil.extractUserId(token));
             return ResponseEntity.ok(new OrderDto(o));

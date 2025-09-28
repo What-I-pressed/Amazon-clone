@@ -21,6 +21,7 @@ const Navbar: React.FC = () => {
   const auth = useContext(AuthContext);
   if (!auth) throw new Error("Navbar must be used within AuthProvider");
   const { user, logoutUser } = auth;
+  const isSeller = user?.roleName === "SELLER";
 
   const [seller, setSeller] = useState<Seller | null>(null);
   const [cartCount, setCartCount] = useState<number>(0);
@@ -44,7 +45,7 @@ const Navbar: React.FC = () => {
   useEffect(() => {
     const loadCart = async () => {
       try {
-        if (!user) {
+        if (!user || isSeller) {
           setCartCount(0);
           return;
         }
@@ -139,7 +140,6 @@ const Navbar: React.FC = () => {
             <button
               className="px-3 py-2 rounded-md flex items-center justify-center transition-colors duration-300 ease-in-out hover:bg-[#343434] group focus:outline-none"
               style={{ backgroundColor: "#757575" }}
-              aria-label="Search"
               onClick={handleSearch}
             >
               <span className="material-icons font-normal text-sm text-black group-hover:text-white transition-colors duration-300 ease-in-out">
@@ -151,6 +151,15 @@ const Navbar: React.FC = () => {
 
         {/* Right block */}
         <div className="flex items-center gap-16 flex-shrink-0">
+          {isSeller && (
+            <button
+              className="hidden md:block px-4 py-2 rounded-full border border-white/40 text-sm font-semibold text-white hover:bg-white hover:text-[#434343] transition-colors duration-200"
+              onClick={() => navigate("/seller/dashboard")}
+            >
+              Seller Dashboard
+            </button>
+          )}
+
           {/* Language dropdown */}
           <div className="relative" ref={languageRef}>
             <div
@@ -162,7 +171,6 @@ const Navbar: React.FC = () => {
                 arrow_drop_down
               </span>
             </div>
-
             <div
               className={`absolute top-full right-0 mt-1 w-20 rounded-md shadow-lg z-50 overflow-hidden transition-all duration-300 ease-out transform ${languageDropdown ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
                 }`}
@@ -183,44 +191,50 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Favourites */}
-          <div
-            className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
-            onClick={() => navigate("/favourites")}
-            title="Go to favourites"
-          >
-            Favorites
-          </div>
+          {!isSeller && (
+            <div
+              className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
+              onClick={() => navigate("/favourites")}
+              title="Go to favourites"
+            >
+              Favorites
+            </div>
+          )}
 
           {/* Orders */}
-          <div
-            className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
-            onClick={() => navigate("/orders")}
-            title="Go to orders"
-          >
-            Orders
-          </div>
+          {!isSeller && (
+            <div
+              className="cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
+              onClick={() => navigate("/orders")}
+              title="Go to orders"
+            >
+              Orders
+            </div>
+          )}
 
           {/* Cart */}
-          <div
-            className="relative cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
-            onClick={() => navigate("/cart")}
-            title="Go to cart"
-          >
-            Cart
-            {cartCount > 0 && (
-              <span
-                className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center"
-                aria-label={`Items in cart: ${cartCount}`}
-              >
-                {cartCount}
-              </span>
-            )}
-          </div>
+          {!isSeller && (
+            <div
+              className="relative cursor-pointer text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
+              onClick={() => navigate("/cart")}
+              title="Go to cart"
+            >
+              Cart
+              {cartCount > 0 && (
+                <span
+                  className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center"
+                  aria-label={`Items in cart: ${cartCount}`}
+                >
+                  {cartCount}
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Account dropdown */}
           <div className="relative" ref={accountRef}>
             <div
-              className="cursor-pointer text-center text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 rounded hover:bg-[#343434]"
+              className="cursor-pointer text-center text-sm transition-colors duration-300 ease-in-out hover:text-gray-300 px-2 py-1 hover:bg-[#343434]"
               onClick={() => setAccountDropdown(prev => !prev)}
             >
               <div className="flex items-center justify-center gap-2">
@@ -236,7 +250,7 @@ const Navbar: React.FC = () => {
             </div>
 
             <div
-              className={`absolute top-full right-0 mt-1 w-32  shadow-lg z-50 overflow-hidden transition-all duration-300 ease-out transform ${accountDropdown ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
+              className={`absolute top-full rounded-md right-0 mt-1 w-32  shadow-lg z-50 overflow-hidden transition-all duration-300 ease-out transform ${accountDropdown ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-2 pointer-events-none"
                 }`}
               style={{ backgroundColor: "#757575" }}
             >
@@ -248,7 +262,7 @@ const Navbar: React.FC = () => {
                         <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => navigate(`/seller/${seller.slug}`)}>
                           Seller Profile
                         </button>
-                        <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => navigate("/seller/dashboard")}>
+                        <button className="block w-full text-center px-4 py-2 text-sm font-semibold text-white hover:bg-[#343434]" onClick={() => navigate("/seller/dashboard")}>
                           Seller Dashboard
                         </button>
                         <button className="block w-full text-center px-4 py-2 text-sm text-white hover:bg-[#343434]" onClick={() => navigate("/seller/edit")}>

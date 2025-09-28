@@ -1,6 +1,7 @@
 // api/seller.ts
 import type { Seller } from "../types/seller";
 import type { SellerStats } from "../types/sellerstats";
+import type { Review } from "../types/review";
 import type { Product } from "../types/product";
 import type { PageResponse} from "../types/pageresponse";
 
@@ -13,6 +14,22 @@ function getAuthHeaders() {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
+}
+
+export async function fetchSellerReviews(): Promise<Review[]> {
+  try {
+    const res = await fetch(`${API_BASE}/seller/profile/reviews`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error("Не вдалося отримати відгуки продавця");
+    }
+    return res.json();
+  } catch (e) {
+    console.error("[API] fetchSellerReviews:", e);
+    throw e;
+  }
 }
 
 // отримання профілю продавця
@@ -115,6 +132,21 @@ export async function fetchSellerProfileBySlug(slug: string): Promise<Seller> {
 
   if (!res.ok) {
     throw new Error(`Failed to load seller profile for slug ${slug}`);
+  }
+
+  return res.json();
+}
+
+export async function fetchSellerStatsBySlug(slug: string): Promise<SellerStats> {
+  const res = await fetch(`${API_BASE}/seller/${encodeURIComponent(slug)}/stats`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to load seller stats for slug ${slug}`);
   }
 
   return res.json();
