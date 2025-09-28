@@ -15,6 +15,8 @@ import com.finale.amazon.service.CategoryService;
 import com.finale.amazon.service.CharacteristicService;
 import com.finale.amazon.service.SellerService;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/characteristics")
 @CrossOrigin("*")
@@ -30,8 +32,29 @@ public class CharacteristicController {
 
     @PostMapping("/custom/")
     public ResponseEntity<?> getCustomCharacteristicList(@RequestBody(required = false) ProductFilterDto productFilterDto){
+        if (productFilterDto == null) {
+            // No filters provided, return empty result to avoid heavy full-scan
+            return ResponseEntity.ok(Map.of());
+        }
         return ResponseEntity.ok(characteristicService.findForSpec(productFilterDto.getName(), productFilterDto.getCategoryId(),
                 productFilterDto.getSubcategoryId()));
+    }
+
+    @PostMapping("/custom")
+    public ResponseEntity<?> getCustomCharacteristicListNoSlash(@RequestBody(required = false) ProductFilterDto productFilterDto){
+        return getCustomCharacteristicList(productFilterDto);
+    }
+
+    @GetMapping("/custom")
+    public ResponseEntity<?> getCustomCharacteristicListGet(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long subcategoryId
+    ){
+        if (name == null && categoryId == null && subcategoryId == null) {
+            return ResponseEntity.ok(Map.of());
+        }
+        return ResponseEntity.ok(characteristicService.findForSpec(name, categoryId, subcategoryId));
     }
 
     @GetMapping("/sellers/")

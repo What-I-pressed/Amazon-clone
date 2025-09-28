@@ -43,14 +43,15 @@ public class UserController {
         return ResponseEntity.ok(new UserDto(user));
     }
 
-    @PutMapping(value = "/profile")
-    public ResponseEntity<UserDto> updateUserProfile(@RequestParam String token,@Valid @RequestBody UserEditRequestDto userDto) throws IOException {
+    @PutMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UserDto> updateUserProfile(@RequestParam String token,@RequestPart("user") @Valid UserEditRequestDto userDto, @RequestPart(value = "file", required = true) MultipartFile file) throws IOException {
         User updatedUser = userService.updateUserProfile(
                 jwtUtil.extractUserId(token),
                 userDto.getUsername(),
                 userDto.getName(),
                 userDto.getDescription(),
-                userDto.getPhone()  
+                userDto.getPhone(),
+                file
         ); 
 
         return ResponseEntity.ok(new UserDto(updatedUser));
