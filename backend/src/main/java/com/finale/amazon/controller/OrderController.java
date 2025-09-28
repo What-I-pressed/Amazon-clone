@@ -77,7 +77,18 @@ public class OrderController {
     @PutMapping("/create")
     public ResponseEntity<?> CreateOrder(@RequestParam String token, @RequestBody OrderCreationDto order){
         if(jwtUtil.isTokenExpired(token)) return ResponseEntity.status(400).body("Token is expired");
-        return ResponseEntity.ok(new OrderDto(orderService.creatOrder(order, jwtUtil.extractUserId(token))));
+        String role = jwtUtil.extractRole(token);
+        if ("SELLER".equalsIgnoreCase(role)) {
+            return ResponseEntity.status(403).body("Sellers are not allowed to place orders");
+        }
+        try{
+            Order o = orderService.creatOrder(order, jwtUtil.extractUserId(token));
+            return ResponseEntity.ok(new OrderDto(o));
+        }
+        catch(Exception ex){
+            return ResponseEntity.status(409).body("This product is out of stock");
+        }
+        
     }
 
     @Operation(summary = "Обробити замовлення", description = "Змінює статус замовлення на PROCESSING (тільки для ADMIN)")
@@ -167,4 +178,27 @@ public class OrderController {
         Order updatedOrder = orderService.updateOrder(id, orderDto);
         return ResponseEntity.ok(new OrderDto(updatedOrder));
     }
+
+   @Operation(
+    summary = "Отримати всі незавершені замовлення (тільки для ADMIN)", description = "Повертає всі замовлення у статусах NEW, PROCESSING або SHIPPED")
+    @GetMapping("/not-completed")
+    public ResponseEntity<?> getNotCompletedOrders(@RequestParam String token) {
+        if (jwtUtil.isTokenExpired(token)) {
+            return ResponseEntity.status(400).body("Token is expired");
+        }
+
+        String role = jwtUtil.extractRole(token);
+        if (!"ADMIN".equals(role)) {
+            return ResponseEntity.status(403).body("You are not authorized to view this resource!");
+        }
+
+        List<Order> activeOrders = orderService.findAllNotCompletedOrders();
+
+        return activeOrders.isEmpty()
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.ok(activeOrders.stream().map(OrderDto::new).collect(Collectors.toList()));
+    }
+
+
+
 }

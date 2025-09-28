@@ -32,12 +32,26 @@ public class FavouriteController {
         return ResponseEntity.ok(favouriteService.getByUser(jwtUtil.extractUserId(token)));
     }
 
+    @Operation(summary = "Отримати всі товари користувача", description = "Повертає список всіх товарів, доданих користувачем у обране")
+    @GetMapping("/ids/")
+    public ResponseEntity<?> getIdsByUser(@RequestParam String token){
+        return ResponseEntity.ok(favouriteService.getIdsByUser(jwtUtil.extractUserId(token)));
+    }
+
     @PostMapping("/add")
     @Operation(
         summary = "Add favourite item",
         description = "Returns the id of the created favourite item"
     )
     public ResponseEntity<?> add(@RequestParam String token, @RequestParam Long productId){
+        if (jwtUtil.isTokenExpired(token)) {
+            return ResponseEntity.status(400).body("Token is expired");
+        }
+
+        if ("SELLER".equalsIgnoreCase(jwtUtil.extractRole(token))) {
+            return ResponseEntity.status(403).body("Sellers are not allowed to add favourites");
+        }
+
         return ResponseEntity.ok(favouriteService.Add(jwtUtil.extractUserId(token), productId));
     }
 
@@ -47,4 +61,6 @@ public class FavouriteController {
         favouriteService.delete(jwtUtil.extractUserId(token), favouriteId);
         return ResponseEntity.ok("Deleted successfully");
     }
+
+    
 }

@@ -1,6 +1,7 @@
 package com.finale.amazon.service;
 
 import com.finale.amazon.dto.ProductDto;
+import com.finale.amazon.dto.ReviewDto;
 import com.finale.amazon.dto.SellerStatsDto;
 import com.finale.amazon.entity.Review;
 import com.finale.amazon.entity.User;
@@ -15,6 +16,7 @@ import com.finale.amazon.dto.UserDto;
 
 
 import java.util.List;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,27 +57,32 @@ public class SellerService {
                 long totalOrders = orderRepository.countByProductSeller(seller);
 
                 long activeOrders = orderRepository.countByProductSellerAndOrderStatusNameIn(
-                        seller, List.of("Pending", "Processing", "Shipped"));
+                        seller, List.of("NEW", "PROCESSING", "SHIPPED"));
 
                 long completedOrders = orderRepository.countByProductSellerAndOrderStatusNameIn(
-                        seller, List.of("Delivered"));
+                        seller, List.of("DELIVERED"));
 
                 long cancelledOrders = orderRepository.countByProductSellerAndOrderStatusNameIn(
-                        seller, List.of("Cancelled"));
+                        seller, List.of("CANCELLED"));
 
                 double totalRevenue = orderRepository.findByProductSellerAndOrderStatusName(
-                        seller, "Delivered"
+                        seller, "DELIVERED"
                 ).stream().mapToDouble(order -> order.getPrice()).sum();
+                var sellerReviewsOpt = reviewRepository.findByProduct_seller_Username(seller.getUsername());
+                // double customerFeedback = sellerReviewsOpt.map(list -> list.stream().mapToDouble(Review::getStars).average().orElse(0.0)).orElse(0.0);
+                long reviewsCount = sellerReviewsOpt.map(List::size).orElse(0);
                 double customerFeedback = reviewRepository.findByProduct_seller_Username(seller.getUsername()).get().stream().mapToDouble(review -> review.getStars()).average().orElse(1.0);
-                long numOfReviews = reviewRepository.findByProduct_seller_Username(seller.getUsername()).get().stream().count();
+                List<ReviewDto> numOfReviews = reviewRepository.findByProduct_seller_Username(seller.getUsername()).get().stream().map(ReviewDto::new).collect(Collectors.toList());
                 SellerStatsDto stats = new SellerStatsDto();
+                numOfReviews = numOfReviews.stream().filter(e -> e.getUsername() != seller.getUsername()).collect(Collectors.toList());
                 stats.setTotalOrders(totalOrders);
                 stats.setActiveOrders(activeOrders);
                 stats.setCompletedOrders(completedOrders);
                 stats.setCancelledOrders(cancelledOrders);
                 stats.setTotalRevenue(totalRevenue);
                 stats.setAvgFeedback(customerFeedback);
-                stats.setTotalOrders(numOfReviews);
+                stats.setReviewsCount(reviewsCount);
+                stats.setBuyersReviews(numOfReviews);
                 return stats;
         }
 
@@ -107,6 +114,19 @@ public class SellerService {
                         throw new IllegalArgumentException("Invalid email format");
                     }
                     seller.setEmail(updateRequest.getEmail());
+                }
+                if (updateRequest.getName() != null && !updateRequest.getName().isBlank()) {
+                    if (updateRequest.getName().length() < 2 || updateRequest.getName().length() > 128) {
+                        throw new IllegalArgumentException("Name should be from 2 to 128 characters long");
+                    }
+                    seller.setName(updateRequest.getName());
+                }
+
+                if (updateRequest.getPhone() != null && !updateRequest.getPhone().isBlank()) {
+                    if (!updateRequest.getPhone().matches("\\+?[0-9]{7,20}")) {
+                        throw new IllegalArgumentException("Phone number must be 7-20 digits, optional + at start");
+                    }
+                    seller.setPhone(updateRequest.getPhone());
                 }
             
                 return userRepository.save(seller);

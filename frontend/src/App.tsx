@@ -1,5 +1,8 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router";
+import { useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ScrollToTop } from "./components/common/ScrollToTop";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 // Layout
 import AppLayout from "./layout/AppLayout";
@@ -7,6 +10,8 @@ import AppLayout from "./layout/AppLayout";
 // Auth
 import LoginForm from "./components/Login/LoginForm";
 import RegistrationForm from "./components/Register/RegistrationForm";
+import VerifyPending from "./pages/AuthPages/VerifyPending";
+import OAuth2Success from "./pages/OAuth2Success";
 
 // Other
 import NotFound from "./pages/OtherPage/NotFound";
@@ -35,9 +40,9 @@ import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import ProfilePage from "./pages/ProfilePage";
 import ChatPage from "./pages/ChatPage";
-import SearchResults from "./pages/SearchResults";
 import FavouritesPage from "./pages/FavouritesPage";
 import OrdersPage from "./pages/OrdersPage";
+import SearchResults from "./pages/SearchResults";
 
 // Seller
 import SellerProfile from "./pages/Seller/Profile";
@@ -46,36 +51,70 @@ import SellerEditProfile from "./pages/Seller/Edit";
 import SellerOrdersPage from "./pages/Seller/Orders";
 import CreateProductPage from "./pages/Seller/CreateProduct";
 import UploadProductPictures from "./pages/Seller/UploadProductPictures";
+import EditProductPage from "./pages/Seller/EditProduct";
+
+// Customer
+import CustomerDashboard from "./pages/Customer/Dashboard";
+import CustomerEditProfile from "./pages/Customer/Edit";
 
 export default function App() {
+  useEffect(() => {
+    AOS.init({
+      duration: 700,
+      easing: "ease-out",
+      once: true,
+      startEvent: "load",
+      offset: 60,
+      mirror: false,
+    });
+
+    const handleLoad = () => {
+      AOS.refresh();
+    };
+
+    window.addEventListener("load", handleLoad);
+
+    return () => {
+      window.removeEventListener("load", handleLoad);
+    };
+  }, []);
+
   return (
     <Router>
       <ScrollToTop />
       <Routes>
-
         {/* з лейаутом */}
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/catalog" element={<CatalogPage />} />
           <Route path="/product/:slug" element={<ProductPage />} />
-          <Route path="seller">
-            <Route path=":slug" element={<SellerProfile />} /> 
-            <Route path="dashboard" element={<SellerDashboard />} /> 
-            <Route path="edit" element={<SellerEditProfile />} /> 
-            <Route path="orders" element={<SellerOrdersPage />} />
-            <Route path="products/create" element={<CreateProductPage />} />
-            <Route path="products/:id/pictures" element={<UploadProductPictures />} />
-          </Route>
-
           <Route path="/cart" element={<CartPage />} />
-          <Route path="/favourites" element={<FavouritesPage />} />
-          <Route path="/orders" element={<OrdersPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/search" element={<SearchResults />} />
-        <Route path="/login" element={<LoginForm />} />
-        <Route path="/register" element={<RegistrationForm />} />
+          <Route path="/favourites" element={<FavouritesPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/register" element={<RegistrationForm />} />
+          <Route path="/verify-pending" element={<VerifyPending />} />
+          <Route path="/oauth2/success" element={<OAuth2Success />} />
+
+          <Route path="seller">
+            <Route path=":slug" element={<SellerProfile />} />
+            <Route path="dashboard" element={<SellerDashboard />} />
+            <Route path="edit" element={<SellerEditProfile />} />
+            <Route path="orders" element={<SellerOrdersPage />} />
+            <Route path="products/create" element={<CreateProductPage />} />
+            <Route path="products/:id/edit" element={<EditProductPage />} />
+            <Route path="products/slug/:slug/edit" element={<EditProductPage />} />
+            <Route path="products/:id/pictures" element={<UploadProductPictures />} />
+          </Route>
+
+          <Route path="customer">
+            <Route path="dashboard" element={<CustomerDashboard />} />
+            <Route path="edit" element={<CustomerEditProfile />} />
+          </Route>
         </Route>
 
         {/* Адмінка (з лейаутом) */}
@@ -95,10 +134,9 @@ export default function App() {
           <Route path="line-chart" element={<LineChart />} />
           <Route path="bar-chart" element={<BarChart />} />
         </Route>
-        
+
         {/* Інші */}
         <Route path="*" element={<NotFound />} />
-
       </Routes>
     </Router>
   );

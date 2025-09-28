@@ -1,16 +1,81 @@
-import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import type { Product } from "../types/product";
 import type { Seller } from "../types/seller";
 import { fetchProductBySlug } from "../api/products";
 import { fetchSellerProfileBySlug } from "../api/seller";
-
-import { fetchProductReviews, createReview, deleteReview, type Review as ProductReview } from "../api/reviews";
+import { fetchProductReviews, createReview, deleteReview, replyReview } from "../api/reviews";
+import { Review } from '../types/review';
 import { AuthContext } from "../context/AuthContext";
-import { Heart, Star, ArrowLeft, ArrowRight, X, Truck, Package } from 'lucide-react';
+import { Star, ArrowLeft, ArrowRight, X, Tag } from 'lucide-react';
 import { addToCart as addToCartApi, fetchCart } from "../api/cart";
 import { addFavourite, deleteFavourite, fetchFavourites } from "../api/favourites";
 
+
+const formatCurrency = (value: number) => `$${value.toFixed(2)}`;
+
+const formatDate = (value?: string | null) => {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toLocaleDateString();
+};
+
+const getDiscountMeta = (product: Product | null) => {
+  if (!product) {
+    return {
+      baselinePrice: 0,
+      percent: 0,
+      isActive: false,
+      status: "none" as const,
+      startsAt: null as string | null,
+      endsAt: null as string | null,
+    };
+  }
+
+  const price = product.price ?? 0;
+  const baselinePrice = product.priceWithoutDiscount && product.priceWithoutDiscount > 0
+    ? product.priceWithoutDiscount
+    : price;
+
+  const startsAt = product.discountLaunchDate ?? null;
+  const endsAt = product.discountExpirationDate ?? null;
+
+  const computedPercent = baselinePrice > 0 ? ((baselinePrice - price) / baselinePrice) * 100 : 0;
+  const percent = product.discountPercentage ?? Math.max(0, Math.round(computedPercent * 100) / 100);
+
+  const now = new Date();
+  const startDate = startsAt ? new Date(startsAt) : null;
+  const endDate = endsAt ? new Date(endsAt) : null;
+
+  const isAfterStart = startDate ? now >= startDate : true;
+  const isBeforeEnd = endDate ? now <= endDate : true;
+  const baselineLowerThanPrice = baselinePrice <= price;
+
+
+  let status: "none" | "active" | "scheduled" | "finished" = "none";
+
+  if (baselineLowerThanPrice || percent <= 0) {
+    status = "none";
+  } else if (!isAfterStart) {
+    status = "scheduled";
+  } else if (!isBeforeEnd) {
+    status = "finished";
+  } else {
+    status = "active";
+  }
+
+  const isActive = status === "active" || (product.hasDiscount ?? false);
+
+  return {
+    baselinePrice,
+    percent: Math.max(0, percent),
+    isActive,
+    status,
+    startsAt,
+    endsAt,
+  };
+};
 
 const ProductPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -29,20 +94,25 @@ const ProductPage: React.FC = () => {
   const [inCartQty, setInCartQty] = useState<number>(0);
   const [liked, setLiked] = useState(false);
   const [favouriteId, setFavouriteId] = useState<number | null>(null);
+  const isOutOfStock = (product?.quantityInStock ?? 0) <= 0;
 
   // Reviews state
-  const [reviews, setReviews] = useState<ProductReview[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewsError, setReviewsError] = useState<string | null>(null);
   const [newReviewText, setNewReviewText] = useState("");
   const [newReviewStars, setNewReviewStars] = useState(5);
   const [postingReview, setPostingReview] = useState(false);
   const [deletingReviewId, setDeletingReviewId] = useState<number | null>(null);
+  const [replyingToReviewId, setReplyingToReviewId] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [postingReply, setPostingReply] = useState(false);
   const auth = useContext(AuthContext);
   const currentUser = auth?.user || null;
 
-  const [isFavorite, setIsFavorite] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
+
+  const discountMeta = useMemo(() => getDiscountMeta(product), [product]);
 
   useEffect(() => {
     if (!slug) return;
@@ -72,20 +142,20 @@ const ProductPage: React.FC = () => {
         } catch {
           setInCartQty(0);
         }
-        // load favourite state for this product
+        // Use favourite product IDs from AuthContext for instant check
         try {
-          const favs = await fetchFavourites();
-          if (!isMounted) return;
-          const match = favs.find((f) => f.product?.id === productData.id);
-          if (match) {
-            setLiked(true);
-            setFavouriteId(match.id);
+          const favSet = auth?.favouriteProductIds;
+          if (favSet && productData.id != null) {
+            const isFav = favSet.has(Number(productData.id));
+            setLiked(isFav);
+            // We don't know favouriteId yet unless we fetch or we just created it
+            setFavouriteId(null);
           } else {
             setLiked(false);
             setFavouriteId(null);
           }
         } catch {
-          // ignore favourites load error silently
+          // ignore
         }
       } catch (e: unknown) {
         if (!isMounted) return;
@@ -114,29 +184,56 @@ const ProductPage: React.FC = () => {
 
   const extraImagesCount = images.length > 2 ? images.length - 2 : 0;
 
+  // Reload reviews function
+  const loadReviews = useCallback(async () => {
+    if (!product?.id) return;
+    setReviewsLoading(true);
+    setReviewsError(null);
+    try {
+      const list = await fetchProductReviews(product.id);
+      
+      // Restructure reviews to nest replies under parents
+      const reviewsMap = new Map<number, Review>();
+      const topLevelReviews: Review[] = [];
+      
+      // First pass: create map and identify top-level reviews
+      list.forEach(review => {
+        reviewsMap.set(review.id, { ...review, replies: [] });
+        if (!review.parentId) {
+          topLevelReviews.push(reviewsMap.get(review.id)!);
+        }
+      });
+      
+      // Second pass: nest replies under parents
+      list.forEach(review => {
+        if (review.parentId) {
+          const parent = reviewsMap.get(review.parentId);
+          if (parent) {
+            parent.replies = parent.replies || [];
+            parent.replies.push(reviewsMap.get(review.id)!);
+          }
+        }
+      });
+      
+      // Sort by date descending
+      const sorted = [...topLevelReviews].sort((a, b) => {
+        const da = a.date ? new Date(a.date).getTime() : 0;
+        const db = b.date ? new Date(b.date).getTime() : 0;
+        return db - da;
+      });
+      
+      setReviews(sorted);
+    } catch (e) {
+      setReviewsError(e instanceof Error ? e.message : "Не вдалося завантажити відгуки");
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [product?.id]);
+
   // Load reviews when product is available
   useEffect(() => {
-    const loadReviews = async () => {
-      if (!product?.id) return;
-      setReviewsLoading(true);
-      setReviewsError(null);
-      try {
-        const list = await fetchProductReviews(product.id);
-        // Sort by date desc if date exists
-        const sorted = [...list].sort((a, b) => {
-          const da = a.date ? new Date(a.date).getTime() : 0;
-          const db = b.date ? new Date(b.date).getTime() : 0;
-          return db - da;
-        });
-        setReviews(sorted);
-      } catch (e) {
-        setReviewsError(e instanceof Error ? e.message : "Не вдалося завантажити відгуки");
-      } finally {
-        setReviewsLoading(false);
-      }
-    };
     loadReviews();
-  }, [product?.id]);
+  }, [product?.id, loadReviews]);
 
   const handleDeleteReview = async (reviewId: number) => {
     if (!product?.id || !window.confirm('Ви впевнені, що хочете видалити цей відгук?')) return;
@@ -144,7 +241,8 @@ const ProductPage: React.FC = () => {
     setDeletingReviewId(reviewId);
     try {
       await deleteReview(reviewId);
-      setReviews(prev => prev.filter(r => r.id !== reviewId));
+      // Reload reviews to get updated list
+      await loadReviews();
     } catch (error) {
       console.error('Failed to delete review:', error);
       alert('Не вдалося видалити відгук. Спробуйте пізніше.');
@@ -155,8 +253,8 @@ const ProductPage: React.FC = () => {
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!product?.id) return;
-    if (!newReviewText.trim()) return;
+    if (!product?.id || !newReviewText.trim()) return;
+    
     setPostingReview(true);
     try {
       await createReview({
@@ -166,18 +264,32 @@ const ProductPage: React.FC = () => {
       });
       setNewReviewText("");
       setNewReviewStars(5);
-      // Reload reviews
-      const list = await fetchProductReviews(product.id);
-      const sorted = [...list].sort((a, b) => {
-        const da = a.date ? new Date(a.date).getTime() : 0;
-        const db = b.date ? new Date(b.date).getTime() : 0;
-        return db - da;
-      });
-      setReviews(sorted);
+      await loadReviews(); // Reload reviews to get the latest data
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Не вдалося додати відгук");
+      alert(e instanceof Error ? e.message : "Failed to post review");
     } finally {
       setPostingReview(false);
+    }
+  };
+
+  
+  const handleSubmitReply = async (e: React.FormEvent, parentId: number) => {
+    e.preventDefault();
+    if (!replyText.trim()) return;
+    
+    setPostingReply(true);
+    try {
+      await replyReview({
+        parentId,  // Changed from parentReviewId
+        description: replyText.trim(),
+      });
+      setReplyText("");
+      setReplyingToReviewId(null);
+      await loadReviews(); // Reload reviews to get the latest data
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to post reply");
+    } finally {
+      setPostingReply(false);
     }
   };
 
@@ -202,6 +314,10 @@ const ProductPage: React.FC = () => {
 
   const handleAddToCart = async () => {
     if (!product?.id) return;
+
+    const maxAddable = (product.quantityInStock ?? 0) - inCartQty;
+    if (maxAddable <= 0) return;
+
     try {
       setAddingCart(true);
       await addToCartApi({ productId: Number(product.id), quantity: 1 });
@@ -221,12 +337,26 @@ const ProductPage: React.FC = () => {
         const createdId = await addFavourite(Number(product.id));
         setFavouriteId(createdId);
         setLiked(true);
+        // update global fav set
+        auth?.addFavouriteId(Number(product.id));
       } else {
-        if (favouriteId != null) {
-          await deleteFavourite(favouriteId);
+        let toDeleteId = favouriteId;
+        if (toDeleteId == null) {
+          // lazily fetch favourites to find the id for this product
+          try {
+            const favs = await fetchFavourites();
+            const match = favs.find((f) => f.product?.id === product.id);
+            toDeleteId = match?.id ?? null;
+          } catch {
+            // ignore
+          }
+        }
+        if (toDeleteId != null) {
+          await deleteFavourite(toDeleteId);
         }
         setFavouriteId(null);
         setLiked(false);
+        auth?.removeFavouriteId(Number(product.id));
       }
     } catch {
       // optionally show toast
@@ -248,6 +378,19 @@ const ProductPage: React.FC = () => {
   if (loading) return <div className="p-6 text-center">Завантаження товару...</div>;
   if (error) return <div className="p-6 text-center text-red-600">{error}</div>;
   if (!product) return <div className="p-6 text-center">Товар не знайдено</div>;
+
+
+  const mainPrice = formatCurrency(product.price);
+  const baselinePriceLabel = discountMeta.baselinePrice > 0 ? formatCurrency(discountMeta.baselinePrice) : null;
+  const showBaseline = discountMeta.baselinePrice > product.price && discountMeta.percent > 0;
+  const discountLabel = discountMeta.percent > 0 ? `-${Math.round(discountMeta.percent)}%` : null;
+  const discountStarts = formatDate(discountMeta.startsAt);
+  const discountEnds = formatDate(discountMeta.endsAt);
+  const averageRating = typeof product.avgRating === 'number'
+    ? product.avgRating
+    : (typeof product.rating === 'number' ? product.rating : null);
+  const reviewCount = typeof product.reviewCount === 'number' ? product.reviewCount : null;
+  const hasRating = averageRating != null;
 
   return (
     <div className="min-h-screen bg-white p-2 pt-12">
@@ -291,7 +434,7 @@ const ProductPage: React.FC = () => {
 
         {/* Product Info */}
         <div className="space-y-4 relative">
-          <button 
+        <button 
             onClick={toggleFavourite}
             className="absolute top-0 right-0 w-10 h-10 rounded-full flex items-center justify-center transition"
           >
@@ -299,8 +442,52 @@ const ProductPage: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.74 0-3.278 1.012-4.062 2.475A4.875 4.875 0 008.25 3.75C5.66 3.75 3.563 5.765 3.563 8.25c0 7.22 8.437 11.25 8.437 11.25s8.438-4.03 8.438-11.25z" />
             </svg>
           </button>
-          <h1 className="text-3xl font-bold pr-12">{product.name}</h1>
-          <p className="text-2xl font-semibold">${product.price.toLocaleString()}</p>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold pr-12">{product.name}</h1>
+            <div className="flex items-baseline gap-3">
+              <span className="text-3xl font-semibold text-black">{mainPrice}</span>
+              {showBaseline && baselinePriceLabel ? (
+                <span className="text-lg text-gray-400 line-through">{baselinePriceLabel}</span>
+              ) : null}
+              {discountLabel ? (
+                <span className="inline-flex items-center gap-1 text-sm font-semibold text-red-600 bg-red-50 px-2 py-1 rounded-full">
+                  <Tag className="w-4 h-4" />
+                  {discountLabel}
+                </span>
+              ) : null}
+            </div>
+            <div className="flex items-center gap-2 text-sm text-[#2C2C2C]">
+              <Star
+                className={hasRating && averageRating! > 0 ? 'w-4 h-4 fill-[#F5A524] text-[#F5A524]' : 'w-4 h-4 text-gray-400'}
+              />
+              {hasRating ? (
+                <>
+                  <span className="font-medium">{averageRating!.toFixed(1)}</span>
+                  {reviewCount != null ? (
+                    <span className="text-gray-500">({reviewCount} review{reviewCount === 1 ? '' : 's'})</span>
+                  ) : null}
+                </>
+              ) : (
+                <span className="text-gray-500">No ratings yet</span>
+              )}
+            </div>
+            {(discountMeta.status === "scheduled" || discountMeta.status === "finished") && (discountStarts || discountEnds) ? (
+              <div className="text-xs text-gray-600 flex flex-col">
+                {discountMeta.status === "scheduled" && discountStarts ? (
+                  <span>Discount starts on {discountStarts}</span>
+                ) : null}
+                {discountMeta.status === "scheduled" && discountEnds ? (
+                  <span>Ends on {discountEnds}</span>
+                ) : null}
+                {discountMeta.status === "finished" && discountEnds ? (
+                  <span>Discount ended on {discountEnds}</span>
+                ) : null}
+              </div>
+            ) : null}
+            {discountMeta.status === "active" && discountEnds ? (
+              <span className="text-xs text-green-600">Active discount until {discountEnds}</span>
+            ) : null}
+          </div>
           
           {/* Seller Info */}
           {seller && (
@@ -339,20 +526,18 @@ const ProductPage: React.FC = () => {
           <div className="flex gap-3">
             <button
               onClick={handleAddToCart}
-              disabled={addingCart}
-              className="flex-1 bg-[#42A275] text-white rounded-3xl py-2.5 font-medium hover:opacity-90 transition"
+              disabled={addingCart || isOutOfStock}
+              className="flex-1 bg-[#42A275] text-white rounded-3xl py-2.5 font-medium hover:opacity-90 transition disabled:opacity-50"
             >
-              {addingCart ? "Adding..." : inCartQty > 0 ? `In cart (${inCartQty})` : "Add to cart"}
+              {isOutOfStock
+                ? "Out of stock"
+                : addingCart
+                  ? "Adding..."
+                  : inCartQty > 0
+                    ? `In cart (${inCartQty})`
+                    : "Add to cart"}
             </button>
-            <button
-              onClick={toggleFavourite}
-              title={liked ? "Remove from favourites" : "Add to favourites"}
-              className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill={liked ? "red" : "none"} viewBox="0 0 24 24" strokeWidth={1.8} stroke={liked ? "red" : "currentColor"} className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.74 0-3.278 1.012-4.062 2.475A4.875 4.875 0 008.25 3.75C5.66 3.75 3.563 5.765 3.563 8.25c0 7.22 8.437 11.25 8.437 11.25s8.438-4.03 8.438-11.25z" />
-              </svg>
-            </button>
+           
           </div>
           <div className="mt-4 space-y-2 text-sm text-gray-600">
             <div className="flex items-center gap-2">
@@ -390,7 +575,7 @@ const ProductPage: React.FC = () => {
                 <div className="text-gray-600">No reviews yet. Be the first to write one!</div>
               ) : (
                 reviews.map((r) => (
-                  <div key={r.id} className="border rounded-xl p-4">
+                  <div key={r.id} className="border rounded-xl p-4 mb-4">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <div className="font-medium flex-1">
                         {r.username ?? 'User'}
@@ -400,22 +585,39 @@ const ProductPage: React.FC = () => {
                           {r.date ? new Date(r.date).toLocaleString() : ''}
                         </span>
                         {currentUser && r.userId === currentUser.id && (
+                          <>
+                            <button
+                              onClick={() => handleDeleteReview(r.id)}
+                              disabled={deletingReviewId === r.id}
+                              className="text-gray-400 hover:text-red-500 transition-colors p-1 -mr-1"
+                              aria-label="Delete review"
+                              title="Delete review"
+                            >
+                              {deletingReviewId === r.id ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                              ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              )}
+                            </button>
+                          </>
+                        )}
+                        {currentUser && (
                           <button
-                            onClick={() => handleDeleteReview(r.id)}
-                            disabled={deletingReviewId === r.id}
-                            className="text-gray-400 hover:text-red-500 transition-colors p-1 -mr-1"
-                            aria-label="Delete review"
-                            title="Delete review"
+                            onClick={() => {
+                              setReplyingToReviewId(r.id === replyingToReviewId ? null : r.id);
+                              setReplyText("");
+                            }}
+                            className="text-gray-400 hover:text-blue-500 transition-colors p-1 -mr-1"
+                            aria-label="Reply to review"
+                            title="Reply to review"
                           >
-                            {deletingReviewId === r.id ? (
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                              </svg>
-                            ) : (
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            )}
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                            </svg>
                           </button>
                         )}
                       </div>
@@ -430,6 +632,56 @@ const ProductPage: React.FC = () => {
                       ))}
                     </div>
                     <p className="text-gray-800 whitespace-pre-wrap">{r.description}</p>
+                    
+                    {/* Replies section */}
+                    {r.replies && r.replies.length > 0 && (
+                      <div className="mt-3 ml-6 pl-4 border-l-2 border-gray-200">
+                        <div className="space-y-3 mt-2">
+                          {r.replies.map((reply) => (
+                            <div key={reply.id} className="bg-gray-50 rounded-lg p-3">
+                              <div className="flex items-start justify-between gap-2 mb-1">
+                                <div className="font-medium text-sm">
+                                  {reply.username ?? 'User'}
+                                </div>
+                                <span className="text-xs text-gray-500">
+                                  {reply.date ? new Date(reply.date).toLocaleString() : ''}
+                                </span>
+                              </div>
+                              <p className="text-gray-700 text-sm">{reply.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {replyingToReviewId === r.id && (
+                      <form onSubmit={(e) => handleSubmitReply(e, r.id)} className="mt-3 bg-gray-50 rounded-lg p-3">
+                        <textarea
+                          className="w-full border rounded-lg p-2 text-sm bg-white"
+                          rows={2}
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder="Write your reply..."
+                          required
+                        />
+                        <div className="flex justify-end gap-2 mt-2">
+                          <button
+                            type="button"
+                            onClick={() => setReplyingToReviewId(null)}
+                            className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={postingReply || !replyText.trim()}
+                            className={`px-3 py-1 text-sm rounded ${postingReply ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
+                          >
+                            {postingReply ? 'Posting...' : 'Post Reply'}
+                          </button>
+                        </div>
+                      </form>
+                    )}
                   </div>
                 ))
               )}

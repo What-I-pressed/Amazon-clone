@@ -135,6 +135,8 @@ const CartPage: React.FC = () => {
               
               {items.map((item) => {
                 const itemTotal = (item.product?.price || 0) * item.quantity;
+                const currentQty = pendingQty[item.id] ?? item.quantity;
+                const maxQty = item.product?.quantityInStock ?? Infinity;
                 return (
                   <div key={item.id} className="grid grid-cols-4 gap-4 px-6 py-4 hover:bg-gray-50">
                     {/* Product */}
@@ -187,52 +189,58 @@ const CartPage: React.FC = () => {
                     <div className="flex items-center justify-center">
                       <div className="flex items-center border rounded-lg">
                         <button
-                          onClick={() => {
-                            const pid = Number((item.product as any)?.id);
-                            if (Number.isFinite(pid)) changeQuantityDelta(pid, -1, item.quantity);
-                          }}
-                          disabled={loading || item.quantity <= 1}
-                          className="px-3 py-1 text-gray-500 hover:text-gray-700 disabled:opacity-50"
-                        >
-                          −
-                        </button>
-                        
-                        <input
-                          type="number"
-                          min={1}
-                          value={pendingQty[item.id] ?? item.quantity}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            const parsed = Number.parseInt(val, 10);
-                            setPendingQty((m) => ({ ...m, [item.id]: Number.isFinite(parsed) ? parsed : 1 }));
-                          }}
-                          onBlur={() => {
-                            const pid = Number((item.product as any)?.id);
-                            if (!Number.isFinite(pid)) return;
-                            const desired = pendingQty[item.id] ?? item.quantity;
-                            commitQuantity(pid, desired, item.quantity);
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
+                              onClick={() => {
+                                const pid = Number((item.product as any)?.id);
+                                if (Number.isFinite(pid)) changeQuantityDelta(pid, -1, currentQty);
+                              }}
+                              disabled={loading || currentQty <= 1}
+                              className="px-3 py-1 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                            >
+                              −
+                            </button>           
+                              <input
+                                type="number"
+                                min={1}
+                                max={maxQty}
+                                value={currentQty}
+                                onChange={(e) => {
+                                  const val = Number(e.target.value);
+                                  setPendingQty((m) => ({ ...m, [item.id]: Math.min(Math.max(1, val), maxQty) }));
+                                }}
+                                onBlur={() => {
+                                  const pid = Number(item.product?.id);
+                                  if (!Number.isFinite(pid)) return;
+                                  const desired = pendingQty[item.id] ?? currentQty;
+                                  const finalQty = Math.min(Math.max(1, desired), maxQty);
+                                  commitQuantity(pid, finalQty, item.quantity); 
+                                  setPendingQty((m) => {
+                                  const copy = { ...m };
+                                  delete copy[item.id];
+                                  return copy;
+                              });
+
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  const pid = Number(item.product?.id);
+                                  if (!Number.isFinite(pid)) return;
+                                  const desired = pendingQty[item.id] ?? currentQty;
+                                  const finalQty = Math.min(Math.max(1, desired), maxQty);
+                                  commitQuantity(pid, finalQty, currentQty);
+                                }
+                              }}
+                              className="w-12 px-2 py-1 text-center text-sm border-0 focus:outline-none"
+                            />
+                          <button
+                            onClick={() => {
                               const pid = Number((item.product as any)?.id);
-                              if (!Number.isFinite(pid)) return;
-                              const desired = pendingQty[item.id] ?? item.quantity;
-                              commitQuantity(pid, desired, item.quantity);
-                            }
-                          }}
-                          className="w-12 px-2 py-1 text-center text-sm border-0 focus:outline-none"
-                        />
-                        
-                        <button
-                          onClick={() => {
-                            const pid = Number((item.product as any)?.id);
-                            if (Number.isFinite(pid)) changeQuantityDelta(pid, +1, item.quantity);
-                          }}
-                          disabled={loading}
-                          className="px-3 py-1 text-gray-500 hover:text-gray-700 disabled:opacity-50"
-                        >
-                          +
-                        </button>
+                              if (Number.isFinite(pid)) changeQuantityDelta(pid, +1, currentQty);
+                            }}
+                            disabled={loading || currentQty >= maxQty}
+                            className="px-3 py-1 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                          >
+                            +
+                          </button>
                       </div>
                     </div>
 
@@ -254,7 +262,7 @@ const CartPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-sm overflow-hidden">
             {/* Header */}
             <div className="bg-gray-400 text-white px-6 py-3">
-              <h3 className="text-sm font-medium">Cart Total</h3>
+              <h3 className="text-xl font-medium">Cart Total</h3>
             </div>
 
             {/* Content */}

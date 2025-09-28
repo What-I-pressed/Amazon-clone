@@ -14,6 +14,7 @@ public class ProductFilterDto {
 
     private String name = null;
     private Long categoryId = null;
+    private Long subcategoryId = null;
     private Double lowerPriceBound = null;
     private Double upperPriceBound = null;
     private List<Long> sellerIds = null;

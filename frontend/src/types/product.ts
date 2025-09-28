@@ -6,7 +6,7 @@ export type Picture = {
 };
 
 export type Product = {
-  id: string;
+  id: number;
   name: string;
   description: string;
   price: number;
@@ -16,7 +16,22 @@ export type Product = {
   views: number;
   sold: number;
   rating?: number;       // optional
+  avgRating?: number;
   slug: string;          // добавляем slug для посилань
   sellerSlug: string;
   reviewCount?: number;  // add reviewCount as optional
+  priceWithoutDiscount?: number;
+  discountPercentage?: number;
+  hasDiscount?: boolean;
+  discountLaunchDate?: string | null;
+  discountExpirationDate?: string | null;
+  quantityInStock?: number;
+  quantitySold?: number;
+  categoryName?: string;
+  categoryId?: number;
+  subcategoryName?: string;
+  subcategoryId?: number;
+  characteristicType?: string;
+  sellerName?: string;
+  sellerId?: number;
 };

@@ -1,1 +1,2311 @@
-1
+{
+    "id": "283:4312",
+    "name": "Frame 275",
+    "type": "FRAME",
+    "x": 0,
+    "y": 3372,
+    "width": 1920,
+    "height": 962,
+    "relativeTransform": [
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        3372
+      ]
+    ],
+    "constraints": {
+      "horizontal": "MIN",
+      "vertical": "MIN"
+    },
+    "fills": [],
+    "strokes": [],
+    "strokeWeight": 1,
+    "cornerRadius": 0,
+    "effects": [],
+    "blendMode": "PASS_THROUGH",
+    "layoutAlign": "INHERIT",
+    "layoutGrow": 0,
+    "layoutMode": "VERTICAL",
+    "itemSpacing": 0,
+    "children": [
+      {
+        "id": "283:4313",
+        "name": "Desktop - 4",
+        "type": "FRAME",
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 962,
+        "relativeTransform": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ]
+        ],
+        "constraints": {
+          "horizontal": "MIN",
+          "vertical": "MIN"
+        },
+        "fills": [
+          {
+            "type": "SOLID",
+            "visible": true,
+            "opacity": 1,
+            "blendMode": "NORMAL",
+            "color": {
+              "r": 0.23830731213092804,
+              "g": 0.23830731213092804,
+              "b": 0.23830731213092804
+            },
+            "boundVariables": {}
+          }
+        ],
+        "strokes": [],
+        "strokeWeight": 1,
+        "cornerRadius": 0,
+        "effects": [],
+        "blendMode": "PASS_THROUGH",
+        "layoutAlign": "STRETCH",
+        "layoutGrow": 0,
+        "layoutMode": "HORIZONTAL",
+        "itemSpacing": 10,
+        "children": [
+          {
+            "id": "283:4314",
+            "name": "Frame 274",
+            "type": "FRAME",
+            "x": 240,
+            "y": 110,
+            "width": 1440,
+            "height": 745.3900146484375,
+            "relativeTransform": [
+              [
+                1,
+                0,
+                240
+              ],
+              [
+                0,
+                1,
+                110
+              ]
+            ],
+            "constraints": {
+              "horizontal": "MIN",
+              "vertical": "MIN"
+            },
+            "fills": [],
+            "strokes": [],
+            "strokeWeight": 1,
+            "cornerRadius": 0,
+            "effects": [],
+            "blendMode": "PASS_THROUGH",
+            "layoutAlign": "INHERIT",
+            "layoutGrow": 0,
+            "layoutMode": "VERTICAL",
+            "itemSpacing": 80,
+            "children": [
+              {
+                "id": "283:4315",
+                "name": "Frame 272",
+                "type": "FRAME",
+                "x": 100,
+                "y": 0,
+                "width": 1240,
+                "height": 593.3900146484375,
+                "relativeTransform": [
+                  [
+                    1,
+                    0,
+                    100
+                  ],
+                  [
+                    0,
+                    1,
+                    0
+                  ]
+                ],
+                "constraints": {
+                  "horizontal": "MIN",
+                  "vertical": "MIN"
+                },
+                "fills": [],
+                "strokes": [],
+                "strokeWeight": 1,
+                "cornerRadius": 0,
+                "effects": [],
+                "blendMode": "PASS_THROUGH",
+                "layoutAlign": "INHERIT",
+                "layoutGrow": 0,
+                "layoutMode": "VERTICAL",
+                "itemSpacing": 100,
+                "children": [
+                  {
+                    "id": "283:4316",
+                    "name": "Frame 258",
+                    "type": "FRAME",
+                    "x": 220,
+                    "y": 0,
+                    "width": 800,
+                    "height": 208,
+                    "relativeTransform": [
+                      [
+                        1,
+                        0,
+                        220
+                      ],
+                      [
+                        0,
+                        1,
+                        0
+                      ]
+                    ],
+                    "constraints": {
+                      "horizontal": "MIN",
+                      "vertical": "MIN"
+                    },
+                    "fills": [],
+                    "strokes": [],
+                    "strokeWeight": 1,
+                    "cornerRadius": 0,
+                    "effects": [],
+                    "blendMode": "PASS_THROUGH",
+                    "layoutAlign": "INHERIT",
+                    "layoutGrow": 0,
+                    "layoutMode": "VERTICAL",
+                    "itemSpacing": 40,
+                    "children": [
+                      {
+                        "id": "283:4317",
+                        "name": "Subscribe To Your Newsletter to Stay Updated About Discounts",
+                        "type": "TEXT",
+                        "x": 0,
+                        "y": 0,
+                        "width": 800,
+                        "height": 106,
+                        "relativeTransform": [
+                          [
+                            1,
+                            0,
+                            0
+                          ],
+                          [
+                            0,
+                            1,
+                            0
+                          ]
+                        ],
+                        "constraints": {
+                          "horizontal": "MIN",
+                          "vertical": "MIN"
+                        },
+                        "fills": [
+                          {
+                            "type": "SOLID",
+                            "visible": true,
+                            "opacity": 1,
+                            "blendMode": "NORMAL",
+                            "color": {
+                              "r": 0.9800000190734863,
+                              "g": 0.9800000190734863,
+                              "b": 0.9800000190734863
+                            },
+                            "boundVariables": {}
+                          }
+                        ],
+                        "strokes": [],
+                        "strokeWeight": 0.8888890743255615,
+                        "effects": [],
+                        "blendMode": "PASS_THROUGH",
+                        "layoutAlign": "INHERIT",
+                        "layoutGrow": 0,
+                        "children": []
+                      },
+                      {
+                        "id": "283:4318",
+                        "name": "Frame 48095388",
+                        "type": "FRAME",
+                        "x": 228,
+                        "y": 146,
+                        "width": 344,
+                        "height": 62,
+                        "relativeTransform": [
+                          [
+                            1,
+                            0,
+                            228
+                          ],
+                          [
+                            0,
+                            1,
+                            146
+                          ]
+                        ],
+                        "constraints": {
+                          "horizontal": "MIN",
+                          "vertical": "MIN"
+                        },
+                        "fills": [
+                          {
+                            "type": "SOLID",
+                            "visible": true,
+                            "opacity": 0.15000000596046448,
+                            "blendMode": "NORMAL",
+                            "color": {
+                              "r": 0,
+                              "g": 0,
+                              "b": 0
+                            },
+                            "boundVariables": {}
+                          }
+                        ],
+                        "strokes": [
+                          {
+                            "type": "SOLID",
+                            "visible": true,
+                            "opacity": 0.6000000238418579,
+                            "blendMode": "NORMAL",
+                            "color": {
+                              "r": 1,
+                              "g": 1,
+                              "b": 1
+                            },
+                            "boundVariables": {}
+                          }
+                        ],
+                        "strokeWeight": 0.8615384697914124,
+                        "cornerRadius": 42,
+                        "effects": [
+                          {
+                            "type": "BACKGROUND_BLUR",
+                            "visible": true,
+                            "radius": 22,
+                            "boundVariables": {},
+                            "blurType": "NORMAL"
+                          }
+                        ],
+                        "blendMode": "PASS_THROUGH",
+                        "layoutAlign": "INHERIT",
+                        "layoutGrow": 0,
+                        "layoutMode": "HORIZONTAL",
+                        "itemSpacing": 10,
+                        "children": [
+                          {
+                            "id": "283:4319",
+                            "name": "nexora@email.com",
+                            "type": "TEXT",
+                            "x": 20,
+                            "y": 19,
+                            "width": 156,
+                            "height": 24,
+                            "relativeTransform": [
+                              [
+                                1,
+                                0,
+                                20
+                              ],
+                              [
+                                0,
+                                1,
+                                19
+                              ]
+                            ],
+                            "constraints": {
+                              "horizontal": "MIN",
+                              "vertical": "MIN"
+                            },
+                            "fills": [
+                              {
+                                "type": "SOLID",
+                                "visible": true,
+                                "opacity": 1,
+                                "blendMode": "NORMAL",
+                                "color": {
+                                  "r": 0.8078431487083435,
+                                  "g": 0.800000011920929,
+                                  "b": 0.800000011920929
+                                },
+                                "boundVariables": {}
+                              }
+                            ],
+                            "strokes": [],
+                            "strokeWeight": 1,
+                            "effects": [],
+                            "blendMode": "PASS_THROUGH",
+                            "layoutAlign": "INHERIT",
+                            "layoutGrow": 0,
+                            "children": []
+                          },
+                          {
+                            "id": "283:4320",
+                            "name": "Frame 48095395",
+                            "type": "FRAME",
+                            "x": 290,
+                            "y": 8,
+                            "width": 46,
+                            "height": 46,
+                            "relativeTransform": [
+                              [
+                                1,
+                                0,
+                                290
+                              ],
+                              [
+                                0,
+                                1,
+                                8
+                              ]
+                            ],
+                            "constraints": {
+                              "horizontal": "MIN",
+                              "vertical": "MIN"
+                            },
+                            "fills": [
+                              {
+                                "type": "SOLID",
+                                "visible": true,
+                                "opacity": 1,
+                                "blendMode": "NORMAL",
+                                "color": {
+                                  "r": 0.1569444090127945,
+                                  "g": 0.1569444090127945,
+                                  "b": 0.1569444090127945
+                                },
+                                "boundVariables": {}
+                              }
+                            ],
+                            "strokes": [],
+                            "strokeWeight": 1,
+                            "cornerRadius": 24,
+                            "effects": [],
+                            "blendMode": "PASS_THROUGH",
+                            "layoutAlign": "INHERIT",
+                            "layoutGrow": 0,
+                            "layoutMode": "HORIZONTAL",
+                            "itemSpacing": 10,
+                            "children": [
+                              {
+                                "id": "283:4321",
+                                "name": "icon / ionicons / filled / chevron-down",
+                                "type": "FRAME",
+                                "x": 11,
+                                "y": 35,
+                                "width": 24,
+                                "height": 24,
+                                "relativeTransform": [
+                                  [
+                                    5.551115123125783e-17,
+                                    1,
+                                    11
+                                  ],
+                                  [
+                                    -1,
+                                    5.551115123125783e-17,
+                                    35
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": false,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 1,
+                                      "g": 1,
+                                      "b": 1
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "cornerRadius": 0,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "layoutMode": "NONE",
+                                "itemSpacing": 0,
+                                "children": [
+                                  {
+                                    "id": "283:4322",
+                                    "name": "Vector (Stroke)",
+                                    "type": "VECTOR",
+                                    "x": 4.125,
+                                    "y": 7.5,
+                                    "width": 15.75,
+                                    "height": 9,
+                                    "relativeTransform": [
+                                      [
+                                        1,
+                                        0,
+                                        4.125
+                                      ],
+                                      [
+                                        0,
+                                        1,
+                                        7.5
+                                      ]
+                                    ],
+                                    "constraints": {
+                                      "horizontal": "SCALE",
+                                      "vertical": "SCALE"
+                                    },
+                                    "fills": [
+                                      {
+                                        "type": "SOLID",
+                                        "visible": true,
+                                        "opacity": 1,
+                                        "blendMode": "NORMAL",
+                                        "color": {
+                                          "r": 1,
+                                          "g": 1,
+                                          "b": 1
+                                        },
+                                        "boundVariables": {}
+                                      }
+                                    ],
+                                    "strokes": [],
+                                    "strokeWeight": 48,
+                                    "cornerRadius": 0,
+                                    "effects": [],
+                                    "blendMode": "PASS_THROUGH",
+                                    "layoutAlign": "INHERIT",
+                                    "layoutGrow": 0,
+                                    "children": []
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": "283:4323",
+                    "name": "Frame 270",
+                    "type": "FRAME",
+                    "x": 0,
+                    "y": 308,
+                    "width": 1240,
+                    "height": 285.3900146484375,
+                    "relativeTransform": [
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        1,
+                        308
+                      ]
+                    ],
+                    "constraints": {
+                      "horizontal": "MIN",
+                      "vertical": "MIN"
+                    },
+                    "fills": [],
+                    "strokes": [],
+                    "strokeWeight": 1,
+                    "cornerRadius": 0,
+                    "effects": [],
+                    "blendMode": "PASS_THROUGH",
+                    "layoutAlign": "INHERIT",
+                    "layoutGrow": 0,
+                    "layoutMode": "HORIZONTAL",
+                    "itemSpacing": 52,
+                    "children": [
+                      {
+                        "id": "283:4324",
+                        "name": "Frame 264",
+                        "type": "FRAME",
+                        "x": 0,
+                        "y": 0,
+                        "width": 133.3841552734375,
+                        "height": 187.38999938964844,
+                        "relativeTransform": [
+                          [
+                            1,
+                            0,
+                            0
+                          ],
+                          [
+                            0,
+                            1,
+                            0
+                          ]
+                        ],
+                        "constraints": {
+                          "horizontal": "MIN",
+                          "vertical": "MIN"
+                        },
+                        "fills": [],
+                        "strokes": [],
+                        "strokeWeight": 1,
+                        "cornerRadius": 0,
+                        "effects": [],
+                        "blendMode": "PASS_THROUGH",
+                        "layoutAlign": "INHERIT",
+                        "layoutGrow": 0,
+                        "layoutMode": "VERTICAL",
+                        "itemSpacing": 32,
+                        "children": [
+                          {
+                            "id": "283:4325",
+                            "name": "Frame 197",
+                            "type": "FRAME",
+                            "x": 0,
+                            "y": 0,
+                            "width": 133.3841552734375,
+                            "height": 30.390003204345703,
+                            "relativeTransform": [
+                              [
+                                1,
+                                0,
+                                0
+                              ],
+                              [
+                                0,
+                                1,
+                                0
+                              ]
+                            ],
+                            "constraints": {
+                              "horizontal": "MIN",
+                              "vertical": "MIN"
+                            },
+                            "fills": [],
+                            "strokes": [],
+                            "strokeWeight": 1,
+                            "cornerRadius": 0,
+                            "effects": [],
+                            "blendMode": "PASS_THROUGH",
+                            "layoutAlign": "INHERIT",
+                            "layoutGrow": 0,
+                            "layoutMode": "HORIZONTAL",
+                            "itemSpacing": 0,
+                            "children": [
+                              {
+                                "id": "283:4326",
+                                "name": "Products",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 1.6950016021728516,
+                                "width": 95,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    1.6950016021728516
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 0.6057811975479126,
+                                      "g": 0.6057811975479126,
+                                      "b": 0.6057811975479126
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              },
+                              {
+                                "id": "283:4327",
+                                "name": "Frame 195",
+                                "type": "FRAME",
+                                "x": 95,
+                                "y": 0,
+                                "width": 38.38414764404297,
+                                "height": 30.390003204345703,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    95
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    0
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "cornerRadius": 0,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "layoutMode": "VERTICAL",
+                                "itemSpacing": 10,
+                                "children": []
+                              }
+                            ]
+                          },
+                          {
+                            "id": "283:4328",
+                            "name": "Frame 261",
+                            "type": "FRAME",
+                            "x": 0,
+                            "y": 62.3900032043457,
+                            "width": 99,
+                            "height": 125,
+                            "relativeTransform": [
+                              [
+                                1,
+                                0,
+                                0
+                              ],
+                              [
+                                0,
+                                1,
+                                62.3900032043457
+                              ]
+                            ],
+                            "constraints": {
+                              "horizontal": "MIN",
+                              "vertical": "MIN"
+                            },
+                            "fills": [],
+                            "strokes": [],
+                            "strokeWeight": 1,
+                            "cornerRadius": 0,
+                            "effects": [],
+                            "blendMode": "PASS_THROUGH",
+                            "layoutAlign": "INHERIT",
+                            "layoutGrow": 0,
+                            "layoutMode": "VERTICAL",
+                            "itemSpacing": 22,
+                            "children": [
+                              {
+                                "id": "283:4329",
+                                "name": "For Home",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 0,
+                                "width": 86,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    0
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 1,
+                                      "g": 1,
+                                      "b": 1
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              },
+                              {
+                                "id": "283:4330",
+                                "name": "For Kitchen",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 49,
+                                "width": 99,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    49
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 1,
+                                      "g": 1,
+                                      "b": 1
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              },
+                              {
+                                "id": "283:4331",
+                                "name": "Electronics",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 98,
+                                "width": 97,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    98
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 1,
+                                      "g": 1,
+                                      "b": 1
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": "283:4332",
+                        "name": "Frame 265",
+                        "type": "FRAME",
+                        "x": 340.58941650390625,
+                        "y": 0,
+                        "width": 176,
+                        "height": 285.3900146484375,
+                        "relativeTransform": [
+                          [
+                            1,
+                            0,
+                            340.58941650390625
+                          ],
+                          [
+                            0,
+                            1,
+                            0
+                          ]
+                        ],
+                        "constraints": {
+                          "horizontal": "MIN",
+                          "vertical": "MIN"
+                        },
+                        "fills": [],
+                        "strokes": [],
+                        "strokeWeight": 1,
+                        "cornerRadius": 0,
+                        "effects": [],
+                        "blendMode": "PASS_THROUGH",
+                        "layoutAlign": "INHERIT",
+                        "layoutGrow": 0,
+                        "layoutMode": "VERTICAL",
+                        "itemSpacing": 32,
+                        "children": [
+                          {
+                            "id": "283:4333",
+                            "name": "Frame 197",
+                            "type": "FRAME",
+                            "x": 0,
+                            "y": 0,
+                            "width": 151.3841552734375,
+                            "height": 30.390003204345703,
+                            "relativeTransform": [
+                              [
+                                1,
+                                0,
+                                0
+                              ],
+                              [
+                                0,
+                                1,
+                                0
+                              ]
+                            ],
+                            "constraints": {
+                              "horizontal": "MIN",
+                              "vertical": "MIN"
+                            },
+                            "fills": [],
+                            "strokes": [],
+                            "strokeWeight": 1,
+                            "cornerRadius": 0,
+                            "effects": [],
+                            "blendMode": "PASS_THROUGH",
+                            "layoutAlign": "INHERIT",
+                            "layoutGrow": 0,
+                            "layoutMode": "HORIZONTAL",
+                            "itemSpacing": 0,
+                            "children": [
+                              {
+                                "id": "283:4334",
+                                "name": "Legal Pages",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 1.6950016021728516,
+                                "width": 113,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    1.6950016021728516
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 0.6057811975479126,
+                                      "g": 0.6057811975479126,
+                                      "b": 0.6057811975479126
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              },
+                              {
+                                "id": "283:4335",
+                                "name": "Frame 195",
+                                "type": "FRAME",
+                                "x": 113,
+                                "y": 0,
+                                "width": 38.38414764404297,
+                                "height": 30.390003204345703,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    113
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    0
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "cornerRadius": 0,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "layoutMode": "VERTICAL",
+                                "itemSpacing": 10,
+                                "children": []
+                              }
+                            ]
+                          },
+                          {
+                            "id": "283:4336",
+                            "name": "Frame 262",
+                            "type": "FRAME",
+                            "x": 0,
+                            "y": 62.3900032043457,
+                            "width": 176,
+                            "height": 223,
+                            "relativeTransform": [
+                              [
+                                1,
+                                0,
+                                0
+                              ],
+                              [
+                                0,
+                                1,
+                                62.3900032043457
+                              ]
+                            ],
+                            "constraints": {
+                              "horizontal": "MIN",
+                              "vertical": "MIN"
+                            },
+                            "fills": [],
+                            "strokes": [],
+                            "strokeWeight": 1,
+                            "cornerRadius": 0,
+                            "effects": [],
+                            "blendMode": "PASS_THROUGH",
+                            "layoutAlign": "INHERIT",
+                            "layoutGrow": 0,
+                            "layoutMode": "VERTICAL",
+                            "itemSpacing": 22,
+                            "children": [
+                              {
+                                "id": "283:4337",
+                                "name": "Privacy Policy",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 0,
+                                "width": 122,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    0
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 1,
+                                      "g": 1,
+                                      "b": 1
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              },
+                              {
+                                "id": "283:4338",
+                                "name": "Terms & Conditions",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 49,
+                                "width": 176,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    49
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 1,
+                                      "g": 1,
+                                      "b": 1
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              },
+                              {
+                                "id": "283:4339",
+                                "name": "Refund Policy",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 98,
+                                "width": 120,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    98
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 1,
+                                      "g": 1,
+                                      "b": 1
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              },
+                              {
+                                "id": "283:4340",
+                                "name": "Shipping Info",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 147,
+                                "width": 118,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    147
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 1,
+                                      "g": 1,
+                                      "b": 1
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              },
+                              {
+                                "id": "283:4341",
+                                "name": "Contact Us",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 196,
+                                "width": 100,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    196
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 1,
+                                      "g": 1,
+                                      "b": 1
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": "283:4342",
+                        "name": "Frame 268",
+                        "type": "FRAME",
+                        "x": 723.794677734375,
+                        "y": 0,
+                        "width": 188,
+                        "height": 285.3900146484375,
+                        "relativeTransform": [
+                          [
+                            1,
+                            0,
+                            723.794677734375
+                          ],
+                          [
+                            0,
+                            1,
+                            0
+                          ]
+                        ],
+                        "constraints": {
+                          "horizontal": "MIN",
+                          "vertical": "MIN"
+                        },
+                        "fills": [],
+                        "strokes": [],
+                        "strokeWeight": 1,
+                        "cornerRadius": 0,
+                        "effects": [],
+                        "blendMode": "PASS_THROUGH",
+                        "layoutAlign": "INHERIT",
+                        "layoutGrow": 0,
+                        "layoutMode": "VERTICAL",
+                        "itemSpacing": 32,
+                        "children": [
+                          {
+                            "id": "283:4343",
+                            "name": "Frame 197",
+                            "type": "FRAME",
+                            "x": 0,
+                            "y": 0,
+                            "width": 117.38414764404297,
+                            "height": 30.390003204345703,
+                            "relativeTransform": [
+                              [
+                                1,
+                                0,
+                                0
+                              ],
+                              [
+                                0,
+                                1,
+                                0
+                              ]
+                            ],
+                            "constraints": {
+                              "horizontal": "MIN",
+                              "vertical": "MIN"
+                            },
+                            "fills": [],
+                            "strokes": [],
+                            "strokeWeight": 1,
+                            "cornerRadius": 0,
+                            "effects": [],
+                            "blendMode": "PASS_THROUGH",
+                            "layoutAlign": "INHERIT",
+                            "layoutGrow": 0,
+                            "layoutMode": "HORIZONTAL",
+                            "itemSpacing": 0,
+                            "children": [
+                              {
+                                "id": "283:4344",
+                                "name": "SUPPORT",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 1.6950016021728516,
+                                "width": 79,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    1.6950016021728516
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 0.6057811975479126,
+                                      "g": 0.6057811975479126,
+                                      "b": 0.6057811975479126
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              },
+                              {
+                                "id": "283:4345",
+                                "name": "Frame 195",
+                                "type": "FRAME",
+                                "x": 79,
+                                "y": 0,
+                                "width": 38.38414764404297,
+                                "height": 30.390003204345703,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    79
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    0
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "cornerRadius": 0,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "layoutMode": "VERTICAL",
+                                "itemSpacing": 10,
+                                "children": []
+                              }
+                            ]
+                          },
+                          {
+                            "id": "283:4346",
+                            "name": "Frame 261",
+                            "type": "FRAME",
+                            "x": 0,
+                            "y": 62.3900032043457,
+                            "width": 188,
+                            "height": 223,
+                            "relativeTransform": [
+                              [
+                                1,
+                                0,
+                                0
+                              ],
+                              [
+                                0,
+                                1,
+                                62.3900032043457
+                              ]
+                            ],
+                            "constraints": {
+                              "horizontal": "MIN",
+                              "vertical": "MIN"
+                            },
+                            "fills": [],
+                            "strokes": [],
+                            "strokeWeight": 1,
+                            "cornerRadius": 0,
+                            "effects": [],
+                            "blendMode": "PASS_THROUGH",
+                            "layoutAlign": "INHERIT",
+                            "layoutGrow": 0,
+                            "layoutMode": "VERTICAL",
+                            "itemSpacing": 22,
+                            "children": [
+                              {
+                                "id": "283:4347",
+                                "name": "FAQ",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 0,
+                                "width": 36,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    0
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 1,
+                                      "g": 1,
+                                      "b": 1
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              },
+                              {
+                                "id": "283:4348",
+                                "name": "Customer Service",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 49,
+                                "width": 160,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    49
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 1,
+                                      "g": 1,
+                                      "b": 1
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              },
+                              {
+                                "id": "283:4349",
+                                "name": "Order Tracking",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 98,
+                                "width": 133,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    98
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 1,
+                                      "g": 1,
+                                      "b": 1
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              },
+                              {
+                                "id": "283:4350",
+                                "name": "Returns & Exchanges",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 147,
+                                "width": 188,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    147
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 1,
+                                      "g": 1,
+                                      "b": 1
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              },
+                              {
+                                "id": "283:4351",
+                                "name": "Warranty",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 196,
+                                "width": 84,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    196
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 1,
+                                      "g": 1,
+                                      "b": 1
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": "283:4352",
+                        "name": "Frame 270",
+                        "type": "FRAME",
+                        "x": 1119,
+                        "y": 0,
+                        "width": 121,
+                        "height": 285.3900146484375,
+                        "relativeTransform": [
+                          [
+                            1,
+                            0,
+                            1119
+                          ],
+                          [
+                            0,
+                            1,
+                            0
+                          ]
+                        ],
+                        "constraints": {
+                          "horizontal": "MIN",
+                          "vertical": "MIN"
+                        },
+                        "fills": [],
+                        "strokes": [],
+                        "strokeWeight": 1,
+                        "cornerRadius": 0,
+                        "effects": [],
+                        "blendMode": "PASS_THROUGH",
+                        "layoutAlign": "INHERIT",
+                        "layoutGrow": 0,
+                        "layoutMode": "VERTICAL",
+                        "itemSpacing": 32,
+                        "children": [
+                          {
+                            "id": "283:4353",
+                            "name": "Frame 197",
+                            "type": "FRAME",
+                            "x": 0,
+                            "y": 0,
+                            "width": 98.38414764404297,
+                            "height": 30.390003204345703,
+                            "relativeTransform": [
+                              [
+                                1,
+                                0,
+                                0
+                              ],
+                              [
+                                0,
+                                1,
+                                0
+                              ]
+                            ],
+                            "constraints": {
+                              "horizontal": "MIN",
+                              "vertical": "MIN"
+                            },
+                            "fills": [],
+                            "strokes": [],
+                            "strokeWeight": 1,
+                            "cornerRadius": 0,
+                            "effects": [],
+                            "blendMode": "PASS_THROUGH",
+                            "layoutAlign": "INHERIT",
+                            "layoutGrow": 0,
+                            "layoutMode": "HORIZONTAL",
+                            "itemSpacing": 0,
+                            "children": [
+                              {
+                                "id": "283:4354",
+                                "name": "ABOUT",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 1.6950016021728516,
+                                "width": 60,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    1.6950016021728516
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 0.6057811975479126,
+                                      "g": 0.6057811975479126,
+                                      "b": 0.6057811975479126
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              },
+                              {
+                                "id": "283:4355",
+                                "name": "Frame 195",
+                                "type": "FRAME",
+                                "x": 60,
+                                "y": 0,
+                                "width": 38.38414764404297,
+                                "height": 30.390003204345703,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    60
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    0
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "cornerRadius": 0,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "layoutMode": "VERTICAL",
+                                "itemSpacing": 10,
+                                "children": []
+                              }
+                            ]
+                          },
+                          {
+                            "id": "283:4356",
+                            "name": "Frame 261",
+                            "type": "FRAME",
+                            "x": 0,
+                            "y": 62.3900032043457,
+                            "width": 121,
+                            "height": 223,
+                            "relativeTransform": [
+                              [
+                                1,
+                                0,
+                                0
+                              ],
+                              [
+                                0,
+                                1,
+                                62.3900032043457
+                              ]
+                            ],
+                            "constraints": {
+                              "horizontal": "MIN",
+                              "vertical": "MIN"
+                            },
+                            "fills": [],
+                            "strokes": [],
+                            "strokeWeight": 1,
+                            "cornerRadius": 0,
+                            "effects": [],
+                            "blendMode": "PASS_THROUGH",
+                            "layoutAlign": "INHERIT",
+                            "layoutGrow": 0,
+                            "layoutMode": "VERTICAL",
+                            "itemSpacing": 22,
+                            "children": [
+                              {
+                                "id": "283:4357",
+                                "name": "Our Story",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 0,
+                                "width": 83,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    0
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 1,
+                                      "g": 1,
+                                      "b": 1
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              },
+                              {
+                                "id": "283:4358",
+                                "name": "Sustainability",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 49,
+                                "width": 121,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    49
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 1,
+                                      "g": 1,
+                                      "b": 1
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              },
+                              {
+                                "id": "283:4359",
+                                "name": "Careers",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 98,
+                                "width": 72,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    98
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 1,
+                                      "g": 1,
+                                      "b": 1
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              },
+                              {
+                                "id": "283:4360",
+                                "name": "Blog",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 147,
+                                "width": 40,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    147
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 1,
+                                      "g": 1,
+                                      "b": 1
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              },
+                              {
+                                "id": "283:4361",
+                                "name": "Partnerships",
+                                "type": "TEXT",
+                                "x": 0,
+                                "y": 196,
+                                "width": 113,
+                                "height": 27,
+                                "relativeTransform": [
+                                  [
+                                    1,
+                                    0,
+                                    0
+                                  ],
+                                  [
+                                    0,
+                                    1,
+                                    196
+                                  ]
+                                ],
+                                "constraints": {
+                                  "horizontal": "MIN",
+                                  "vertical": "MIN"
+                                },
+                                "fills": [
+                                  {
+                                    "type": "SOLID",
+                                    "visible": true,
+                                    "opacity": 1,
+                                    "blendMode": "NORMAL",
+                                    "color": {
+                                      "r": 1,
+                                      "g": 1,
+                                      "b": 1
+                                    },
+                                    "boundVariables": {}
+                                  }
+                                ],
+                                "strokes": [],
+                                "strokeWeight": 1,
+                                "effects": [],
+                                "blendMode": "PASS_THROUGH",
+                                "layoutAlign": "INHERIT",
+                                "layoutGrow": 0,
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "283:4362",
+                "name": "Frame 273",
+                "type": "FRAME",
+                "x": 0,
+                "y": 673.3900146484375,
+                "width": 1440,
+                "height": 72,
+                "relativeTransform": [
+                  [
+                    1,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    673.3900146484375
+                  ]
+                ],
+                "constraints": {
+                  "horizontal": "MIN",
+                  "vertical": "MIN"
+                },
+                "fills": [],
+                "strokes": [],
+                "strokeWeight": 1,
+                "cornerRadius": 0,
+                "effects": [],
+                "blendMode": "PASS_THROUGH",
+                "layoutAlign": "INHERIT",
+                "layoutGrow": 0,
+                "layoutMode": "VERTICAL",
+                "itemSpacing": 0,
+                "children": [
+                  {
+                    "id": "283:4363",
+                    "name": "Line 2",
+                    "type": "LINE",
+                    "x": 0,
+                    "y": 0,
+                    "width": 1440,
+                    "height": 0,
+                    "relativeTransform": [
+                      [
+                        1,
+                        0,
+                        0
+                      ],
+                      [
+                        0,
+                        1,
+                        0
+                      ]
+                    ],
+                    "constraints": {
+                      "horizontal": "MIN",
+                      "vertical": "MIN"
+                    },
+                    "fills": [],
+                    "strokes": [
+                      {
+                        "type": "SOLID",
+                        "visible": true,
+                        "opacity": 1,
+                        "blendMode": "NORMAL",
+                        "color": {
+                          "r": 0.8676470518112183,
+                          "g": 0.8676470518112183,
+                          "b": 0.8676470518112183
+                        },
+                        "boundVariables": {}
+                      }
+                    ],
+                    "strokeWeight": 1,
+                    "effects": [],
+                    "blendMode": "PASS_THROUGH",
+                    "layoutAlign": "INHERIT",
+                    "layoutGrow": 0,
+                    "children": []
+                  },
+                  {
+                    "id": "283:4364",
+                    "name": "Frame 271",
+                    "type": "FRAME",
+                    "x": 100,
+                    "y": 0,
+                    "width": 1240,
+                    "height": 72,
+                    "relativeTransform": [
+                      [
+                        1,
+                        0,
+                        100
+                      ],
+                      [
+                        0,
+                        1,
+                        0
+                      ]
+                    ],
+                    "constraints": {
+                      "horizontal": "MIN",
+                      "vertical": "MIN"
+                    },
+                    "fills": [],
+                    "strokes": [],
+                    "strokeWeight": 1,
+                    "cornerRadius": 0,
+                    "effects": [],
+                    "blendMode": "PASS_THROUGH",
+                    "layoutAlign": "INHERIT",
+                    "layoutGrow": 0,
+                    "layoutMode": "HORIZONTAL",
+                    "itemSpacing": 276,
+                    "children": [
+                      {
+                        "id": "283:4365",
+                        "name": "Copyright © 2025 Nexora, Inc",
+                        "type": "TEXT",
+                        "x": 504.5,
+                        "y": 24,
+                        "width": 231,
+                        "height": 24,
+                        "relativeTransform": [
+                          [
+                            1,
+                            0,
+                            504.5
+                          ],
+                          [
+                            0,
+                            1,
+                            24
+                          ]
+                        ],
+                        "constraints": {
+                          "horizontal": "MIN",
+                          "vertical": "MIN"
+                        },
+                        "fills": [
+                          {
+                            "type": "SOLID",
+                            "visible": true,
+                            "opacity": 1,
+                            "blendMode": "NORMAL",
+                            "color": {
+                              "r": 1,
+                              "g": 1,
+                              "b": 1
+                            },
+                            "boundVariables": {}
+                          }
+                        ],
+                        "strokes": [],
+                        "strokeWeight": 1,
+                        "effects": [],
+                        "blendMode": "PASS_THROUGH",
+                        "layoutAlign": "INHERIT",
+                        "layoutGrow": 0,
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }

@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { addFavourite } from "../api/favourites";
 import { addToCart as addToCartApi } from "../api/cart";
-import { fetchFavourites } from "../api/favourites";
 import { fetchCart } from "../api/cart";
+import { AuthContext } from "../context/AuthContext";
 
 type ProductCardVariant = 'grid' | 'carousel';
 
@@ -15,8 +15,32 @@ type ProductCardProps = {
   price: string; 
   oldPrice?: string; 
   discountPercent?: string; 
+  quantityInStock?: number;
   variant?: ProductCardVariant;
   className?: string;
+};
+
+const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/500x500?text=No+Image';
+
+const variantConfig: Record<ProductCardVariant, { card: string; imageWrapper: string }> = {
+  grid: {
+    card: 'w-80 max-w-[20rem] min-h-[28rem] md:min-h-[30rem] transition-transform duration-200 hover:-translate-y-1 hover:scale-[1.01]',
+    imageWrapper: 'h-64',
+  },
+  carousel: {
+    card: 'w-72 max-w-[18rem] min-h-[26rem] transition-transform duration-200 hover:-translate-y-1 hover:scale-[1.01]',
+    imageWrapper: 'h-56',
+  },
+};
+
+const normalizeImageUrl = (url?: string | null) => {
+  if (!url || !url.trim()) {
+    return PLACEHOLDER_IMAGE;
+  }
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  return `http://localhost:8080/${url}`;
 };
 
 const ProductCard: React.FC<ProductCardProps> = ({
@@ -27,10 +51,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
   price,
   oldPrice,
   discountPercent,
+  quantityInStock,
   variant = 'grid',
-  className = "",
+  className = '',
 }) => {
   const navigate = useNavigate();
+  const auth = useContext(AuthContext);
+  if (!auth) {
+    throw new Error("ProductCard must be used within AuthProvider");
+  }
+
   const [liked, setLiked] = useState(false);
   const [loadingFav, setLoadingFav] = useState(false);
   const [addingCart, setAddingCart] = useState(false);
@@ -38,115 +68,140 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   useEffect(() => {
     let mounted = true;
+
     const init = async () => {
       if (!id) return;
       try {
-        const [favs, cartItems] = await Promise.allSettled([
-          fetchFavourites(),
-          fetchCart(),
-        ]);
-        if (!mounted) return;
-        if (favs.status === 'fulfilled') {
-          const f = favs.value.find((it) => Number(it.product?.id) === Number(id));
-          if (f) { setLiked(true); } else { setLiked(false); }
+        const favSet = auth.favouriteProductIds;
+        if (favSet) {
+          setLiked(favSet.has(Number(id)));
         }
-        if (cartItems.status === 'fulfilled') {
-          const found = cartItems.value.find((ci) => Number(ci.product?.id) === Number(id));
+        try {
+          const cartItems = await fetchCart();
+          if (!mounted) return;
+          const found = cartItems.find((ci) => Number(ci.product?.id) === Number(id));
           setInCartQty(found ? (found.quantity || 0) : 0);
+        } catch {
+          // ignore cart load failures
         }
       } catch {
-        // ignore
+        // ignore favourite fetch failures
       }
     };
+
     init();
-    return () => { mounted = false; };
-  }, [id]);
+    return () => {
+      mounted = false;
+    };
+  }, [id, auth.favouriteProductIds]);
 
   const addFavouriteOnce = async () => {
-    if (!id || liked) return; // cannot add if already liked
+    if (!id || liked) return;
+    if (!auth.isAuthenticated) {
+      navigate("/login");
+      return;
+    }
     try {
       setLoadingFav(true);
       await addFavourite(Number(id));
       setLiked(true);
-    } catch (e) {
-      // optional: show toast
+
+      auth.addFavouriteId(Number(id));
+    } catch {
+      // ignore
     } finally {
       setLoadingFav(false);
     }
   };
 
   const handleAddToCart = async () => {
-    if (!id) return;
+    if (!id || (quantityInStock !== undefined && inCartQty >= quantityInStock)) return;
     try {
       setAddingCart(true);
       await addToCartApi({ productId: Number(id), quantity: 1 });
-      // optional: show toast or update a global cart badge
       window.dispatchEvent(new CustomEvent('cart:updated'));
-      setInCartQty((q) => q + 1);
-    } catch (e) {
-      // optional: show toast
+      setInCartQty((prev) => prev + 1);
+    } catch {
+      // ignore
     } finally {
       setAddingCart(false);
     }
   };
 
-  const cardWidth = variant === 'carousel' ? 'w-72' : 'w-80';
-  const imageHeight = variant === 'carousel' ? 'h-56' : 'h-80';
-  const displayedImageUrl = imageUrl?.startsWith('http') ? imageUrl : `http://localhost:8080/${imageUrl}`;
+  const config = variantConfig[variant];
+  const normalizedImageUrl = normalizeImageUrl(imageUrl);
+
+  const handleCardClick = () => {
+    if (slug) {
+      navigate(`/product/${slug}`);
+    }
+  };
 
   return (
     <div
-      className={`${cardWidth} h-full flex rounded-md flex-col overflow-hidden bg-white ${className} ${slug ? 'cursor-pointer' : ''}`}
-      onClick={() => { if (slug) navigate(`/product/${slug}`); }}
+      className={`group ${config.card} h-full flex flex-col overflow-hidden bg-white rounded-3xl ${className} ${slug ? 'cursor-pointer' : ''}`}
+      onClick={handleCardClick}
       role={slug ? 'button' : undefined}
       tabIndex={slug ? 0 : undefined}
     >
-      {/* Image + Discount */}
-      <div className={`relative ${imageHeight} group overflow-hidden`}>
-        <img 
-          src={displayedImageUrl}
+      <div className={`relative ${config.imageWrapper} flex items-center justify-center overflow-hidden transition-transform duration-1000 group-hover:scale-[1.01]`}> 
+        <img
+          src={normalizedImageUrl}
           alt={title}
-          className="w-full h-full object-contain object-center transition-transform duration-300 group-hover:scale-105 rounded-3xl bg-white"
+          className="max-h-full max-w-full object-contain transition-transform duration-200 group-hover:scale-[1.04]"
+          loading="lazy"
         />
         {discountPercent ? (
-          <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-md">
+          <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-md">
             {discountPercent}
           </div>
         ) : null}
       </div>
 
-      {/* Info */}
-      <div className="p-4 space-y-2 flex flex-col">
-        <h3 className="text-base font-medium text-gray-800 line-clamp-2">{title}</h3>
+      <div className="p-4 flex flex-col flex-1">
+        <div className="space-y-2">
+          <h3 className="text-base font-medium text-gray-900 line-clamp-2 min-h-[3.2rem]">
+            {title}
+          </h3>
 
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-black">{price}</span>
-          {oldPrice ? (
-            <span className="text-gray-400 line-through text-sm">{oldPrice}</span>
-          ) : null}
+          <div className="flex items-baseline gap-2">
+            <span className="font-semibold text-black text-lg">{price}</span>
+            {oldPrice ? (
+              <span className="text-gray-400 line-through text-sm">{oldPrice}</span>
+            ) : null}
+          </div>
         </div>
 
-        {/* Button + Wishlist */}
-        <div className="flex items-center gap-4 mt-auto pt-2">
+        <div className="flex items-center gap-3 pt-3 mt-4">
           <button
-            onClick={(e) => { e.stopPropagation(); handleAddToCart(); }}
-            disabled={addingCart || !id}
-            className="flex-1 bg-[#282828] text-white rounded-3xl py-2.5 font-medium hover:opacity-90 transition disabled:opacity-50"
-          >
-            {addingCart ? "Adding..." : inCartQty > 0 ? `In cart (${inCartQty})` : "Add to cart"}
-          </button>
+                    onClick={(e) => { e.stopPropagation(); handleAddToCart(); }}
+                    disabled={addingCart || !id || (quantityInStock !== undefined && quantityInStock <= 0)}
+                    className="flex-1 bg-[#282828] text-white rounded-3xl py-2.5 font-medium hover:opacity-90 transition disabled:opacity-50"
+                  >
+                    {quantityInStock !== undefined && quantityInStock <= 0
+                      ? "Out of stock"
+                      : addingCart
+                        ? "Adding..."
+                        : inCartQty > 0
+                          ? `In cart (${inCartQty})`
+                          : "Add to cart"}
+                  </button>
+          
           <button
-            onClick={(e) => { e.stopPropagation(); addFavouriteOnce(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              addFavouriteOnce();
+            }}
             disabled={loadingFav || !id || liked}
             className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
-            title={liked ? "Already in favourites" : "Add to favourites"}
+            title={liked ? 'Already in favourites' : 'Add to favourites'}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              fill={liked ? "red" : "none"}
+              fill={liked ? 'red' : 'none'}
               viewBox="0 0 24 24"
               strokeWidth={1.8}
-              stroke={liked ? "red" : "currentColor"}
+              stroke={liked ? 'red' : 'currentColor'}
               className="w-6 h-6"
             >
               <path

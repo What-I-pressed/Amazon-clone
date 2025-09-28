@@ -41,6 +41,15 @@ public class CartController {
     @Operation(summary = "Додати товар до кошика або оновити кількість")
     @PostMapping("/add")
     public ResponseEntity<?> addCartItem(@RequestParam String token, @RequestBody CartItemDto cartItemDto) {
+        if (jwtUtil.isTokenExpired(token)) {
+            return ResponseEntity.status(400).body("Token is expired");
+        }
+
+        String role = jwtUtil.extractRole(token);
+        if ("SELLER".equalsIgnoreCase(role)) {
+            return ResponseEntity.status(403).body("Sellers are not allowed to add items to the cart");
+        }
+
         cartService.Add(jwtUtil.extractUserId(token), cartItemDto);
         return ResponseEntity.ok("Successfully added to cart");
     }

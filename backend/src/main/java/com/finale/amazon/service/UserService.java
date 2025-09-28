@@ -1,16 +1,16 @@
 package com.finale.amazon.service;
 
 import com.finale.amazon.entity.User;
-import com.finale.amazon.entity.VerificationToken;
 import com.finale.amazon.dto.UserRequestDto;
 import com.finale.amazon.dto.UserDto;
 import com.finale.amazon.entity.Role;
 import com.finale.amazon.repository.RoleRepository;
-import com.finale.amazon.repository.TokenRepository;
 import com.finale.amazon.repository.UserRepository;
 import com.finale.amazon.security.JwtUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,8 +32,6 @@ public class UserService {
     @Autowired
     private RoleRepository roleRepository;
 
-    @Autowired
-    private TokenRepository tokenRepository;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -48,16 +46,6 @@ public class UserService {
 
     private String hashPassword(String password) {
         return passwordEncoder.encode(password);
-    }
-
-    public String generateVerificationToken(User user) {
-        String token = UUID.randomUUID().toString();
-        VerificationToken verificationToken = new VerificationToken();
-        verificationToken.setToken(token);
-        verificationToken.setUser(user);
-        verificationToken.setExpiryDate(LocalDateTime.now().plusMinutes(60));
-        tokenRepository.save(verificationToken);
-        return token;
     }
 
     private boolean verifyPassword(String password, String hashedPassword) {
@@ -92,11 +80,31 @@ public class UserService {
         }
     }
 
+    public User createByEmail(String email){
+        return userRepository.findByEmail(email).orElseGet(() -> {
+        User user = new User();
+        user.setEmail(email.toLowerCase());
+        user.setUsername(email.substring(0, email.indexOf("@")));
+        user.setBlocked(false);
+        user.setEmailVerified(true);
+        user.setPassword(slugService.generateRandomSlug(10));
+        user.setRole(roleRepository.findByName("CUSTOMER").get());
+        try {
+            return userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            return userRepository.findByEmail(email).orElseThrow();
+        }
+    });
+        
+    }
+
     public User createUser(UserRequestDto userRequestDto) {
         User user = new User();
         user.setUsername(userRequestDto.getUsername());
-        user.setEmail(userRequestDto.getEmail());
+        user.setEmail(userRequestDto.getEmail().toLowerCase());
         user.setDescription(userRequestDto.getDescription());
+        user.setName(userRequestDto.getName());
+        user.setPhone(userRequestDto.getPhone());
         user.setBlocked(false);
 
 
@@ -187,11 +195,17 @@ public class UserService {
             if (userDetails.getUsername() != null) {
                 existingUser.setUsername(userDetails.getUsername());
             }
+            if(userDetails.getName() != null){
+                existingUser.setName(userDetails.getName());
+            }
+            if(userDetails.getPhone() != null){
+                existingUser.setPhone(userDetails.getPhone());
+            }
             if (userDetails.getDescription() != null) {
                 existingUser.setDescription(userDetails.getDescription());
             }
             if (userDetails.getEmail() != null) {
-                existingUser.setEmail(userDetails.getEmail());
+                existingUser.setEmail(userDetails.getEmail().toLowerCase());
             }
             if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
                 existingUser.setPassword(hashPassword(userDetails.getPassword()));
@@ -281,17 +295,23 @@ public class UserService {
         return false;
     }
 
-    public User updateUserProfile(Long userId, String name, String description) throws IOException {
+    public User updateUserProfile(Long userId, String username, String name, String description, String phone) throws IOException {
         Optional<User> optionalUser = userRepository.findById(userId);
 
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
 
-            if (name != null) {
-                user.setUsername(name);
+            if (username != null) {
+                user.setUsername(username);
             }
             if (description != null) {
                 user.setDescription(description);
+            }
+            if (name != null) {
+                user.setName(name);
+            }
+            if (phone != null) {
+                user.setPhone(phone);
             }
             return userRepository.save(user);
         }
@@ -377,12 +397,19 @@ public class UserService {
         if (updateRequest.getDescription() != null) {
             seller.setDescription(updateRequest.getDescription());
         }
+        updateRequest.setEmail(updateRequest.getEmail().toLowerCase());
         if (updateRequest.getEmail() != null && !updateRequest.getEmail().equals(seller.getEmail())) {
             if (userExistsByEmail(updateRequest.getEmail())) {
                 throw new RuntimeException("Email already exists: " + updateRequest.getEmail());
             }
             seller.setEmail(updateRequest.getEmail());
             seller.setEmailVerified(false);
+        }
+        if (updateRequest.getName() != null) {
+            seller.setName(updateRequest.getName());
+        }
+        if (updateRequest.getPhone() != null) {
+            seller.setPhone(updateRequest.getPhone());
         }
 
         return userRepository.save(seller);

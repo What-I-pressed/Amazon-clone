@@ -1,62 +1,83 @@
-import React, { createContext, useState, useEffect, ReactNode } from "react";
-import { isLoggedIn, getToken, logout, logoutAndRedirect } from "../utilites/auth";
+import { createContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { getProfile } from "../services/authService";
 import { User } from "../types/user";
 
-type AuthContextType = {
+interface AuthContextType {
+  isAuthenticated: boolean;
   user: User | null;
-  loading: boolean;
+  favouriteProductIds: Set<number>;
   loginUser: (token: string) => Promise<void>;
   logoutUser: () => void;
-};
+  addFavouriteId: (productId: number) => void;
+  removeFavouriteId: (productId: number) => void;
+  loading: boolean;
+}
 
-export const AuthContext = createContext<AuthContextType | null>(null);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [favouriteProductIds, setFavouriteProductIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (isLoggedIn()) {
-        try {
-          const res = await getProfile();
-          console.log("Profile loaded:", res.data);
-          setUser(res.data);
-        } catch (err) {
-          console.error("Failed to fetch profile, clearing user state:", err);
-          // Don't redirect on API errors, just clear user state
-          setUser(null);
-        }
-      }
+  const fetchAndStoreProfile = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await getProfile();
+      setUser(response.data ?? null);
+      const ids = (response.data?.favouriteProductIds ?? []) as Array<number | string>;
+      setFavouriteProductIds(new Set(ids.map((id) => Number(id))));
+    } catch (error) {
+      setUser(null);
+      setFavouriteProductIds(new Set());
+    } finally {
       setLoading(false);
-    };
-    fetchProfile();
+    }
   }, []);
 
+  useEffect(() => {
+    fetchAndStoreProfile();
+  }, [fetchAndStoreProfile]);
+
   const loginUser = async (token: string) => {
-    console.log("loginUser called with token:", token);
-    localStorage.setItem("token", token); // кладем токен
-    try {
-      const res = await getProfile();
-      console.log("Profile after login:", res.data);
-      setUser(res.data);
-    } catch (err) {
-      console.error("Failed to fetch profile after login:", err);
-      // Don't redirect on API errors, just clear user state
-      setUser(null);
-    }
+    localStorage.setItem("token", token);
+    await fetchAndStoreProfile();
   };
 
   const logoutUser = () => {
-    console.log("logoutUser called");
-    logout();
+    localStorage.removeItem("token");
     setUser(null);
-    window.location.href = "/login";
+    setFavouriteProductIds(new Set());
+  };
+
+  const addFavouriteId = (productId: number) => {
+    setFavouriteProductIds((prev) => {
+      const next = new Set(prev);
+      next.add(Number(productId));
+      return next;
+    });
+  };
+
+  const removeFavouriteId = (productId: number) => {
+    setFavouriteProductIds((prev) => {
+      const next = new Set(prev);
+      next.delete(Number(productId));
+      return next;
+    });
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginUser, logoutUser }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated: !!user,
+        user,
+        favouriteProductIds,
+        loginUser,
+        logoutUser,
+        addFavouriteId,
+        removeFavouriteId,
+        loading,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

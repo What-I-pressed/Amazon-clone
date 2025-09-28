@@ -7,9 +7,10 @@ interface Subcategory {
 
 interface CategoryDropdownProps {
   onSelect: (category: string) => void;
+  onSubcategorySelect?: (subcategory: Subcategory, parentCategory: string) => void;
 }
 
-export default function CategoryDropdown({ onSelect }: CategoryDropdownProps) {
+export default function CategoryDropdown({ onSelect, onSubcategorySelect }: CategoryDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState("All");
   const [categories, setCategories] = useState<Record<string, Subcategory[]>>({});
@@ -53,51 +54,70 @@ export default function CategoryDropdown({ onSelect }: CategoryDropdownProps) {
     <div className="relative" ref={dropdownRef}>
       <button
         type="button"
-        className="px-3 flex rounded-md items-center h-10 bg-[#757575] text-white text-sm select-none transition-colors duration-300 ease-in-out hover:bg-[#343434] focus:outline-none"
+        className="px-4 flex items-center gap-2 h-10 rounded-md bg-[#757575] text-white text-sm select-none transition-all duration-300 ease-out hover:bg-[#343434] hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#757575]"
         onClick={() => setIsOpen(prev => !prev)}
+        aria-expanded={isOpen}
+        aria-haspopup="true"
       >
-        <span>{selected}</span>
-        <span className="material-icons ml-1" style={{ lineHeight: 1 }}>arrow_drop_down</span>
+        <span className="font-medium tracking-wide">{selected}</span>
+        <span className="material-icons ml-1 transition-transform duration-300" style={{ lineHeight: 1, transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>arrow_drop_down</span>
       </button>
 
       {isOpen && (
         <div 
-          className="absolute top-full left-0 mt-1 rounded-md shadow-lg z-[9999] overflow-hidden flex"
-          style={{ backgroundColor: "#757575" }}
+          className="absolute top-full left-0 mt-3 rounded-3xl shadow-2xl z-[9999] flex border border-[#757575]/25 animate-[fadeIn_0.18s_ease-out]"
+          style={{ backgroundColor: "#FFFFFF" }}
           onMouseLeave={() => setActiveCategory(null)}
         >
           {/* Main Categories Panel */}
-          <div className="w-48 border-r border-[#343434]">
+          <div className="w-64 border-r border-[#757575]/25 bg-white rounded-l-3xl py-2">
             <button
-              className="w-full text-left px-3 py-2 hover:bg-[#343434] text-white text-sm block font-bold"
+              className="w-full text-left px-4 py-2 text-[#343434] text-sm font-bold transition-all duration-200 hover:bg-[#343434] hover:text-white"
               onClick={() => handleSelect("All")}
             >
               All Categories
             </button>
-            {Object.keys(categories).map((category) => (
-              <div
-                key={category}
-                className="w-full text-left px-3 py-2 hover:bg-[#343434] text-white text-sm cursor-pointer flex justify-between items-center"
-                onMouseEnter={() => setActiveCategory(category)}
-              >
-                <span>{category}</span>
-                <span className="material-icons text-xs">chevron_right</span>
-              </div>
-            ))}
+            <div className="flex flex-col pb-1">
+              {Object.keys(categories).map((category) => {
+                const isActive = activeCategory === category;
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    className={`w-full text-left px-4 py-2 text-[#343434] text-sm cursor-pointer flex justify-between items-center transition-all duration-200 ${isActive ? 'bg-[#757575]/15' : ''} hover:bg-[#343434] hover:text-white`}
+                    onMouseEnter={() => setActiveCategory(category)}
+                    onClick={() => handleSelect(category)}
+                  >
+                    <span className="capitalize tracking-wide">{category}</span>
+                    <span className={`material-icons text-xs transition-transform duration-200 ${isActive ? 'translate-x-1' : ''}`}>chevron_right</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Subcategories Panel */}
-          <div className="w-48" key={activeCategory}>
+          <div className="w-64 px-4 py-4 bg-white rounded-r-3xl" key={activeCategory}>
             {activeCategory && categories[activeCategory] ? (
-              categories[activeCategory].map((subcategory) => (
-                <button
-                  key={subcategory.id}
-                  className="w-full text-left px-3 py-2 hover:bg-[#343434] text-white text-sm block"
-                  onClick={() => handleSelect(subcategory.name)}
-                >
-                  {subcategory.name}
-                </button>
-              ))
+              <div className="flex flex-col gap-2">
+                <div className="text-xs uppercase tracking-[0.3em] text-[#757575] pb-1">
+                  {activeCategory}
+                </div>
+                {categories[activeCategory].map((subcategory) => (
+                  <button
+                    key={subcategory.id}
+                    className="w-full text-left px-3 py-2 text-[#343434] text-sm rounded-lg transition-all duration-200 hover:bg-[#757575]/15 hover:translate-x-1"
+                    onClick={() => {
+                      handleSelect(subcategory.name);
+                      if (onSubcategorySelect && activeCategory) {
+                        onSubcategorySelect(subcategory, activeCategory);
+                      }
+                    }}
+                  >
+                    {subcategory.name}
+                  </button>
+                ))}
+              </div>
             ) : (
               <div className="p-3 text-xs text-[#aaaaaa]">Hover over a category to see subcategories.</div>
             )}

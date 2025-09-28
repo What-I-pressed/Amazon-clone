@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchFavourites, deleteFavourite, type FavouriteItem } from "../api/favourites";
 import { addToCart } from "../api/cart";
+import { AuthContext } from "../context/AuthContext";
 
 const FavouritesPage: React.FC = () => {
   const [items, setItems] = useState<FavouriteItem[]>([]);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const auth = useContext(AuthContext);
+  if (!auth) throw new Error("FavouritesPage must be used within AuthProvider");
 
   const load = async () => {
     try {
@@ -23,8 +26,13 @@ const FavouritesPage: React.FC = () => {
   };
 
   useEffect(() => {
+    if (auth.loading) return;
+    if (!auth.isAuthenticated) {
+      navigate("/login", { replace: true });
+      return;
+    }
     load();
-  }, []);
+  }, [auth.loading, auth.isAuthenticated]);
 
   const handleRemove = async (favId: number) => {
     try {

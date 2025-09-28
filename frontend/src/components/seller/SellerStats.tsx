@@ -6,35 +6,50 @@ import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { ChevronDownIcon } from "../../icons";
 
 interface SellerStatsProps {
-  monthlyIncome?: number;
+  totalRevenue?: number;
+  avgFeedback?: number;
+  reviewsCount?: number;
+  totalOrders?: number;
   salesData?: {
     weekly?: { labels: string[]; data: number[] };
     monthly?: { labels: string[]; data: number[] };
     yearly?: { labels: string[]; data: number[] };
-  };
+  } | null;
+  showChart?: boolean;
 }
 
 type TimeFilter = "weekly" | "monthly" | "yearly";
 
-export const SellerStats: React.FC<SellerStatsProps> = ({
-  monthlyIncome = 0,
-  salesData = {
-    weekly: {
-      labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-      data: [1200, 1900, 1500, 2100, 1800, 2400, 2200],
-    },
-    monthly: {
-      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-      data: [15000, 18000, 22000, 19000, 25000, 28000, 32000, 30000, 35000, 38000, 42000, 45000],
-    },
-    yearly: {
-      labels: ["2020", "2021", "2022", "2023", "2024"],
-      data: [180000, 220000, 280000, 350000, 420000],
-    },
+const defaultSalesData = {
+  weekly: {
+    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    data: [0, 0, 0, 0, 0, 0, 0],
   },
+  monthly: {
+    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    data: Array(12).fill(0),
+  },
+  yearly: {
+    labels: ["2020", "2021", "2022", "2023", "2024"],
+    data: Array(5).fill(0),
+  },
+};
+
+export const SellerStats: React.FC<SellerStatsProps> = ({
+  totalRevenue = 0,
+  avgFeedback = 0,
+  reviewsCount = 0,
+  totalOrders = 0,
+  salesData,
 }) => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("monthly");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const resolvedSalesData = salesData ?? defaultSalesData;
+  const hasSalesData = Boolean(
+    salesData &&
+      Object.values(salesData).some((entry) => entry && entry.data && entry.data.some((value) => value > 0))
+  );
 
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat("en-US", {
@@ -46,7 +61,7 @@ export const SellerStats: React.FC<SellerStatsProps> = ({
   };
 
   const getChartOptions = (): ApexOptions => {
-    const currentData = salesData[timeFilter];
+    const currentData = resolvedSalesData[timeFilter];
     
     return {
       colors: ["#465fff"],
@@ -142,7 +157,7 @@ export const SellerStats: React.FC<SellerStatsProps> = ({
   };
 
   const getChartSeries = () => {
-    const currentData = salesData[timeFilter];
+    const currentData = resolvedSalesData[timeFilter];
     return [
       {
         name: "Sales",
@@ -178,7 +193,7 @@ export const SellerStats: React.FC<SellerStatsProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md border border-gray-200 dark:border-gray-800 p-6">
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
@@ -192,9 +207,9 @@ export const SellerStats: React.FC<SellerStatsProps> = ({
         
         {/* Income Display */}
         <div className="text-right">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total Income</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Total Revenue</p>
           <p className="text-2xl font-bold text-brand-500">
-            {formatCurrency(monthlyIncome)}
+            {formatCurrency(totalRevenue)}
           </p>
         </div>
       </div>
@@ -204,7 +219,6 @@ export const SellerStats: React.FC<SellerStatsProps> = ({
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
           {getFilterLabel(timeFilter)} Sales
         </h3>
-        
         <div className="relative">
           <button
             onClick={toggleDropdown}
@@ -213,7 +227,7 @@ export const SellerStats: React.FC<SellerStatsProps> = ({
             {getFilterLabel(timeFilter)}
             <ChevronDownIcon className="w-4 h-4" />
           </button>
-          
+
           <Dropdown
             isOpen={isDropdownOpen}
             onClose={closeDropdown}
@@ -243,43 +257,42 @@ export const SellerStats: React.FC<SellerStatsProps> = ({
 
       {/* Chart */}
       <div className="w-full">
-        <div className="max-w-full overflow-x-auto custom-scrollbar">
-          <div className="min-w-[600px] xl:min-w-full">
-            <Chart
-              options={getChartOptions()}
-              series={getChartSeries()}
-              type="bar"
-              height={280}
-            />
+        {hasSalesData ? (
+          <div className="max-w-full overflow-x-auto custom-scrollbar">
+            <div className="min-w-[600px] xl:min-w-full">
+              <Chart
+                options={getChartOptions()}
+                series={getChartSeries()}
+                type="bar"
+                height={280}
+              />
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center justify-center h-40 text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+            No sales trend data available yet.
+          </div>
+        )}
       </div>
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
         <div className="text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Average</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Average Rating</p>
           <p className="text-lg font-semibold text-gray-900 dark:text-white">
-            {formatCurrency(
-              Math.round(
-                (salesData[timeFilter]?.data.reduce((a, b) => a + b, 0) || 0) /
-                  (salesData[timeFilter]?.data.length || 1)
-              )
-            )}
+            {avgFeedback ? avgFeedback.toFixed(2) : "—"}
           </p>
         </div>
         <div className="text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Highest</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Reviews</p>
           <p className="text-lg font-semibold text-green-600 dark:text-green-400">
-            {formatCurrency(Math.max(...(salesData[timeFilter]?.data || [0])))}
+            {reviewsCount}
           </p>
         </div>
         <div className="text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Total</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Total Orders</p>
           <p className="text-lg font-semibold text-brand-500">
-            {formatCurrency(
-              salesData[timeFilter]?.data.reduce((a, b) => a + b, 0) || 0
-            )}
+            {totalOrders}
           </p>
         </div>
       </div>

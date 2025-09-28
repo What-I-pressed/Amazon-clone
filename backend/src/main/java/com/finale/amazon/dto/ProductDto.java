@@ -3,6 +3,8 @@ package com.finale.amazon.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.finale.amazon.entity.Review;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,6 +23,7 @@ public class ProductDto {
     private boolean hasDiscount;
     private LocalDateTime discountLaunchDate;
     private LocalDateTime discountExpirationDate;
+    private Double avgRating = 0.0;
     private long quantityInStock;
     private long quantitySold;
     private int reviewCount;
@@ -39,6 +42,7 @@ public class ProductDto {
     private List<PictureDto> pictures;
     private List<ReviewDto> reviews;
     private List<ProductVariationDto> variations;
+    private long views;
     
     public ProductDto(com.finale.amazon.entity.Product product) {
         this.id = product.getId();
@@ -52,6 +56,7 @@ public class ProductDto {
         this.quantityInStock = product.getQuantityInStock();
         this.quantitySold = product.getQuantitySold();
         this.sellerSlug = product.getSeller() != null ? product.getSeller().getSlug() : null;
+        views = product.getViews();
         
         
         if (this.priceWithoutDiscount > 0) {
@@ -62,10 +67,10 @@ public class ProductDto {
         
         LocalDateTime now = LocalDateTime.now();
         this.hasDiscount = this.discountLaunchDate != null && 
-                          this.discountExpirationDate != null &&
-                          now.isAfter(this.discountLaunchDate) && 
-                          now.isBefore(this.discountExpirationDate) &&
-                          this.price < this.priceWithoutDiscount;
+        this.discountExpirationDate != null &&
+        now.isAfter(this.discountLaunchDate) && 
+        now.isBefore(this.discountExpirationDate) &&
+        this.price < this.priceWithoutDiscount;
         
         if (product.getCategory() != null) {
             this.categoryName = product.getCategory().getName();
@@ -78,7 +83,7 @@ public class ProductDto {
         if (product.getCharacteristic() != null) {
             this.characteristicType = product.getCharacteristic().getName();
         }
-
+        
         if(product.getCharacteristics() != null){
             characteristics = product.getCharacteristics().stream().map(CharacteristicDto::new).toList();
         }
@@ -89,19 +94,17 @@ public class ProductDto {
         }
         
         if (product.getReviews() != null) {
+            this.reviews = product.getReviews().stream()
+                    .map(ReviewDto::new)
+                    .toList();
             this.reviewCount = product.getReviews().size();
+            avgRating = product.getAvgRating();
         } else {
             this.reviewCount = 0;
         }
         
         if (product.getPictures() != null) {
             pictures = product.getPictures().stream().map(PictureDto::new).toList();
-        }
-        
-        if (product.getReviews() != null) {
-            this.reviews = product.getReviews().stream()
-                    .map(ReviewDto::new)
-                    .toList();
         }
         
         if (product.getVariations() != null) {

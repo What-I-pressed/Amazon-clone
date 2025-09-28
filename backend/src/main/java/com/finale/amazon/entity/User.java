@@ -31,6 +31,12 @@ public class User {
     @Column(length = 256)
     private String username;
 
+    @Column(length = 128)
+    private String name;
+
+    @Column(length = 20, unique = true)
+    private String phone;
+
     @Column(length = 8192)
     private String description;
 
@@ -39,9 +45,6 @@ public class User {
 
     @Column(nullable = false)
     private boolean emailVerified = false;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private VerificationToken verificationToken;
 
     @ManyToOne
     @JoinTable(name = "user_role")
@@ -73,5 +76,8 @@ public class User {
 
     @Column(length = 256, unique = true)
     private String slug;
+
+    @Column(length = 512)
+    private String url;
 
 }
