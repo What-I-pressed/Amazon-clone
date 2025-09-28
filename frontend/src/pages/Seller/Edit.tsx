@@ -146,26 +146,6 @@ const SellerEditProfile = () => {
     }, 1000);
   };
 
-  const handleProductChange = (
-    id: string,
-    field: keyof Product,
-    value: string | number
-  ) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, [field]: value } : p))
-    );
-  };
-
-  const handleSaveProducts = async () => {
-    // TODO: implement save products API when available
-    if (!seller) return;
-    setSaving(true);
-    try {
-      setSeller({ ...seller });
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const handleSaveAddress = async () => {
     // TODO: implement address update API when available

@@ -51,12 +51,11 @@ const CustomerDashboard: React.FC = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold">{customer?.username || 'Покупець'}</h1>
-              <p className="text-gray-700">Рейтинг: {customer?.rating}/5 ⭐</p>
             </div>
           </div>
           <div className="flex space-x-3">
             <Link
-              to={`/customer/settings`}
+              to={`/customer/edit`}
               className="px-4 py-2 text-sm font-medium bg-gray-300 rounded-lg hover:bg-gray-400 transition"
             >
               Налаштування

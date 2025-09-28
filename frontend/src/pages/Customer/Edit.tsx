@@ -68,9 +68,9 @@ const CustomerEditProfile = () => {
     try {
       const updated = await updateCustomerProfile({
         username: `${firstName} ${surname}`.trim(),
-        email,
+        name: firstName.trim() || undefined,
+        description: customer.description,
         phone,
-        avatar,
       });
       setCustomer(updated);
     } catch (e: any) {
@@ -421,9 +421,6 @@ const CustomerEditProfile = () => {
                 <h2 className="text-lg font-semibold text-gray-900 mb-6">
                   Інформація про акаунт
                 </h2>
-                <p className="text-gray-600 mb-2">
-                  ID: <span className="font-mono">{customer.id}</span>
-                </p>
                 <p className="text-gray-600 mb-2">Email: {customer.email}</p>
                 <p className="text-gray-600 mb-2">
                   Телефон: {customer.phone || 'Не вказано'}
