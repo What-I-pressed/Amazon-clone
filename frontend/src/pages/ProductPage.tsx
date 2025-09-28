@@ -375,7 +375,11 @@ const ProductPage: React.FC = () => {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [lightboxOpen, images.length]);
 
-  if (loading) return <div className="p-6 text-center">Завантаження товару...</div>;
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#151515]"></div>
+    </div>
+  );
   if (error) return <div className="p-6 text-center text-red-600">{error}</div>;
   if (!product) return <div className="p-6 text-center">Товар не знайдено</div>;
 
