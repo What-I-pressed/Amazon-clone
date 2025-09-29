@@ -158,3 +158,63 @@ export async function deleteProduct(productId: number): Promise<void> {
     throw e;
   }
 }
+
+export type ProductFilterPayload = {
+  name?: string | null;
+  categoryId?: number | null;
+  subcategoryId?: number | null;
+  lowerPriceBound?: number | null;
+  upperPriceBound?: number | null;
+  sellerIds?: number[] | null;
+  slugs?: string[] | null;
+  characteristics?: Record<string, string> | null;
+};
+
+export type ProductPageResponse = {
+  content: Product[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+};
+
+const defaultFilterPayload: ProductFilterPayload = {
+  name: null,
+  categoryId: null,
+  subcategoryId: null,
+  lowerPriceBound: null,
+  upperPriceBound: null,
+  sellerIds: null,
+  slugs: null,
+  characteristics: null,
+};
+
+export async function fetchProductsPage(
+  page = 0,
+  size = 12,
+  filters: ProductFilterPayload = {}
+): Promise<ProductPageResponse> {
+  const payload: ProductFilterPayload = {
+    ...defaultFilterPayload,
+    ...filters,
+  };
+
+  try {
+    const res = await fetch(`${API_BASE}/page/${page}?size=${size}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to load products page");
+    }
+
+    return res.json();
+  } catch (error) {
+    console.error("[API] fetchProductsPage:", error);
+    throw error;
+  }
+}

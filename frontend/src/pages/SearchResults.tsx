@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, SlidersHorizontal, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,6 +6,9 @@ import { searchProductsWithFilter, type ProductFilterDto } from '../api/search';
 import ProductCard from './ProductCard';
 import type { Product } from '../types/product';
 import ProductFilters, { type ProductFiltersState } from '../components/filters/ProductFilters';
+import { fetchProductById } from '../api/products';
+import EditAdForm from '../components/EditAdForm';
+import { AuthContext } from '../context/AuthContext';
 
 const sortProducts = (items: Product[], sortField: ProductFiltersState['sortField'], sortDir: ProductFiltersState['sortDir']) => {
   if (!sortField || !sortDir) return items;
@@ -91,6 +94,11 @@ const SearchResults: React.FC = () => {
   const [hasMoreSearchPages, setHasMoreSearchPages] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [totalResults, setTotalResults] = useState<number | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [productBeingEdited, setProductBeingEdited] = useState<Product | null>(null);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const auth = useContext(AuthContext);
 
   const searchTerm = useMemo(() => query.get('query') || '', [query]);
   const subcategoryId = useMemo(() => {
@@ -98,6 +106,10 @@ const SearchResults: React.FC = () => {
     return val ? Number(val) : undefined;
   }, [query]);
   const categoryName = useMemo(() => query.get('category') || '', [query]);
+  const isAdmin = useMemo(() => {
+    const role = auth?.user?.roleName?.toUpperCase();
+    return role === 'ADMIN';
+  }, [auth?.user?.roleName]);
 
   type SortOption = {
     label: string;
@@ -226,6 +238,19 @@ const SearchResults: React.FC = () => {
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [sortMenuOpen]);
+
+  useEffect(() => {
+    if (!editModalOpen) {
+      return undefined;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [editModalOpen]);
 
   // Stable callback to prevent ProductFilters effect loops
   const handleFiltersChange = useCallback((next: ProductFiltersState) => {

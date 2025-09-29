@@ -62,6 +62,8 @@ import CustomerEditProfile from "./pages/Customer/Edit";
 
 // Admin
 import AdminOrdersDashboard from "./pages/Admin/Dashboard/Orders";
+import AdminProductsDashboard from "./pages/Admin/Dashboard/Products";
+import AdminEditProductPage from "./pages/Admin/Dashboard/EditProduct";
 
 export default function App() {
   useEffect(() => {
@@ -127,6 +129,8 @@ export default function App() {
         <Route path="/admin" element={<RequireAdmin />}>
           <Route element={<AppLayout />}>
             <Route index element={<AdminOrdersDashboard />} />
+            <Route path="products" element={<AdminProductsDashboard />} />
+            <Route path="products/:id/edit" element={<AdminEditProductPage />} />
             <Route path="profile" element={<UserProfiles />} />
             <Route path="calendar" element={<Calendar />} />
             <Route path="blank" element={<Blank />} />

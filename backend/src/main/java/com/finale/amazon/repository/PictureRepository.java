@@ -15,4 +15,7 @@ public interface PictureRepository extends JpaRepository<Picture, Long> {
 
     @Query("SELECT pic FROM Picture pic WHERE pic.product.id = :productId AND pic.pictureType.name = 'PRIMARY'")
     List<Picture> findMainPicture(@Param("productId")Long productId);
-} 
+
+    @Query("SELECT pic FROM Picture pic WHERE pic.product.id IN :productIds AND pic.pictureType.name = 'PRIMARY'")
+    List<Picture> findMainPictures(@Param("productIds") List<Long> productIds);
+}
